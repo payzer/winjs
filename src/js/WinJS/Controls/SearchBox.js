@@ -154,6 +154,7 @@ define([
                     this._buttonElement = _Global.document.createElement("div");
                     this._buttonElement.tabIndex = -1;
                     this._buttonElement.classList.add(ClassName.searchBoxButton);
+                    this._buttonElement.textContent = "\ue094";
                     this._buttonElement.addEventListener("click", this._buttonClickHandler.bind(this));
                     _ElementUtilities._addEventListener(this._buttonElement, "pointerdown", this._buttonPointerDownHandler.bind(this));
                     this.element.appendChild(this._buttonElement);
