@@ -55,7 +55,8 @@ var strings = {
     get ariaLabel() { return _Resources._getWinJSString("ui/commandingSurfaceAriaLabel").value; },
     get overflowButtonAriaLabel() { return _Resources._getWinJSString("ui/commandingSurfaceOverflowButtonAriaLabel").value; },
     get badData() { return "Invalid argument: The data property must an instance of a WinJS.Binding.List"; },
-    get mustContainCommands() { return "The commandingSurface can only contain WinJS.UI.Command or WinJS.UI.AppBarCommand controls"; }
+    get mustContainCommands() { return "The commandingSurface can only contain WinJS.UI.Command or WinJS.UI.AppBarCommand controls"; },
+    get duplicateConstruction() { return "Invalid argument: Controls may only be instantiated one time for each DOM element"; }
 };
 
 function diffElements(lhs: Array<HTMLElement>, rhs: Array<HTMLElement>): Array<HTMLElement> {
@@ -64,18 +65,30 @@ function diffElements(lhs: Array<HTMLElement>, rhs: Array<HTMLElement>): Array<H
     return lhs.filter((commandElement) => { return rhs.indexOf(commandElement) < 0 })
 }
 
-var closedDisplayModes = {
-    "none": "none",
-    "minimal": "minimal",
-    "compact": "compact",
-    "full": "full",
-}
+var ClosedDisplayMode = {
+    /// <field locid="WinJS.UI._CommandingSurface.ClosedDisplayMode.none" helpKeyword="WinJS.UI._CommandingSurface.ClosedDisplayMode.none">
+    /// When the _CommandingSurface is closed, the actionarea is not visible and doesn't take up any space.
+    /// </field>
+    none: "none",
+    /// <field locid="WinJS.UI._CommandingSurface.ClosedDisplayMode.minimal" helpKeyword="WinJS.UI._CommandingSurface.ClosedDisplayMode.minimal">
+    /// When the _CommandingSurface is closed, the height of the actionarea is reduced to the minimal height required to display only the actionarea overflowbutton. All other content in the actionarea is not displayed.
+    /// </field>
+    minimal: "minimal",
+    /// <field locid="WinJS.UI._CommandingSurface.ClosedDisplayMode.compact" helpKeyword="WinJS.UI._CommandingSurface.ClosedDisplayMode.compact">
+    /// When the _CommandingSurface is closed, the height of the actionarea is reduced such that button commands are still visible, but their labels are hidden.
+    /// </field>
+    compact: "compact",
+    /// <field locid="WinJS.UI._CommandingSurface.ClosedDisplayMode.full" helpKeyword="WinJS.UI._CommandingSurface.ClosedDisplayMode.full">
+    /// When the _CommandingSurface is closed, the height of the actionarea is always sized to content and does not change between opened and closed states.
+    /// </field>
+    full: "full",
+};
 
 var closedDisplayClassMap = {};
-closedDisplayClassMap[closedDisplayModes.none] = "win-commandingsurface-closeddisplaynone";
-closedDisplayClassMap[closedDisplayModes.minimal] = "win-commandingsurface-closeddisplayminimal";
-closedDisplayClassMap[closedDisplayModes.compact] = "win-commandingsurface-closeddisplaycompact";
-closedDisplayClassMap[closedDisplayModes.full] = "win-commandingsurface-closeddisplayfull";
+closedDisplayClassMap[ClosedDisplayMode.none] = "win-commandingsurface-closeddisplaynone";
+closedDisplayClassMap[ClosedDisplayMode.minimal] = "win-commandingsurface-closeddisplayminimal";
+closedDisplayClassMap[ClosedDisplayMode.compact] = "win-commandingsurface-closeddisplaycompact";
+closedDisplayClassMap[ClosedDisplayMode.full] = "win-commandingsurface-closeddisplayfull";
 
 /// <field>
 /// <summary locid="WinJS.UI._CommandingSurface">
@@ -118,6 +131,13 @@ export class _CommandingSurface {
     private _resizeHandlerBound: (ev: any) => any;
     private _dataChangedEvents = ["itemchanged", "iteminserted", "itemmoved", "itemremoved", "reload"];
 
+    /// <field locid="WinJS.UI._CommandingSurface.ClosedDisplayMode" helpKeyword="WinJS.UI._CommandingSurface.ClosedDisplayMode">
+    /// Display options for the actionarea when the _CommandingSurface is closed.
+    /// </field>
+    static ClosedDisplayMode = ClosedDisplayMode;
+
+    static supportedForProcessing: boolean = true;
+
     /// <field type="HTMLElement" domElement="true" hidden="true" locid="WinJS.UI._CommandingSurface.element" helpKeyword="WinJS.UI._CommandingSurface.element">
     /// Gets the DOM element that hosts the CommandingSurface.
     /// </field>
@@ -149,8 +169,8 @@ export class _CommandingSurface {
         this._dataUpdated();
     }
 
-    /// <field type="WinJS.Binding.List" locid="WinJS.UI._CommandingSurface.data" helpKeyword="WinJS.UI._CommandingSurface.data">
-    /// Gets or sets the Binding List of WinJS.UI.Command for the CommandingSurface.
+    /// <field type="String" locid="WinJS.UI._CommandingSurface.closedDisplayMode" helpKeyword="WinJS.UI._CommandingSurface.closedDisplayMode">
+    /// Gets or sets the closedDisplayMode for the CommandingSurface.
     /// </field>
     get closedDisplayMode() {
         return this._closedDisplayMode;
@@ -165,52 +185,6 @@ export class _CommandingSurface {
             this._onUpdateDom();
         }
     }
-
-    /// <field type="String" defaultValue="compact" locid="WinJS.UI.AppBar.closedDisplayMode" helpKeyword="WinJS.UI.AppBar.closedDisplayMode" isAdvanced="true">
-    /// Gets/Sets how AppBar will display itself while hidden. Values are "none", "minimal" and '"compact".
-    /// </field>
-    //closedDisplayMode: {
-    //    get: function AppBar_get_closedDisplayMode() {
-    //    return this._closedDisplayMode;
-    //                },
-    //    set: function AppBar_set_closedDisplayMode(value) {
-    //        var oldValue = this._closedDisplayMode;
-
-    //        if (oldValue !== value) {
-
-    //            // Determine if the visible position is changing. This can be used to determine if we need to delay updating closedDisplayMode related CSS classes
-    //            // to avoid affecting the animation.
-    //            var changeVisiblePosition = _ElementUtilities.hasClass(this._element, _Constants.hiddenClass) || _ElementUtilities.hasClass(this._element, _Constants.hidingClass);
-
-    //            if (value === closedDisplayModes.none) {
-    //                this._closedDisplayMode = closedDisplayModes.none;
-    //                if (!changeVisiblePosition || !oldValue) {
-    //                    _ElementUtilities.removeClass(this._element, _Constants.minimalClass);
-    //                    _ElementUtilities.removeClass(this._element, _Constants.compactClass);
-    //                }
-    //            } else if (value === closedDisplayModes.minimal) {
-    //                this._closedDisplayMode = closedDisplayModes.minimal;
-    //                if (!changeVisiblePosition || !oldValue || oldValue === closedDisplayModes.none) {
-    //                    _ElementUtilities.addClass(this._element, _Constants.minimalClass);
-    //                    _ElementUtilities.removeClass(this._element, _Constants.compactClass);
-    //                }
-    //            } else {
-    //                // Compact is default fallback.
-    //                this._closedDisplayMode = closedDisplayModes.compact;
-    //                _ElementUtilities.addClass(this._element, _Constants.compactClass);
-    //                _ElementUtilities.removeClass(this._element, _Constants.minimalClass);
-    //            }
-
-    //            // The invoke button has changed the amount of available space in the AppBar. Layout might need to scale.
-    //            this._layout.resize();
-
-    //            if (changeVisiblePosition) {
-    //                // If the value is being set while we are not showing, change to our new position.
-    //                this._changeVisiblePosition(displayModeVisiblePositions[this._closedDisplayMode]);
-    //            }
-    //        }
-    //    },
-    //},
 
     constructor(element?: HTMLElement, options: any = {}) {
         /// <signature helpKeyword="WinJS.UI._CommandingSurface._CommandingSurface">
@@ -945,8 +919,6 @@ export class _CommandingSurface {
             }
         }
     }
-
-    static supportedForProcessing: boolean = true;
 }
 
 // addEventListener, removeEventListener, dispatchEvent
