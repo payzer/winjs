@@ -286,96 +286,6 @@ export class _CommandingSurface {
         });
     }
 
-    //oldconstructor(element?: HTMLElement, options: any = {}) {
-    //    /// <signature helpKeyword="WinJS.UI._CommandingSurface._CommandingSurface">
-    //    /// <summary locid="WinJS.UI._CommandingSurface.constructor">
-    //    /// Creates a new CommandingSurface control.
-    //    /// </summary>
-    //    /// <param name="element" type="HTMLElement" domElement="true" locid="WinJS.UI._CommandingSurface.constructor_p:element">
-    //    /// The DOM element that will host the control.
-    //    /// </param>
-    //    /// <param name="options" type="Object" locid="WinJS.UI._CommandingSurface.constructor_p:options">
-    //    /// The set of properties and values to apply to the new CommandingSurface control.
-    //    /// </param>
-    //    /// <returns type="WinJS.UI._CommandingSurface" locid="WinJS.UI._CommandingSurface.constructor_returnValue">
-    //    /// The new CommandingSurface control.
-    //    /// </returns>
-    //    /// </signature>
-
-    //    // Make sure there's an element
-    //    this._dom.root = element || _Global.document.createElement("div");
-
-    //    //// Attaching JS control to DOM element
-    //    //this._dom.root["winControl"] = this;
-
-    //    //this._id = this._dom.root.id || _ElementUtilities._uniqueID(this._dom.root);
-    //    //this._writeProfilerMark("constructor,StartTM");
-
-    //    //if (!this._dom.root.hasAttribute("tabIndex")) {
-    //    //    this._dom.root.tabIndex = -1;
-    //    //}
-
-    //    //// Attach our css class.
-    //    //_ElementUtilities.addClass(this._dom.root, _Constants.controlCssClass);
-
-    //    //this._disposed = false;
-    //    //_ElementUtilities.addClass(this._dom.root, "win-disposable");
-
-    //    //// Make sure we have an ARIA role
-    //    //var role = this._dom.root.getAttribute("role");
-    //    //if (!role) {
-    //    //    this._dom.root.setAttribute("role", "menubar");
-    //    //}
-
-    //    //var label = this._dom.root.getAttribute("aria-label");
-    //    //if (!label) {
-    //    //    this._dom.root.setAttribute("aria-label", strings.ariaLabel);
-    //    //}
-
-    //    //this._contentCommandWidths = {};
-    //    //this._separatorWidth = 0;
-    //    //this._standardCommandWidth = 0;
-
-    //    //this._refreshBound = this._refresh.bind(this);
-
-    //    //this._setupTree();
-
-    //    //if (!options.data) {
-    //    //    // Shallow copy object so we can modify it.
-    //    //    options = _BaseUtils._shallowCopy(options);
-
-    //    //    // Set default
-    //    //    options.data = options.data || this._getDataFromDOMElements();
-    //    //}
-
-    //    //_Control.setOptions(this, options);
-
-    //    //this._resizeHandlerBound = this._resizeHandler.bind(this);
-    //    //_ElementUtilities._resizeNotifier.subscribe(this._dom.root, this._resizeHandlerBound);
-
-    //    var initiallyParented = _Global.document.body.contains(this._dom.root);
-    //    _ElementUtilities._addInsertedNotifier(this._dom.root);
-    //    if (initiallyParented) {
-    //        //this._measureCommands();
-    //        //this._positionCommands();
-    //    } else {
-    //        var nodeInsertedHandler = () => {
-    //            this._writeProfilerMark("_setupTree_WinJSNodeInserted:initiallyParented:" + initiallyParented + ",info");
-    //            this._dom.root.removeEventListener("WinJSNodeInserted", nodeInsertedHandler, false);
-    //            //this._measureCommands();
-    //            //this._positionCommands();
-    //        };
-    //        this._dom.root.addEventListener("WinJSNodeInserted", nodeInsertedHandler, false);
-    //    }
-
-    //    this._dom.root.addEventListener('keydown', this._keyDownHandler.bind(this));
-    //    this._winKeyboard = new _KeyboardBehavior._WinKeyboard(this._dom.root);
-
-    //    this._writeProfilerMark("constructor,StopTM");
-
-    //    return this;
-    //}
-
     dispose() {
         /// <signature helpKeyword="WinJS.UI._CommandingSurface.dispose">
         /// <summary locid="WinJS.UI._CommandingSurface.dispose">
@@ -477,43 +387,9 @@ export class _CommandingSurface {
     }
 
     private _onUpdateDom() {
-        for (var className in closedDisplayClassMap) {
-            _ElementUtilities.removeClass(this.element, className);
-        }
-    }
-
-    private _setupTree() {
-        this._writeProfilerMark("_setupTree,info");
-
-        this._primaryCommands = [];
-        this._secondaryCommands = [];
-
-        this._dom.actionArea = _Global.document.createElement("div");
-        _ElementUtilities.addClass(this._dom.actionArea, _Constants.actionAreaCssClass);
-        _ElementUtilities._reparentChildren(this.element, this._dom.actionArea);
-        this.element.appendChild(this._dom.actionArea);
-
-        this._dom.spacer = _Global.document.createElement("div");
-        _ElementUtilities.addClass(this._dom.spacer, _Constants.spacerCssClass);
-        this._dom.actionArea.appendChild(this._dom.spacer);
-
-        this._dom.overflowButton = _Global.document.createElement("button");
-        this._dom.overflowButton.tabIndex = 0;
-        this._dom.overflowButton.innerHTML = "<span class='" + _Constants.ellipsisCssClass + "'></span>";
-        _ElementUtilities.addClass(this._dom.overflowButton, _Constants.overflowButtonCssClass);
-        this._dom.actionArea.appendChild(this._dom.overflowButton);
-        this._dom.overflowButton.addEventListener("click", () => {
-            this._dom.overflowArea.style.display = (this._dom.overflowArea.style.display === "none") ? "block" : "none";
-        });
-        this._overflowButtonWidth = _ElementUtilities.getTotalWidth(this._dom.overflowButton);
-
-        if (!this._dom.overflowArea) {
-            this._dom.overflowArea = _Global.document.createElement("div");
-            this._dom.overflowArea.style.display = "none";
-            _ElementUtilities.addClass(this._dom.overflowArea, _Constants.overflowAreaCssClass);
-            _ElementUtilities.addClass(this._dom.overflowArea, _Constants.menuCssClass);
-            this.element.appendChild(this._dom.overflowArea);
-        }
+        //for (var className in closedDisplayClassMap) {
+        //    _ElementUtilities.removeClass(this.element, className);
+        //}
     }
 
     private _getFocusableElementsInfo(): IFocusableElementsInfo {
