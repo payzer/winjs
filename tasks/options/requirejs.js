@@ -121,6 +121,7 @@
         // this is to reconfigure onefile dependencies
         if (config.isStorePackage) {
             options.paths["WinJS/Utilities/_Telemetry"] = "./WinJS/Utilities/_TelemetryImpl";
+            options.paths["WinJS/Controls/IntrinsicControls"] = "./WinJS/Controls/IntrinsicControlsImpl";
         }
 
         // The modules build generates a require configuration with this
