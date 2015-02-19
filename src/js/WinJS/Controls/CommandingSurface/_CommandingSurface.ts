@@ -21,6 +21,8 @@ import _Resources = require("../../Core/_Resources");
 import Scheduler = require("../../Scheduler");
 import _CommandingSurfaceMenuCommand = require("../CommandingSurface/_MenuCommand");
 import _WriteProfilerMark = require("../../Core/_WriteProfilerMark");
+import _ShowHideMachine = require('../../Utilities/_ShowHideMachine');
+import Promise = require('../../Promise');
 
 require(["require-style!less/styles-commandingsurface"]);
 require(["require-style!less/colors-commandingsurface"]);
@@ -106,30 +108,36 @@ closedDisplayClassMap[ClosedDisplayMode.full] = "win-commandingsurface-closeddis
 export class _CommandingSurface {
     private _id: string;
     private _disposed: boolean;
-    private _overflowButton: HTMLButtonElement;
-    private _spacer: HTMLDivElement;
     private _separatorWidth: number;
     private _standardCommandWidth: number;
+    private _contentCommandWidths: { [uniqueID: string]: number };
     private _overflowButtonWidth: number;
-    private _element: HTMLElement;
     private _data: BindingList.List<_Command.ICommand>;
     private _closedDisplayMode: string;
     private _primaryCommands: _Command.ICommand[];
     private _secondaryCommands: _Command.ICommand[];
-    private _customContentContainer: HTMLElement;
-    private _mainActionArea: HTMLElement;
-    private _overflowArea: HTMLElement;
-    private _customContentFlyout: _Flyout.Flyout;
+    private _contentFlyoutInterior: HTMLElement;
+    private _contentFlyout: _Flyout.Flyout;
     private _chosenCommand: _Command.ICommand;
     private _measured = false;
-    private _customContentCommandsWidth: { [uniqueID: string]: number };
-    private _initializing = true;
+    private _initializingState = true;
     private _hoverable = _Hoverable.isHoverable; /* force dependency on hoverable module */
     private _winKeyboard: _KeyboardBehavior._WinKeyboard;
     private _refreshPending: boolean;
     private _refreshBound: Function;
     private _resizeHandlerBound: (ev: any) => any;
     private _dataChangedEvents = ["itemchanged", "iteminserted", "itemmoved", "itemremoved", "reload"];
+    private _machine: _ShowHideMachine.ShowHideMachine;
+    private _rtl = false;
+
+    // Dom elements
+    private _dom: {
+        root: HTMLElement;
+        actionArea: HTMLElement;
+        spacer: HTMLDivElement;
+        overflowButton: HTMLButtonElement;
+        overflowArea: HTMLElement;
+    };
 
     /// <field locid="WinJS.UI._CommandingSurface.ClosedDisplayMode" helpKeyword="WinJS.UI._CommandingSurface.ClosedDisplayMode">
     /// Display options for the actionarea when the _CommandingSurface is closed.
@@ -142,7 +150,7 @@ export class _CommandingSurface {
     /// Gets the DOM element that hosts the CommandingSurface.
     /// </field>
     get element() {
-        return this._element;
+        return this._dom.root;
     }
 
     /// <field type="WinJS.Binding.List" locid="WinJS.UI._CommandingSurface.data" helpKeyword="WinJS.UI._CommandingSurface.data">
@@ -202,44 +210,57 @@ export class _CommandingSurface {
         /// </returns>
         /// </signature>
 
-        // Make sure there's an element
-        this._element = element || _Global.document.createElement("div");
-
-        // Attaching JS control to DOM element
-        this._element["winControl"] = this;
-
-        this._id = this._element.id || _ElementUtilities._uniqueID(this._element);
         this._writeProfilerMark("constructor,StartTM");
 
-        if (!this._element.hasAttribute("tabIndex")) {
-            this._element.tabIndex = -1;
+        // Check to make sure we weren't duplicated
+        if (element && element["winControl"]) {
+            throw new _ErrorFromName("WinJS.UI._CommandingSurface.DuplicateConstruction", strings.duplicateConstruction);
         }
 
-        // Attach our css class.
-        _ElementUtilities.addClass(this._element, _Constants.controlCssClass);
+        this._initializeDom(element || _Global.document.createElement("div"));
+        this._machine = new _ShowHideMachine.ShowHideMachine({
+            eventElement: this._dom.root,
+            onShow: () => {
+                //this._cachedHiddenPaneThickness = null;
+                //var hiddenPaneThickness = this._getHiddenPaneThickness();
 
-        this._disposed = false;
-        _ElementUtilities.addClass(this._element, "win-disposable");
+                //this._isShownMode = true;
+                //this._updateDomImpl();
 
-        // Make sure we have an ARIA role
-        var role = this._element.getAttribute("role");
-        if (!role) {
-            this._element.setAttribute("role", "menubar");
-        }
+                //return this._playShowAnimation(hiddenPaneThickness);
+                return Promise.wrap();
+            },
+            onHide: () => {
+                //return this._playHideAnimation(this._getHiddenPaneThickness()).then(() => {
+                //    this._isShownMode = false;
+                //    this._updateDomImpl();
+                //});
 
-        var label = this._element.getAttribute("aria-label");
-        if (!label) {
-            this._element.setAttribute("aria-label", strings.ariaLabel);
-        }
+                return Promise.wrap();
+            },
+            onUpdateDom: () => {
+                //this._updateDomImpl();
+                return;
+            },
+            onUpdateDomWithIsShown: (isShown: boolean) => {
+                //this._isShownMode = isShown;
+                //this._updateDomImpl();
+                return;
+            }
+        });
 
-        this._customContentCommandsWidth = {};
+        // Initialize private state.
+        this._contentCommandWidths = {};
         this._separatorWidth = 0;
         this._standardCommandWidth = 0;
-
+        this._disposed = false;
+        this._primaryCommands = [];
+        this._secondaryCommands = [];
         this._refreshBound = this._refresh.bind(this);
-
-        this._setupTree();
-
+        this._resizeHandlerBound = this._resizeHandler.bind(this);
+        this._winKeyboard = new _KeyboardBehavior._WinKeyboard(this._dom.root);
+        
+        // Initialize public properties.
         if (!options.data) {
             // Shallow copy object so we can modify it.
             options = _BaseUtils._shallowCopy(options);
@@ -247,36 +268,113 @@ export class _CommandingSurface {
             // Set default
             options.data = options.data || this._getDataFromDOMElements();
         }
-
         _Control.setOptions(this, options);
 
-        this._resizeHandlerBound = this._resizeHandler.bind(this);
-        _ElementUtilities._resizeNotifier.subscribe(this._element, this._resizeHandlerBound);
+        this._initializingState = false;
 
-        var initiallyParented = _Global.document.body.contains(this._element);
-        _ElementUtilities._addInsertedNotifier(this._element);
-        if (initiallyParented) {
+        // Event handlers
+        _ElementUtilities._resizeNotifier.subscribe(this._dom.root, this._resizeHandlerBound);
+        this._dom.root.addEventListener('keydown', this._keyDownHandler.bind(this));
+
+        // Exit the Init state.
+        _ElementUtilities._inDom(this._dom.root).then(() => {
             this._measureCommands();
             this._positionCommands();
-        } else {
-            var nodeInsertedHandler = () => {
-                this._writeProfilerMark("_setupTree_WinJSNodeInserted:initiallyParented:" + initiallyParented + ",info");
-                this._element.removeEventListener("WinJSNodeInserted", nodeInsertedHandler, false);
-                this._measureCommands();
-                this._positionCommands();
-            };
-            this._element.addEventListener("WinJSNodeInserted", nodeInsertedHandler, false);
-        }
-
-        this.element.addEventListener('keydown', this._keyDownHandler.bind(this));
-        this._winKeyboard = new _KeyboardBehavior._WinKeyboard(this.element);
-
-        this._initializing = false;
-
-        this._writeProfilerMark("constructor,StopTM");
-
-        return this;
+            this._rtl = _Global.getComputedStyle(this._dom.root).direction === 'rtl';
+            this._machine.initialized();
+            this._writeProfilerMark("constructor,StopTM");
+        });
     }
+
+    //oldconstructor(element?: HTMLElement, options: any = {}) {
+    //    /// <signature helpKeyword="WinJS.UI._CommandingSurface._CommandingSurface">
+    //    /// <summary locid="WinJS.UI._CommandingSurface.constructor">
+    //    /// Creates a new CommandingSurface control.
+    //    /// </summary>
+    //    /// <param name="element" type="HTMLElement" domElement="true" locid="WinJS.UI._CommandingSurface.constructor_p:element">
+    //    /// The DOM element that will host the control.
+    //    /// </param>
+    //    /// <param name="options" type="Object" locid="WinJS.UI._CommandingSurface.constructor_p:options">
+    //    /// The set of properties and values to apply to the new CommandingSurface control.
+    //    /// </param>
+    //    /// <returns type="WinJS.UI._CommandingSurface" locid="WinJS.UI._CommandingSurface.constructor_returnValue">
+    //    /// The new CommandingSurface control.
+    //    /// </returns>
+    //    /// </signature>
+
+    //    // Make sure there's an element
+    //    this._dom.root = element || _Global.document.createElement("div");
+
+    //    //// Attaching JS control to DOM element
+    //    //this._dom.root["winControl"] = this;
+
+    //    //this._id = this._dom.root.id || _ElementUtilities._uniqueID(this._dom.root);
+    //    //this._writeProfilerMark("constructor,StartTM");
+
+    //    //if (!this._dom.root.hasAttribute("tabIndex")) {
+    //    //    this._dom.root.tabIndex = -1;
+    //    //}
+
+    //    //// Attach our css class.
+    //    //_ElementUtilities.addClass(this._dom.root, _Constants.controlCssClass);
+
+    //    //this._disposed = false;
+    //    //_ElementUtilities.addClass(this._dom.root, "win-disposable");
+
+    //    //// Make sure we have an ARIA role
+    //    //var role = this._dom.root.getAttribute("role");
+    //    //if (!role) {
+    //    //    this._dom.root.setAttribute("role", "menubar");
+    //    //}
+
+    //    //var label = this._dom.root.getAttribute("aria-label");
+    //    //if (!label) {
+    //    //    this._dom.root.setAttribute("aria-label", strings.ariaLabel);
+    //    //}
+
+    //    //this._contentCommandWidths = {};
+    //    //this._separatorWidth = 0;
+    //    //this._standardCommandWidth = 0;
+
+    //    //this._refreshBound = this._refresh.bind(this);
+
+    //    //this._setupTree();
+
+    //    //if (!options.data) {
+    //    //    // Shallow copy object so we can modify it.
+    //    //    options = _BaseUtils._shallowCopy(options);
+
+    //    //    // Set default
+    //    //    options.data = options.data || this._getDataFromDOMElements();
+    //    //}
+
+    //    //_Control.setOptions(this, options);
+
+    //    //this._resizeHandlerBound = this._resizeHandler.bind(this);
+    //    //_ElementUtilities._resizeNotifier.subscribe(this._dom.root, this._resizeHandlerBound);
+
+    //    var initiallyParented = _Global.document.body.contains(this._dom.root);
+    //    _ElementUtilities._addInsertedNotifier(this._dom.root);
+    //    if (initiallyParented) {
+    //        //this._measureCommands();
+    //        //this._positionCommands();
+    //    } else {
+    //        var nodeInsertedHandler = () => {
+    //            this._writeProfilerMark("_setupTree_WinJSNodeInserted:initiallyParented:" + initiallyParented + ",info");
+    //            this._dom.root.removeEventListener("WinJSNodeInserted", nodeInsertedHandler, false);
+    //            //this._measureCommands();
+    //            //this._positionCommands();
+    //        };
+    //        this._dom.root.addEventListener("WinJSNodeInserted", nodeInsertedHandler, false);
+    //    }
+
+    //    this._dom.root.addEventListener('keydown', this._keyDownHandler.bind(this));
+    //    this._winKeyboard = new _KeyboardBehavior._WinKeyboard(this._dom.root);
+
+    //    this._writeProfilerMark("constructor,StopTM");
+
+    //    return this;
+    //}
 
     dispose() {
         /// <signature helpKeyword="WinJS.UI._CommandingSurface.dispose">
@@ -288,11 +386,11 @@ export class _CommandingSurface {
             return;
         }
 
-        _ElementUtilities._resizeNotifier.unsubscribe(this._element, this._resizeHandlerBound);
+        _ElementUtilities._resizeNotifier.unsubscribe(this._dom.root, this._resizeHandlerBound);
 
-        if (this._customContentFlyout) {
-            this._customContentFlyout.dispose();
-            this._customContentFlyout.element.parentNode.removeChild(this._customContentFlyout.element);
+        if (this._contentFlyout) {
+            this._contentFlyout.dispose();
+            this._contentFlyout.element.parentNode.removeChild(this._contentFlyout.element);
         }
 
         _Dispose.disposeSubTree(this.element);
@@ -313,6 +411,71 @@ export class _CommandingSurface {
         _WriteProfilerMark("WinJS.UI._CommandingSurface:" + this._id + ":" + text);
     }
 
+    private _initializeDom(root: HTMLElement): void {
+
+        this._writeProfilerMark("_intializeDom,info");
+
+        // Attaching JS control to DOM element
+        root["winControl"] = this;
+
+        this._id = root.id || _ElementUtilities._uniqueID(root);
+        this._writeProfilerMark("constructor,StartTM");
+
+        if (!root.hasAttribute("tabIndex")) {
+            root.tabIndex = -1;
+        }
+
+        // Attach our css class.
+        _ElementUtilities.addClass(root, _Constants.controlCssClass);
+
+        this._disposed = false;
+        _ElementUtilities.addClass(root, "win-disposable");
+
+        // Make sure we have an ARIA role
+        var role = root.getAttribute("role");
+        if (!role) {
+            root.setAttribute("role", "menubar");
+        }
+
+        var label = root.getAttribute("aria-label");
+        if (!label) {
+            root.setAttribute("aria-label", strings.ariaLabel);
+        }
+
+        var actionArea = _Global.document.createElement("div");
+        _ElementUtilities.addClass(actionArea, _Constants.actionAreaCssClass);
+        _ElementUtilities._reparentChildren(root, actionArea);
+        root.appendChild(actionArea);
+
+        var spacer = _Global.document.createElement("div");
+        _ElementUtilities.addClass(spacer, _Constants.spacerCssClass);
+        actionArea.appendChild(spacer);
+
+        var overflowButton = _Global.document.createElement("button");
+        overflowButton.tabIndex = 0;
+        overflowButton.innerHTML = "<span class='" + _Constants.ellipsisCssClass + "'></span>";
+        _ElementUtilities.addClass(overflowButton, _Constants.overflowButtonCssClass);
+        actionArea.appendChild(overflowButton);
+        overflowButton.addEventListener("click", () => {
+            overflowArea.style.display = (overflowArea.style.display === "none") ? "block" : "none";
+        });
+        this._overflowButtonWidth = _ElementUtilities.getTotalWidth(overflowButton);
+
+        var overflowArea = _Global.document.createElement("div");
+        overflowArea.style.display = "none";
+        _ElementUtilities.addClass(overflowArea, _Constants.overflowAreaCssClass);
+        _ElementUtilities.addClass(overflowArea, _Constants.menuCssClass);
+        root.appendChild(overflowArea);
+
+        this._dom = {
+            root: root,
+            actionArea: actionArea,
+            spacer: spacer,
+            overflowButton: overflowButton,
+            overflowArea: overflowArea,
+        };
+    }
+
     private _onUpdateDom() {
         for (var className in closedDisplayClassMap) {
             _ElementUtilities.removeClass(this.element, className);
@@ -325,31 +488,31 @@ export class _CommandingSurface {
         this._primaryCommands = [];
         this._secondaryCommands = [];
 
-        this._mainActionArea = _Global.document.createElement("div");
-        _ElementUtilities.addClass(this._mainActionArea, _Constants.actionAreaCssClass);
-        _ElementUtilities._reparentChildren(this.element, this._mainActionArea);
-        this.element.appendChild(this._mainActionArea);
+        this._dom.actionArea = _Global.document.createElement("div");
+        _ElementUtilities.addClass(this._dom.actionArea, _Constants.actionAreaCssClass);
+        _ElementUtilities._reparentChildren(this.element, this._dom.actionArea);
+        this.element.appendChild(this._dom.actionArea);
 
-        this._spacer = _Global.document.createElement("div");
-        _ElementUtilities.addClass(this._spacer, _Constants.spacerCssClass);
-        this._mainActionArea.appendChild(this._spacer);
+        this._dom.spacer = _Global.document.createElement("div");
+        _ElementUtilities.addClass(this._dom.spacer, _Constants.spacerCssClass);
+        this._dom.actionArea.appendChild(this._dom.spacer);
 
-        this._overflowButton = _Global.document.createElement("button");
-        this._overflowButton.tabIndex = 0;
-        this._overflowButton.innerHTML = "<span class='" + _Constants.ellipsisCssClass + "'></span>";
-        _ElementUtilities.addClass(this._overflowButton, _Constants.overflowButtonCssClass);
-        this._mainActionArea.appendChild(this._overflowButton);
-        this._overflowButton.addEventListener("click", () => {
-            this._overflowArea.style.display = (this._overflowArea.style.display === "none") ? "block" : "none";
+        this._dom.overflowButton = _Global.document.createElement("button");
+        this._dom.overflowButton.tabIndex = 0;
+        this._dom.overflowButton.innerHTML = "<span class='" + _Constants.ellipsisCssClass + "'></span>";
+        _ElementUtilities.addClass(this._dom.overflowButton, _Constants.overflowButtonCssClass);
+        this._dom.actionArea.appendChild(this._dom.overflowButton);
+        this._dom.overflowButton.addEventListener("click", () => {
+            this._dom.overflowArea.style.display = (this._dom.overflowArea.style.display === "none") ? "block" : "none";
         });
-        this._overflowButtonWidth = _ElementUtilities.getTotalWidth(this._overflowButton);
+        this._overflowButtonWidth = _ElementUtilities.getTotalWidth(this._dom.overflowButton);
 
-        if (!this._overflowArea) {
-            this._overflowArea = _Global.document.createElement("div");
-            this._overflowArea.style.display = "none";
-            _ElementUtilities.addClass(this._overflowArea, _Constants.overflowAreaCssClass);
-            _ElementUtilities.addClass(this._overflowArea, _Constants.menuCssClass);
-            this.element.appendChild(this._overflowArea);
+        if (!this._dom.overflowArea) {
+            this._dom.overflowArea = _Global.document.createElement("div");
+            this._dom.overflowArea.style.display = "none";
+            _ElementUtilities.addClass(this._dom.overflowArea, _Constants.overflowAreaCssClass);
+            _ElementUtilities.addClass(this._dom.overflowArea, _Constants.menuCssClass);
+            this.element.appendChild(this._dom.overflowArea);
         }
     }
 
@@ -358,11 +521,11 @@ export class _CommandingSurface {
             elements: [],
             focusedIndex: -1
         };
-        var elementsInReach = Array.prototype.slice.call(this._mainActionArea.children);
+        var elementsInReach = Array.prototype.slice.call(this._dom.actionArea.children);
 
-        var elementsInReach = Array.prototype.slice.call(this._mainActionArea.children);
-        if (this._overflowArea.style.display !== "none") {
-            elementsInReach = elementsInReach.concat(Array.prototype.slice.call(this._overflowArea.children));
+        var elementsInReach = Array.prototype.slice.call(this._dom.actionArea.children);
+        if (this._dom.overflowArea.style.display !== "none") {
+            elementsInReach = elementsInReach.concat(Array.prototype.slice.call(this._dom.overflowArea.children));
         }
 
         elementsInReach.forEach((element: HTMLElement) => {
@@ -394,12 +557,12 @@ export class _CommandingSurface {
 
         // Add new elements in the right order.
         changeInfo.newElements.forEach((element) => {
-            this._mainActionArea.appendChild(element);
+            this._dom.actionArea.appendChild(element);
         });
 
-        if (this._overflowButton) {
-            // Ensure that the overflow button is the last element in the main action area
-            this._mainActionArea.appendChild(this._overflowButton);
+        if (this._dom.overflowButton) {
+            // Ensure that the overflow button is the last element in the ationarea
+            this._dom.actionArea.appendChild(this._dom.overflowButton);
         }
 
         this._primaryCommands = [];
@@ -415,7 +578,7 @@ export class _CommandingSurface {
                 }
             });
 
-            if (!this._initializing) {
+            if (!this._initializingState) {
                 this._measureCommands();
                 this._positionCommands();
             }
@@ -439,7 +602,7 @@ export class _CommandingSurface {
         var newHidden: HTMLElement[] = [];
         var newElements: HTMLElement[] = [];
 
-        Array.prototype.forEach.call(this._mainActionArea.querySelectorAll(".win-command"), (commandElement: HTMLElement) => {
+        Array.prototype.forEach.call(this._dom.actionArea.querySelectorAll(".win-command"), (commandElement: HTMLElement) => {
             if (commandElement.style.display !== "none") {
                 currentShown.push(commandElement);
             }
@@ -517,14 +680,14 @@ export class _CommandingSurface {
         return focusable;
     }
 
-    private _isMainActionCommand(element: HTMLElement) {
-        // Returns true if the element is a command in the main action area, false otherwise
-        return element && element["winControl"] && element.parentElement === this._mainActionArea;
+    private _isCommandInActionArea(element: HTMLElement) {
+        // Returns true if the element is a command in the actionarea, false otherwise
+        return element && element["winControl"] && element.parentElement === this._dom.actionArea;
     }
 
     private _getLastElementFocus(element: HTMLElement) {
-        if (this._isMainActionCommand(element)) {
-            // Only commands in the main action area support lastElementFocus
+        if (this._isCommandInActionArea(element)) {
+            // Only commands in the actionarea support lastElementFocus
             return element["winControl"].lastElementFocus;
         } else {
             return element;
@@ -532,8 +695,8 @@ export class _CommandingSurface {
     }
 
     private _getFirstElementFocus(element: HTMLElement) {
-        if (this._isMainActionCommand(element)) {
-            // Only commands in the main action area support firstElementFocus
+        if (this._isCommandInActionArea(element)) {
+            // Only commands in the actionarea support firstElementFocus
             return element["winControl"].firstElementFocus;
         } else {
             return element;
@@ -546,19 +709,18 @@ export class _CommandingSurface {
                 return;
             }
             var Key = _ElementUtilities.Key;
-            var rtl = _Global.getComputedStyle(this._element).direction === "rtl";
             var focusableElementsInfo = this._getFocusableElementsInfo();
             var targetCommand: HTMLElement;
 
             if (focusableElementsInfo.elements.length) {
                 switch (ev.keyCode) {
-                    case (rtl ? Key.rightArrow : Key.leftArrow):
+                    case (this._rtl ? Key.rightArrow : Key.leftArrow):
                     case Key.upArrow:
                         var index = Math.max(0, focusableElementsInfo.focusedIndex - 1);
                         targetCommand = this._getLastElementFocus(focusableElementsInfo.elements[index % focusableElementsInfo.elements.length]);
                         break;
 
-                    case (rtl ? Key.leftArrow : Key.rightArrow):
+                    case (this._rtl ? Key.leftArrow : Key.rightArrow):
                     case Key.downArrow:
                         var index = Math.min(focusableElementsInfo.focusedIndex + 1, focusableElementsInfo.elements.length - 1);
                         targetCommand = this._getFirstElementFocus(focusableElementsInfo.elements[index]);
@@ -586,16 +748,16 @@ export class _CommandingSurface {
     private _getDataFromDOMElements(): BindingList.List<_Command.ICommand> {
         this._writeProfilerMark("_getDataFromDOMElements,info");
 
-        ControlProcessor.processAll(this._mainActionArea, /*skip root*/ true);
+        ControlProcessor.processAll(this._dom.actionArea, /*skip root*/ true);
 
         var commands: _Command.ICommand[] = [];
-        var childrenLength = this._mainActionArea.children.length;
+        var childrenLength = this._dom.actionArea.children.length;
         var child: Element;
         for (var i = 0; i < childrenLength; i++) {
-            child = this._mainActionArea.children[i];
+            child = this._dom.actionArea.children[i];
             if (child["winControl"] && child["winControl"] instanceof _Command.AppBarCommand) {
                 commands.push(child["winControl"]);
-            } else if (!this._overflowButton) {
+            } else if (!this._dom.overflowButton) {
                 throw new _ErrorFromName("WinJS.UI._CommandingSurface.MustContainCommands", strings.mustContainCommands);
             }
         }
@@ -638,12 +800,12 @@ export class _CommandingSurface {
         return commands;
     }
 
-    private _getPrimaryCommandsLocation(mainActionWidth: number) {
+    private _getPrimaryCommandsLocation(actionAreaWidth: number) {
         this._writeProfilerMark("_getCommandsLocation,info");
 
-        var mainActionCommands: _Command.ICommand[] = [];
-        var overflowCommands: _Command.ICommand[] = [];
-        var spaceLeft = mainActionWidth;
+        var actionAreaCommands: _Command.ICommand[] = [];
+        var overflowAreaCommands: _Command.ICommand[] = [];
+        var spaceLeft = actionAreaWidth;
         var overflowButtonSpace = 0;
         var hasSecondaryCommands = this._secondaryCommands.length > 0;
 
@@ -653,7 +815,7 @@ export class _CommandingSurface {
         });
 
         var maxPriority = Number.MAX_VALUE;
-        var availableWidth = mainActionWidth;
+        var availableWidth = actionAreaWidth;
 
         for (var i = 0, len = sortedCommandsInfo.length; i < len; i++) {
             availableWidth -= sortedCommandsInfo[i].width;
@@ -669,21 +831,21 @@ export class _CommandingSurface {
 
         commandsInfo.forEach((commandInfo) => {
             if (commandInfo.priority <= maxPriority) {
-                mainActionCommands.push(commandInfo.command);
+                actionAreaCommands.push(commandInfo.command);
             } else {
-                overflowCommands.push(commandInfo.command);
+                overflowAreaCommands.push(commandInfo.command);
             }
         });
 
         return {
-            mainArea: mainActionCommands,
-            overflowArea: overflowCommands
+            actionArea: actionAreaCommands,
+            overflowArea: overflowAreaCommands
         }
     }
 
     private _getCommandWidth(command: _Command.ICommand): number {
         if (command.type === _Constants.typeContent) {
-            return this._customContentCommandsWidth[this._commandUniqueId(command)];
+            return this._contentCommandWidths[this._commandUniqueId(command)];
         } else if (command.type === _Constants.typeSeparator) {
             return this._separatorWidth;
         } else {
@@ -694,18 +856,18 @@ export class _CommandingSurface {
     private _measureCommands(skipIfMeasured: boolean = false) {
         this._writeProfilerMark("_measureCommands,info");
 
-        if (this._disposed || !_Global.document.body.contains(this._element) || this.element.offsetWidth === 0) {
+        if (this._disposed || !_Global.document.body.contains(this._dom.root) || this.element.offsetWidth === 0) {
             return;
         }
 
         if (!skipIfMeasured) {
-            this._customContentCommandsWidth = {};
+            this._contentCommandWidths = {};
             this._separatorWidth = 0;
             this._standardCommandWidth = 0;
         }
         this._primaryCommands.forEach((command) => {
             if (!command.element.parentElement) {
-                this._mainActionArea.appendChild(command.element);
+                this._dom.actionArea.appendChild(command.element);
             }
 
             // Ensure that the element we are measuring does not have display: none (e.g. it was just added, and it
@@ -713,8 +875,8 @@ export class _CommandingSurface {
             var originalDisplayStyle = command.element.style.display;
             command.element.style.display = "";
 
-            if (command.type === _Constants.typeContent && !this._customContentCommandsWidth[this._commandUniqueId(command)]) {
-                this._customContentCommandsWidth[this._commandUniqueId(command)] = _ElementUtilities.getTotalWidth(command.element);
+            if (command.type === _Constants.typeContent && !this._contentCommandWidths[this._commandUniqueId(command)]) {
+                this._contentCommandWidths[this._commandUniqueId(command)] = _ElementUtilities.getTotalWidth(command.element);
             } else if (command.type === _Constants.typeSeparator) {
                 if (!this._separatorWidth) {
                     this._separatorWidth = _ElementUtilities.getTotalWidth(command.element);
@@ -730,8 +892,8 @@ export class _CommandingSurface {
             command.element.style.display = originalDisplayStyle;
         });
 
-        if (this._overflowButton && !this._overflowButtonWidth) {
-            this._overflowButtonWidth = _ElementUtilities.getTotalWidth(this._overflowButton);
+        if (this._dom.overflowButton && !this._overflowButtonWidth) {
+            this._overflowButtonWidth = _ElementUtilities.getTotalWidth(this._dom.overflowButton);
         }
 
         this._measured = true;
@@ -745,29 +907,29 @@ export class _CommandingSurface {
             return;
         }
 
-        if (this._overflowButton) {
-            // Ensure that the overflow button is the last element in the main action area
-            this._mainActionArea.appendChild(this._overflowButton);
+        if (this._dom.overflowButton) {
+            // Ensure that the overflow button is the last element in the actionarea
+            this._dom.actionArea.appendChild(this._dom.overflowButton);
         }
 
         this._primaryCommands.forEach((command) => {
             command.element.style.display = (command.hidden ? "none" : "");
         })
 
-        var mainActionWidth = _ElementUtilities.getContentWidth(this.element);
+        var actionAreaWidth = _ElementUtilities.getContentWidth(this.element);
 
-        var commandsLocation = this._getPrimaryCommandsLocation(mainActionWidth);
+        var commandsLocation = this._getPrimaryCommandsLocation(actionAreaWidth);
 
-        this._hideSeparatorsIfNeeded(commandsLocation.mainArea);
+        this._hideSeparatorsIfNeeded(commandsLocation.actionArea);
 
-        // Primary commands that will be mirrored in the overflow area should be hidden so
-        // that they are not visible in the main action area.
+        // Primary commands that will be mirrored in the overflowarea should be hidden so
+        // that they are not visible in the actionarea.
         commandsLocation.overflowArea.forEach((command) => {
             command.element.style.display = "none";
         });
 
-        // The secondary commands in the the main action area should be hidden since they are always
-        // mirrored as new elements in the overflow area.
+        // The secondary commands in the the actionarea should be hidden since they are always
+        // mirrored as new elements in the overflowarea.
         this._secondaryCommands.forEach((command) => {
             command.element.style.display = "none";
         });
@@ -806,7 +968,7 @@ export class _CommandingSurface {
             if (!menuCommand.label) {
                 menuCommand.label = _Constants.contentMenuCommandDefaultLabel;
             }
-            menuCommand.flyout = this._customContentFlyout;
+            menuCommand.flyout = this._contentFlyout;
         } else {
             menuCommand.onclick = command.onclick;
         }
@@ -817,33 +979,32 @@ export class _CommandingSurface {
     private _setupOverflowArea(additionalCommands: _Command.AppBarCommand[]) {
         this._writeProfilerMark("_setupOverflowArea,info");
 
-        // Set up custom flyout for "content" typed commands in the overflow area. 
+        // Set up custom flyout for "content" typed commands in the overflowarea. 
         var isCustomContent = (command: _Command.ICommand) => { return command.type === _Constants.typeContent };
         var hasCustomContent = additionalCommands.some(isCustomContent) || this._secondaryCommands.some(isCustomContent);
 
-        if (hasCustomContent && !this._customContentFlyout) {
-            var mainFlyout = _Global.document.createElement("div");
-            this._customContentContainer = _Global.document.createElement("div");
-            _ElementUtilities.addClass(this._customContentContainer, _Constants.overflowContentFlyoutCssClass);
-            mainFlyout.appendChild(this._customContentContainer);
-            this._customContentFlyout = new _Flyout.Flyout(mainFlyout);
-            _Global.document.body.appendChild(this._customContentFlyout.element);
-            this._customContentFlyout.onbeforeshow = () => {
-                _ElementUtilities.empty(this._customContentContainer);
-                _ElementUtilities._reparentChildren(this._chosenCommand.element, this._customContentContainer);
+        if (hasCustomContent && !this._contentFlyout) {
+            this._contentFlyoutInterior = _Global.document.createElement("div");
+            _ElementUtilities.addClass(this._contentFlyoutInterior, _Constants.overflowContentFlyoutCssClass);
+            this._contentFlyout = new _Flyout.Flyout();
+            this._contentFlyout.element.appendChild(this._contentFlyoutInterior);
+            _Global.document.body.appendChild(this._contentFlyout.element);
+            this._contentFlyout.onbeforeshow = () => {
+                _ElementUtilities.empty(this._contentFlyoutInterior);
+                _ElementUtilities._reparentChildren(this._chosenCommand.element, this._contentFlyoutInterior);
 
             };
-            this._customContentFlyout.onafterhide = () => {
-                _ElementUtilities._reparentChildren(this._customContentContainer, this._chosenCommand.element);
+            this._contentFlyout.onafterhide = () => {
+                _ElementUtilities._reparentChildren(this._contentFlyoutInterior, this._chosenCommand.element);
             };
         }
 
         var showOverflowButton = (additionalCommands.length > 0 || this._secondaryCommands.length > 0);
-        this._overflowButton.style.display = showOverflowButton ? "" : "none";
+        this._dom.overflowButton.style.display = showOverflowButton ? "" : "none";
 
 
         // Populate the overflowArea with MenuCommands
-        _ElementUtilities.empty(this._overflowArea);
+        _ElementUtilities.empty(this._dom.overflowArea);
         var hasToggleCommands = false,
             hasFlyoutCommands = false,
             menuCommands: _MenuCommand.MenuCommand[] = [];
@@ -888,11 +1049,11 @@ export class _CommandingSurface {
 
         this._hideSeparatorsIfNeeded(menuCommands);
         menuCommands.forEach((command) => {
-            this._overflowArea.appendChild(command.element);
+            this._dom.overflowArea.appendChild(command.element);
         })
 
-        _ElementUtilities[hasToggleCommands ? "addClass" : "removeClass"](this._overflowArea, _Constants.menuContainsToggleCommandClass);
-        _ElementUtilities[hasFlyoutCommands ? "addClass" : "removeClass"](this._overflowArea, _Constants.menuContainsFlyoutCommandClass);
+        _ElementUtilities[hasToggleCommands ? "addClass" : "removeClass"](this._dom.overflowArea, _Constants.menuContainsToggleCommandClass);
+        _ElementUtilities[hasFlyoutCommands ? "addClass" : "removeClass"](this._dom.overflowArea, _Constants.menuContainsFlyoutCommandClass);
     }
 
     private _hideSeparatorsIfNeeded(commands: ICommandWithType[]): void {

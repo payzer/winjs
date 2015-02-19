@@ -46,8 +46,8 @@ module Helper._CommandingSurface {
         }
     }
 
-    export function verifyMainActionVisibleCommandsLabels(commandingSurface: WinJS.UI._CommandingSurface, labels: string[]) {
-        var commands = getVisibleCommandsInElement((<WinJS.UI.PrivateCommandingSurface>commandingSurface.element.winControl)._mainActionArea);
+    export function verifyActionAreaVisibleCommandsLabels(commandingSurface: WinJS.UI._CommandingSurface, labels: string[]) {
+        var commands = getVisibleCommandsInElement((<WinJS.UI.PrivateCommandingSurface>commandingSurface.element.winControl)._dom.actionArea);
         LiveUnit.Assert.areEqual(labels.length, commands.length);
         labels.forEach((label, index) => {
             LiveUnit.Assert.areEqual(label, commands[index].winControl.label);
@@ -56,7 +56,7 @@ module Helper._CommandingSurface {
 
     export function verifyOverflowAreaCommandsLabels(commandingSurface: WinJS.UI._CommandingSurface, labels: string[]) {
         var control = <WinJS.UI.PrivateCommandingSurface>commandingSurface.element.winControl;
-        var commands = getVisibleCommandsInElement(control._overflowArea);
+        var commands = getVisibleCommandsInElement(control._dom.overflowArea);
         LiveUnit.Assert.areEqual(labels.length, commands.length);
         labels.forEach((label, index) => {
             LiveUnit.Assert.areEqual(label, commands[index].winControl.label);
