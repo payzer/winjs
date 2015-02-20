@@ -1,13 +1,11 @@
 // Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved. Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 .win-commandingsurface {
-    width: auto;
-    display: inline-block;
+    width: 100%;
     outline: none;
     min-width: 68px; /* enough for one primary command */
-
     .win-commandingsurface-actionarea {
-        width: auto;
+        width: 100%;
         min-height: 24px;
         vertical-align: top;
         #flex > .display-inline-flex();
@@ -18,11 +16,44 @@
             visibility: hidden;
             height: 48px; /* height of a primary command with no label */
             width: 0px;
+            display: none;
         }
 
         .win-command,
         .win-commandingsurface-overflowbutton {
             #flex > .flex(@grow: 0; @shrink: 0);
+        }
+
+        .win-commandingsurface-overflowbutton {
+            width: 32px; /* 30px + 2px border */
+            margin: 0px;
+            padding: 0px;
+            border: 1px dotted;
+            min-width: 0px;
+            min-height: 0px;
+            /*position: relative;*/
+            outline: none;
+            #flex > .align-self(stretch);
+            box-sizing: border-box;
+            background-clip: border-box;
+
+            .win-commandingsurface-ellipsis {
+                /*width: 32px;*/
+                /*right: 0px;
+                top: 12px;
+                line-height: 24px;
+                position: absolute;*/
+                /*display: inline-block;*/
+                font-size: 16px;
+                /*text-align: center;*/
+                /*vertical-align: top;*/
+                font-family: "Segoe UI Symbol", "Symbols";
+
+                &::before {
+                    content: "\E10C";
+                    /*position: relative;*/
+                }
+            }
         }
     }
 
@@ -40,56 +71,20 @@
 
     &.win-commandingsurface-closeddisplayminimal .win-commandingsurface-actionarea {
         min-height: 24px;
-        
-        .win-commandingsurface-spacer {
-            visibility: hidden;
-            height: 24px; /* height of a primary command with no label */
-            width: 0px;
-        }
 
-        .win-command {
+        .win-command, .win-commandingsurface-spacer {
             display: none;
         }
     }
 
     &.win-commandingsurface-closeddisplaynone .win-commandingsurface-actionarea {
+        min-height: 0px;
         display: none;
     }
 
     &.win-commandingsurface-empty {
         .win-commandingsurface-overflowbutton {
             display: none;
-        }
-    }
-
-    .win-commandingsurface-overflowbutton {
-        width: 32px; /* 30px + 2px border */
-        margin: 0px;
-        padding: 0px;
-        border: 1px dotted;
-        min-width: 0px;
-        min-height: 24px;
-        position: relative;
-        outline: none;
-        #flex > .align-self(stretch);
-        box-sizing: border-box;
-        background-clip: border-box;
-
-        .win-commandingsurface-ellipsis {
-            width: 32px;
-            right: 0px;
-            top: 12px;
-            line-height: 24px;
-            position: absolute;
-            display: inline-block;
-            font-size: 14px;
-            text-align: center;
-            font-family: "Segoe UI Symbol", "Symbols";
-
-            &::before {
-                content: "\E10C";
-                position: relative;
-            }
         }
     }
 
