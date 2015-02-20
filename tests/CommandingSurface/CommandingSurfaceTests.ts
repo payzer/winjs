@@ -1079,7 +1079,9 @@ module CorsicaTests {
             Helper._CommandingSurface.verifyOverflowAreaCommandsLabels(commandingSurface, ["opt 4"]);
         }
 
-        testClosedDisplayModes() { }
+        testClosedDisplayModes() {
+
+        }
     }
 }
 LiveUnit.registerTestClass("CorsicaTests.CommandingSurfaceTests");

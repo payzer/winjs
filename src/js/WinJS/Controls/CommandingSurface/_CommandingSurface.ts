@@ -22,6 +22,7 @@ import Scheduler = require("../../Scheduler");
 import _CommandingSurfaceMenuCommand = require("../CommandingSurface/_MenuCommand");
 import _WriteProfilerMark = require("../../Core/_WriteProfilerMark");
 import _ShowHideMachine = require('../../Utilities/_ShowHideMachine');
+import _Events = require('../../Core/_Events');
 import Promise = require('../../Promise');
 
 require(["require-style!less/styles-commandingsurface"]);
@@ -61,11 +62,13 @@ var strings = {
     get duplicateConstruction() { return "Invalid argument: Controls may only be instantiated one time for each DOM element"; }
 };
 
-function diffElements(lhs: Array<HTMLElement>, rhs: Array<HTMLElement>): Array<HTMLElement> {
-    // Subtract array rhs from array lhs.
-    // Returns a new Array containing the subset of elements in lhs that are not also in rhs.
-    return lhs.filter((commandElement) => { return rhs.indexOf(commandElement) < 0 })
-}
+
+var EventNames = {
+    beforeOpen: "beforeopen",
+    afterOpen: "afteropen",
+    beforeClose: "beforeclose",
+    afterClose: "afterclose"
+};
 
 var ClosedDisplayMode = {
     /// <field locid="WinJS.UI._CommandingSurface.ClosedDisplayMode.none" helpKeyword="WinJS.UI._CommandingSurface.ClosedDisplayMode.none">
@@ -86,11 +89,25 @@ var ClosedDisplayMode = {
     full: "full",
 };
 
-var closedDisplayClassMap = {};
-closedDisplayClassMap[ClosedDisplayMode.none] = "win-commandingsurface-closeddisplaynone";
-closedDisplayClassMap[ClosedDisplayMode.minimal] = "win-commandingsurface-closeddisplayminimal";
-closedDisplayClassMap[ClosedDisplayMode.compact] = "win-commandingsurface-closeddisplaycompact";
-closedDisplayClassMap[ClosedDisplayMode.full] = "win-commandingsurface-closeddisplayfull";
+var closedDisplayModeClassMap = {};
+closedDisplayModeClassMap[ClosedDisplayMode.none] = "win-commandingsurface-closeddisplaynone";
+closedDisplayModeClassMap[ClosedDisplayMode.minimal] = "win-commandingsurface-closeddisplayminimal";
+closedDisplayModeClassMap[ClosedDisplayMode.compact] = "win-commandingsurface-closeddisplaycompact";
+closedDisplayModeClassMap[ClosedDisplayMode.full] = "win-commandingsurface-closeddisplayfull";
+
+// Versions of add/removeClass that are no ops when called with falsy class names.
+function addClass(element: HTMLElement, className: string): void {
+    className && _ElementUtilities.addClass(element, className);
+}
+function removeClass(element: HTMLElement, className: string): void {
+    className && _ElementUtilities.removeClass(element, className);
+}
+
+function diffElements(lhs: Array<HTMLElement>, rhs: Array<HTMLElement>): Array<HTMLElement> {
+    // Subtract array rhs from array lhs.
+    // Returns a new Array containing the subset of elements in lhs that are not also in rhs.
+    return lhs.filter((commandElement) => { return rhs.indexOf(commandElement) < 0 })
+}
 
 /// <field>
 /// <summary locid="WinJS.UI._CommandingSurface">
@@ -186,11 +203,14 @@ export class _CommandingSurface {
     set closedDisplayMode(value: string) {
         this._writeProfilerMark("set_closedDisplayMode,info");
 
-        var isChangingState = (value === this._closedDisplayMode);
+        if (ClosedDisplayMode[value]) {
 
-        if (isChangingState) {
-            this._closedDisplayMode = value;
-            this._onUpdateDom();
+            var isChangingState = (value !== this._closedDisplayMode);
+
+            if (isChangingState) {
+                this._closedDisplayMode = value;
+                this._machine.updateDom();
+            }
         }
     }
 
@@ -239,13 +259,11 @@ export class _CommandingSurface {
                 return Promise.wrap();
             },
             onUpdateDom: () => {
-                //this._updateDomImpl();
-                return;
+                this._updateDomImpl();
             },
             onUpdateDomWithIsShown: (isShown: boolean) => {
                 //this._isShownMode = isShown;
-                //this._updateDomImpl();
-                return;
+                this._updateDomImpl();
             }
         });
 
@@ -259,8 +277,9 @@ export class _CommandingSurface {
         this._refreshBound = this._refresh.bind(this);
         this._resizeHandlerBound = this._resizeHandler.bind(this);
         this._winKeyboard = new _KeyboardBehavior._WinKeyboard(this._dom.root);
-        
+
         // Initialize public properties.
+        this.closedDisplayMode = ClosedDisplayMode.compact;
         if (!options.data) {
             // Shallow copy object so we can modify it.
             options = _BaseUtils._shallowCopy(options);
@@ -386,11 +405,22 @@ export class _CommandingSurface {
         };
     }
 
-    private _onUpdateDom() {
-        //for (var className in closedDisplayClassMap) {
-        //    _ElementUtilities.removeClass(this.element, className);
-        //}
+    private _updateDomImpl_rendered = {
+        closedDisplayMode: <string>undefined,
+        isShownMode: <boolean>undefined,
+    };
+    private _updateDomImpl(): void {
+        var rendered = this._updateDomImpl_rendered;
+
+        if (rendered.closedDisplayMode !== this.closedDisplayMode) {
+            removeClass(this._dom.root, closedDisplayModeClassMap[rendered.closedDisplayMode]);
+            addClass(this._dom.root, closedDisplayModeClassMap[this.closedDisplayMode]);
+            rendered.closedDisplayMode = this.closedDisplayMode;
+        }
+
     }
+
+
 
     private _getFocusableElementsInfo(): IFocusableElementsInfo {
         var focusableCommandsInfo: IFocusableElementsInfo = {
@@ -957,6 +987,13 @@ export class _CommandingSurface {
         }
     }
 }
+
+_Base.Class.mix(_CommandingSurface, _Events.createEventProperties(
+    EventNames.beforeOpen,
+    EventNames.afterOpen,
+    EventNames.beforeClose,
+    EventNames.afterClose
+    ));
 
 // addEventListener, removeEventListener, dispatchEvent
 _Base.Class.mix(_CommandingSurface, _Control.DOMEventMixin);
