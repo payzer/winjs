@@ -14,9 +14,8 @@
 
         .win-commandingsurface-spacer {
             visibility: hidden;
-            height: 48px; /* height of a primary command with no label */
+            min-height: 48px; /* height of a primary command with no label */
             width: 0px;
-            display: none;
         }
 
         .win-command,
@@ -28,30 +27,21 @@
             width: 32px; /* 30px + 2px border */
             margin: 0px;
             padding: 0px;
-            border: 1px dotted;
+            border-width: 1px; 
+            border-style: dotted;
             min-width: 0px;
             min-height: 0px;
-            /*position: relative;*/
             outline: none;
             #flex > .align-self(stretch);
             box-sizing: border-box;
             background-clip: border-box;
 
             .win-commandingsurface-ellipsis {
-                /*width: 32px;*/
-                /*right: 0px;
-                top: 12px;
-                line-height: 24px;
-                position: absolute;*/
-                /*display: inline-block;*/
                 font-size: 16px;
-                /*text-align: center;*/
-                /*vertical-align: top;*/
                 font-family: "Segoe UI Symbol", "Symbols";
 
                 &::before {
                     content: "\E10C";
-                    /*position: relative;*/
                 }
             }
         }
