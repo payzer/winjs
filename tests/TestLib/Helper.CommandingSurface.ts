@@ -21,6 +21,9 @@ module Helper._CommandingSurface {
         overflowCommandHeight: 44,
         overflowSeparatorHeight: 12,
         commandingSurfaceMinWidth: 68,
+
+        heightOfMinimal: 24,
+        heightOfCompact: 48,
     }
 
     export function getVisibleCommandsInElement(element: HTMLElement) {

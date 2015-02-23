@@ -8,7 +8,7 @@
 /// <reference path="../TestLib/winjs.dev.d.ts" />
 
 module CorsicaTests {
-    var CommandingSurface = <typeof WinJS.UI.PrivateCommandingSurface> WinJS.UI._CommandingSurface;
+    var _CommandingSurface = <typeof WinJS.UI.PrivateCommandingSurface> WinJS.UI._CommandingSurface;
     var Command = <typeof WinJS.UI.PrivateCommand> WinJS.UI.AppBarCommand;
     var Util = WinJS.Utilities;
     var _Constants;
@@ -17,7 +17,7 @@ module CorsicaTests {
         _Constants = constants;
     })
 
-    export class CommandingSurfaceTests {
+    export class _CommandingSurfaceTests {
         "use strict";
 
         _element: HTMLElement;
@@ -40,7 +40,7 @@ module CorsicaTests {
         }
 
         testConstruction() {
-            var commandingSurface = new CommandingSurface(this._element);
+            var commandingSurface = new _CommandingSurface(this._element);
             LiveUnit.Assert.isTrue(Util.hasClass(commandingSurface.element, Helper._CommandingSurface.Constants.controlCssClass), "CommandingSurface missing control css class");
             LiveUnit.Assert.isTrue(Util.hasClass(commandingSurface.element, Helper._CommandingSurface.Constants.disposableCssClass), "CommandingSurface missing disposable css class");
         }
@@ -51,7 +51,7 @@ module CorsicaTests {
                 new Command(null, { type: Helper._CommandingSurface.Constants.typeButton, label: "opt 1" }),
                 new Command(null, { type: Helper._CommandingSurface.Constants.typeButton, label: "opt 2" })
             ]);
-            var commandingSurface = new CommandingSurface(null, {
+            var commandingSurface = new _CommandingSurface(null, {
                 data: data
             });
             var insertedHandler = function () {
@@ -68,16 +68,16 @@ module CorsicaTests {
 
         testElementProperty() {
             var el = document.createElement("div");
-            var commandingSurface = new CommandingSurface(el);
+            var commandingSurface = new _CommandingSurface(el);
             LiveUnit.Assert.areEqual(Util._uniqueID(el), Util._uniqueID(commandingSurface.element), "The element passed in the constructor should be the commandingSurface element");
 
-            commandingSurface = new CommandingSurface();
+            commandingSurface = new _CommandingSurface();
             LiveUnit.Assert.isNotNull(commandingSurface.element, "An element should be created when one is not passed to the constructor");
         }
 
         testDataProperty() {
             // Verify default (empty)
-            var commandingSurface = new CommandingSurface();
+            var commandingSurface = new _CommandingSurface();
             LiveUnit.Assert.areEqual(0, commandingSurface.data.length, "Empty list view should have data with length 0");
             LiveUnit.Assert.isTrue(Util.hasClass(commandingSurface.element, Helper._CommandingSurface.Constants.emptyCommandingSurfaceCssClass), "Empty commandingSurface css class that is not present");
 
@@ -109,7 +109,7 @@ module CorsicaTests {
             var child = document.createElement("table");
             el.appendChild(child);
             try {
-                new CommandingSurface(el);
+                new _CommandingSurface(el);
             } catch (e) {
                 LiveUnit.Assert.areEqual("WinJS.UI._CommandingSurface.MustContainCommands", e.name, "Toobar should have thrown MustContainCommands exception");
             }
@@ -122,13 +122,13 @@ module CorsicaTests {
                 commandEl.setAttribute("data-win-control", Helper._CommandingSurface.Constants.commandType);
                 el.appendChild(commandEl);
             }
-            commandingSurface = new CommandingSurface(el);
+            commandingSurface = new _CommandingSurface(el);
             LiveUnit.Assert.areEqual(numberOfCommands, commandingSurface.data.length, "CommandingSurface data has an invalid length");
             LiveUnit.Assert.isFalse(Util.hasClass(commandingSurface.element, Helper._CommandingSurface.Constants.emptyCommandingSurfaceCssClass), "Empty commandingSurface css class should not be present");
         }
 
         testCommandingSurfaceDispose() {
-            var commandingSurface = new CommandingSurface();
+            var commandingSurface = new _CommandingSurface();
             LiveUnit.Assert.isTrue(commandingSurface.dispose);
             LiveUnit.Assert.isFalse(commandingSurface._disposed);
 
@@ -151,22 +151,22 @@ module CorsicaTests {
         }
 
         testVerifyDefaultTabIndex() {
-            var commandingSurface = new CommandingSurface();
+            var commandingSurface = new _CommandingSurface();
             LiveUnit.Assert.areEqual("-1", commandingSurface.element.getAttribute("tabIndex"), "CommandingSurface should've assigned a default tabIndex");
 
             var el = document.createElement("div");
             el.setAttribute("tabIndex", "4");
-            commandingSurface = new CommandingSurface(el);
+            commandingSurface = new _CommandingSurface(el);
             LiveUnit.Assert.areEqual("4", commandingSurface.element.getAttribute("tabIndex"), "CommandingSurface should have not assigned a default tabIndex");
         }
 
         testAria() {
-            var commandingSurface = new CommandingSurface();
+            var commandingSurface = new _CommandingSurface();
             LiveUnit.Assert.areEqual("menubar", commandingSurface.element.getAttribute("role"), "Missing default aria role");
             LiveUnit.Assert.areEqual("CommandingSurface", commandingSurface.element.getAttribute("aria-label"), "Missing default aria label");
 
             var el = document.createElement("div");
-            commandingSurface = new CommandingSurface(el);
+            commandingSurface = new _CommandingSurface(el);
             el.setAttribute("role", "list");
             el.setAttribute("aria-label", "myList");
             LiveUnit.Assert.areEqual("list", commandingSurface.element.getAttribute("role"), "CommandingSurface should have not set a default aria role");
@@ -179,7 +179,7 @@ module CorsicaTests {
                 new Command(null, { type: Helper._CommandingSurface.Constants.typeButton, label: "opt 1" }),
                 new Command(null, { type: Helper._CommandingSurface.Constants.typeButton, label: "opt 2" })
             ]);
-            var commandingSurface = new CommandingSurface(this._element, {
+            var commandingSurface = new _CommandingSurface(this._element, {
                 data: data
             });
 
@@ -195,7 +195,7 @@ module CorsicaTests {
                 new Command(null, { type: Helper._CommandingSurface.Constants.typeButton, label: "opt 2", section: Helper._CommandingSurface.Constants.secondaryCommandSection })
             ]);
 
-            var commandingSurface = new CommandingSurface(this._element, {
+            var commandingSurface = new _CommandingSurface(this._element, {
                 data: data
             });
 
@@ -211,7 +211,7 @@ module CorsicaTests {
                 new Command(null, { type: Helper._CommandingSurface.Constants.typeButton, label: "opt 1" }),
                 new Command(null, { type: Helper._CommandingSurface.Constants.typeButton, label: "opt 2" })
             ]);
-            var commandingSurface = new CommandingSurface(this._element, {
+            var commandingSurface = new _CommandingSurface(this._element, {
                 data: data
             });
 
@@ -226,7 +226,7 @@ module CorsicaTests {
                 new Command(null, { type: Helper._CommandingSurface.Constants.typeButton, label: "opt 1" }),
                 new Command(null, { type: Helper._CommandingSurface.Constants.typeButton, label: "opt 2" })
             ]);
-            var commandingSurface = new CommandingSurface(this._element, {
+            var commandingSurface = new _CommandingSurface(this._element, {
                 data: data
             });
 
@@ -250,7 +250,7 @@ module CorsicaTests {
                 new Command(null, { type: Helper._CommandingSurface.Constants.typeButton, label: "opt 2" }),
                 new Command(null, { type: Helper._CommandingSurface.Constants.typeButton, label: "sec opt 1", section: Helper._CommandingSurface.Constants.secondaryCommandSection })
             ]);
-            var commandingSurface = new CommandingSurface(this._element, {
+            var commandingSurface = new _CommandingSurface(this._element, {
                 data: data
             });
 
@@ -275,7 +275,7 @@ module CorsicaTests {
                 new Command(null, { type: Helper._CommandingSurface.Constants.typeButton, label: "opt 2", section: Helper._CommandingSurface.Constants.secondaryCommandSection })
             ]);
 
-            var commandingSurface = new CommandingSurface(this._element, {
+            var commandingSurface = new _CommandingSurface(this._element, {
                 data: data
             });
 
@@ -296,7 +296,7 @@ module CorsicaTests {
             ]);
 
             this._element.style.width = "200px";
-            var commandingSurface = new CommandingSurface(this._element, {
+            var commandingSurface = new _CommandingSurface(this._element, {
                 data: data
             });
 
@@ -322,7 +322,7 @@ module CorsicaTests {
             ]);
 
             this._element.style.width = "10px";
-            var commandingSurface = new CommandingSurface(this._element, {
+            var commandingSurface = new _CommandingSurface(this._element, {
                 data: data
             });
 
@@ -366,7 +366,7 @@ module CorsicaTests {
             ]);
 
             this._element.style.width = "10px";
-            var commandingSurface = new CommandingSurface(this._element, {
+            var commandingSurface = new _CommandingSurface(this._element, {
                 data: data
             });
 
@@ -395,7 +395,7 @@ module CorsicaTests {
             ]);
 
             this._element.style.width = "10px";
-            var commandingSurface = new CommandingSurface(this._element, {
+            var commandingSurface = new _CommandingSurface(this._element, {
                 data: data
             });
             var menuCommand = <WinJS.UI.MenuCommand>(Helper._CommandingSurface.getVisibleCommandsInElement(commandingSurface._dom.overflowArea)[0]["winControl"]);
@@ -423,7 +423,7 @@ module CorsicaTests {
             ]);
 
             this._element.style.width = "10px";
-            var commandingSurface = new CommandingSurface(this._element, {
+            var commandingSurface = new _CommandingSurface(this._element, {
                 data: data
             });
 
@@ -453,7 +453,7 @@ module CorsicaTests {
             ]);
 
             this._element.style.width = "10px";
-            var commandingSurface = new CommandingSurface(this._element, {
+            var commandingSurface = new _CommandingSurface(this._element, {
                 data: data
             });
 
@@ -473,7 +473,7 @@ module CorsicaTests {
                 new Command(null, { type: Helper._CommandingSurface.Constants.typeButton, label: "6" }),
             ]);
 
-            var commandingSurface = new CommandingSurface(this._element, {
+            var commandingSurface = new _CommandingSurface(this._element, {
                 data: data
             });
 
@@ -548,7 +548,7 @@ module CorsicaTests {
                 new Command(customEl2, { type: Helper._CommandingSurface.Constants.typeContent, label: "3" }),
             ]);
 
-            var commandingSurface = new CommandingSurface(this._element, {
+            var commandingSurface = new _CommandingSurface(this._element, {
                 data: data
             });
 
@@ -593,7 +593,7 @@ module CorsicaTests {
                 new Command(createCustomElement("custom 2"), { type: Helper._CommandingSurface.Constants.typeContent, label: "2", priority: 5, section: Helper._CommandingSurface.Constants.secondaryCommandSection }),
             ]);
 
-            var commandingSurface = new CommandingSurface(this._element, {
+            var commandingSurface = new _CommandingSurface(this._element, {
                 data: data
             });
 
@@ -641,7 +641,7 @@ module CorsicaTests {
                 new Command(null, { type: Helper._CommandingSurface.Constants.typeButton, label: "sec 2", section: Helper._CommandingSurface.Constants.secondaryCommandSection }),
             ]);
 
-            var commandingSurface = new CommandingSurface(this._element, {
+            var commandingSurface = new _CommandingSurface(this._element, {
                 data: data
             });
 
@@ -705,7 +705,7 @@ module CorsicaTests {
                 new Command(null, { type: Helper._CommandingSurface.Constants.typeContent, label: "1" }),
             ]);
             this._element.style.width = "10px";
-            var commandingSurface = new CommandingSurface(this._element, {
+            var commandingSurface = new _CommandingSurface(this._element, {
                 data: data
             });
 
@@ -718,7 +718,7 @@ module CorsicaTests {
                 new Command(null, { type: Helper._CommandingSurface.Constants.typeContent, label: "2" }),
             ]);
 
-            var commandingSurface = new CommandingSurface(this._element, {
+            var commandingSurface = new _CommandingSurface(this._element, {
                 data: data
             });
 
@@ -737,7 +737,7 @@ module CorsicaTests {
                 new Command(null, { type: Helper._CommandingSurface.Constants.typeButton, label: "this is a really long label this is a really long label this is a really long label this is a really long label this is a really long label this is a really long label this is a really long label this is a really long label this is a really long label this is a really long label this is a really long label this is a really long label this is a really long label this is a really long label this is a really long label this is a really long label ", section: Helper._CommandingSurface.Constants.secondaryCommandSection }),
             ]);
             this._element.style.width = "10px";
-            var commandingSurface = new CommandingSurface(this._element, {
+            var commandingSurface = new _CommandingSurface(this._element, {
                 data: data
             });
 
@@ -768,7 +768,7 @@ module CorsicaTests {
                 new Command(null, { type: Helper._CommandingSurface.Constants.typeButton, label: "9", section: Helper._CommandingSurface.Constants.secondaryCommandSection }),
             ]);
             this._element.style.width = "1000px";
-            var commandingSurface = new CommandingSurface(this._element, {
+            var commandingSurface = new _CommandingSurface(this._element, {
                 data: data
             });
 
@@ -797,7 +797,7 @@ module CorsicaTests {
                 new Command(null, { type: Helper._CommandingSurface.Constants.typeButton, label: "s7", section: Helper._CommandingSurface.Constants.secondaryCommandSection }),
             ]);
             this._element.style.width = "320px";
-            var commandingSurface = new CommandingSurface(this._element, {
+            var commandingSurface = new _CommandingSurface(this._element, {
                 data: data
             });
 
@@ -820,7 +820,7 @@ module CorsicaTests {
                 new Command(null, { type: Helper._CommandingSurface.Constants.typeButton, label: "s4", section: Helper._CommandingSurface.Constants.secondaryCommandSection }),
             ]);
             this._element.style.width = "320px";
-            var commandingSurface = new CommandingSurface(this._element, {
+            var commandingSurface = new _CommandingSurface(this._element, {
                 data: data
             });
 
@@ -845,7 +845,7 @@ module CorsicaTests {
                 LiveUnit.Assert.areEqual("4", document.activeElement.textContent, "Down arrow should skip '3' because that command is hidden");
 
                 Helper.keydown(commandingSurface.element, Key.rightArrow);
-                LiveUnit.Assert.areEqual(commandingSurface._dom.overflowButton, document.activeElement); 
+                LiveUnit.Assert.areEqual(commandingSurface._dom.overflowButton, document.activeElement);
 
                 Helper.keydown(commandingSurface.element, Key.rightArrow);
                 LiveUnit.Assert.areEqual("s1", document.activeElement.textContent);
@@ -857,7 +857,7 @@ module CorsicaTests {
                 LiveUnit.Assert.areEqual("s1", document.activeElement.textContent);
 
                 Helper.keydown(commandingSurface.element, Key.upArrow);
-                LiveUnit.Assert.areEqual(commandingSurface._dom.overflowButton, document.activeElement); 
+                LiveUnit.Assert.areEqual(commandingSurface._dom.overflowButton, document.activeElement);
 
                 Helper.keydown(commandingSurface.element, Key.upArrow);
                 LiveUnit.Assert.areEqual("4", document.activeElement.textContent);
@@ -882,7 +882,7 @@ module CorsicaTests {
                 new Command(null, { type: Helper._CommandingSurface.Constants.typeButton, label: "s4", section: Helper._CommandingSurface.Constants.secondaryCommandSection }),
             ]);
             this._element.style.width = "10px";
-            var commandingSurface = new CommandingSurface(this._element, {
+            var commandingSurface = new _CommandingSurface(this._element, {
                 data: data
             });
 
@@ -937,7 +937,7 @@ module CorsicaTests {
                 new Command(lastEl, { type: Helper._CommandingSurface.Constants.typeButton, label: "3" }),
             ]);
             this._element.style.width = "10px";
-            var commandingSurface = new CommandingSurface(this._element, {
+            var commandingSurface = new _CommandingSurface(this._element, {
                 data: data
             });
 
@@ -984,7 +984,7 @@ module CorsicaTests {
                 new Command(null, { type: Helper._CommandingSurface.Constants.typeButton, label: "s4", section: Helper._CommandingSurface.Constants.secondaryCommandSection }),
             ]);
             this._element.style.width = "10px";
-            var commandingSurface = new CommandingSurface(this._element, {
+            var commandingSurface = new _CommandingSurface(this._element, {
                 data: data
             });
 
@@ -1044,7 +1044,7 @@ module CorsicaTests {
                 new Command(null, { type: Helper._CommandingSurface.Constants.typeButton, label: "s4", section: Helper._CommandingSurface.Constants.secondaryCommandSection }),
             ]);
             this._element.style.width = "10px";
-            var commandingSurface = new CommandingSurface(this._element, {
+            var commandingSurface = new _CommandingSurface(this._element, {
                 data: data,
             });
 
@@ -1072,16 +1072,131 @@ module CorsicaTests {
                 new Command(null, { type: Helper._CommandingSurface.Constants.typeButton, label: "opt 3", section: 'primary' }),
                 new Command(null, { type: Helper._CommandingSurface.Constants.typeButton, label: "opt 4", section: Helper._CommandingSurface.Constants.secondaryCommandSection })
             ]);
-            var commandingSurface = new CommandingSurface(this._element, {
+            var commandingSurface = new _CommandingSurface(this._element, {
                 data: data
             });
             Helper._CommandingSurface.verifyActionAreaVisibleCommandsLabels(commandingSurface, ["opt 1", "opt 2", "opt 3"]);
             Helper._CommandingSurface.verifyOverflowAreaCommandsLabels(commandingSurface, ["opt 4"]);
         }
 
-        testClosedDisplayModes() {
+        testClosedDisplayModeConstructorOptions() {
+            var commandingSurface = new _CommandingSurface();
+            LiveUnit.Assert.areEqual(_Constants.defaultClosedDisplayMode, commandingSurface.closedDisplayMode, "'closedDisplayMode' property has incorrect default value.");
+            commandingSurface.dispose();
 
+            Object.keys(_CommandingSurface.ClosedDisplayMode).forEach(function (mode) {
+                commandingSurface = new _CommandingSurface(null, { closedDisplayMode: mode });
+                LiveUnit.Assert.areEqual(mode, commandingSurface.closedDisplayMode, "closedDisplayMode does not match the value passed to the constructor.");
+                commandingSurface.dispose();
+            })
+        }
+
+        testClosedDisplayModes() {
+            this._element.style.width = "1000px";
+            var fullHeightOfContent = 100;
+            var contentElement = document.createElement("DIV");
+            contentElement.style.height = fullHeightOfContent + "px";
+            contentElement.style.border = "none";
+
+            var data = new WinJS.Binding.List([
+                new Command(null, { type: Helper._CommandingSurface.Constants.typeButton, icon: 'add', label: "button" }),
+                new Command(null, { type: Helper._CommandingSurface.Constants.typeSeparator }),
+                new Command(contentElement, { type: Helper._CommandingSurface.Constants.typeContent, label: "content" }),
+                new Command(null, { type: Helper._CommandingSurface.Constants.typeButton, section: 'secondary', label: "secondary" }),
+            ]);
+            var commandingSurface = new _CommandingSurface(this._element, {
+                data: data
+            });
+
+            Object.keys(_CommandingSurface.ClosedDisplayMode).forEach(function (mode) {
+                verifyClosedDisplayMode(mode)
+            });
+
+            function verifyClosedDisplayMode(mode) {
+                commandingSurface.closedDisplayMode = mode;
+                LiveUnit.Assert.areEqual(mode, commandingSurface.closedDisplayMode, "closedDisplayMode property should be writeable.");
+
+                var commands = commandingSurface._primaryCommands,
+                    commandingSurfaceTotalHeight = WinJS.Utilities.getTotalHeight(commandingSurface.element),
+                    actionAreaTotalHeight = WinJS.Utilities.getTotalHeight(commandingSurface._dom.actionArea),
+                    actionAreaContentHeight = WinJS.Utilities.getContentHeight(commandingSurface._dom.actionArea),
+                    overflowButtonTotalHeight = WinJS.Utilities.getTotalHeight(commandingSurface._dom.overflowButton),
+                    overflowAreaTotalHeight = WinJS.Utilities.getTotalHeight(commandingSurface._dom.overflowArea);
+
+                switch (mode) {
+                    case 'none':
+                        LiveUnit.Assert.areEqual("none", getComputedStyle(commandingSurface.element).display);
+                        LiveUnit.Assert.areEqual(0, actionAreaTotalHeight);
+                        LiveUnit.Assert.areEqual(0, overflowButtonTotalHeight);
+                        LiveUnit.Assert.areEqual(0, overflowAreaTotalHeight);
+                        break;
+
+                    case 'minimal':
+                        LiveUnit.Assert.areEqual(actionAreaTotalHeight, commandingSurfaceTotalHeight, "Height of CommandingSurface should size size to its actionarea.");
+                        LiveUnit.Assert.areEqual(Helper._CommandingSurface.Constants.heightOfMinimal, actionAreaContentHeight, "invalid ActionArea content height for 'minimal' closedDisplayMode");
+                        LiveUnit.Assert.areEqual(actionAreaContentHeight, overflowButtonTotalHeight, "overflowButton should stretch to the height of the actionarea");
+
+                        if (Array.prototype.some.call(commands, function (command) {
+                            return getComputedStyle(command.element).display !== "none";
+                        })) {
+                            LiveUnit.Assert.fail("CommandingSurface with 'minimal' closedDisplayMode should not display display primary commands.");
+                        }
+
+                        LiveUnit.Assert.areEqual(0, overflowAreaTotalHeight);
+                        break;
+
+                    case 'compact':
+                        LiveUnit.Assert.areEqual(actionAreaTotalHeight, commandingSurfaceTotalHeight, "Height of CommandingSurface should size size to its actionarea.");
+                        LiveUnit.Assert.areEqual(Helper._CommandingSurface.Constants.heightOfCompact, actionAreaContentHeight, "invalid ActionArea content height for 'compact' closedDisplayMode");
+                        LiveUnit.Assert.areEqual(actionAreaContentHeight, overflowButtonTotalHeight, "overflowButton should stretch to the height of the actionarea");
+
+                        // Verify commands are displayed.
+                        if (Array.prototype.some.call(commands, function (command) {
+                            return getComputedStyle(command.element).display === "none";
+                        })) {
+                            LiveUnit.Assert.fail("CommandingSurface with 'compact' closedDisplayMode should display primary commands.");
+                        }
+
+                        // Verify command labels are not displayed.
+                        if (Array.prototype.some.call(commands, function (command) {
+                            var label = command.element.querySelector(".win-label");
+                            return (label && getComputedStyle(label).display !== "none");
+                        })) {
+                            LiveUnit.Assert.fail("CommandingSurface with 'compact' closedDisplayMode should not display primary command labels.");
+                        }
+
+                        LiveUnit.Assert.areEqual(0, overflowAreaTotalHeight);
+                        break;
+
+                    case 'full':
+                        LiveUnit.Assert.areEqual(actionAreaTotalHeight, commandingSurfaceTotalHeight, "Height of CommandingSurface should size size to its actionarea.");
+                        LiveUnit.Assert.areEqual(fullHeightOfContent, actionAreaContentHeight, "Height of actionarea should size size to its content when closedDisplayMode === 'full'");
+                        LiveUnit.Assert.areEqual(actionAreaTotalHeight, overflowButtonTotalHeight, "overflowButton should stretch to the height of the actionarea");
+
+                        // Verify commands are displayed.
+                        if (Array.prototype.some.call(commands, function (command) {
+                            return getComputedStyle(command.element).display === "none";
+                        })) {
+                            LiveUnit.Assert.fail("CommandingSurface with 'compact' closedDisplayMode should display primary commands.");
+                        }
+
+                        // Verify command labels are displayed.
+                        if (Array.prototype.some.call(commands, function (command) {
+                            var label = command.element.querySelector(".win-label");
+                            return (label && getComputedStyle(label).display == "none");
+                        })) {
+                            LiveUnit.Assert.fail("CommandingSurface with 'compact' closedDisplayMode should display primary command labels.");
+                        }
+
+                        LiveUnit.Assert.areEqual(0, overflowAreaTotalHeight);
+                        break;
+
+                    default:
+                        LiveUnit.Assert.fail("TEST ERROR: Encountered unknown enum value: " + mode);
+                        break;
+                }
+            }
         }
     }
 }
-LiveUnit.registerTestClass("CorsicaTests.CommandingSurfaceTests");
+LiveUnit.registerTestClass("CorsicaTests._CommandingSurfaceTests");

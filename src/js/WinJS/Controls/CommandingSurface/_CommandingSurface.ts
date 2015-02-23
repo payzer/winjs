@@ -62,7 +62,6 @@ var strings = {
     get duplicateConstruction() { return "Invalid argument: Controls may only be instantiated one time for each DOM element"; }
 };
 
-
 var EventNames = {
     beforeOpen: "beforeopen",
     afterOpen: "afteropen",
@@ -279,23 +278,22 @@ export class _CommandingSurface {
         this._winKeyboard = new _KeyboardBehavior._WinKeyboard(this._dom.root);
 
         // Initialize public properties.
-        this.closedDisplayMode = ClosedDisplayMode.compact;
+        this.closedDisplayMode = _Constants.defaultClosedDisplayMode;
         if (!options.data) {
             // Shallow copy object so we can modify it.
             options = _BaseUtils._shallowCopy(options);
 
-            // Set default
+            // Set default data
             options.data = options.data || this._getDataFromDOMElements();
         }
         _Control.setOptions(this, options);
-
-        this._initializingState = false;
 
         // Event handlers
         _ElementUtilities._resizeNotifier.subscribe(this._dom.root, this._resizeHandlerBound);
         this._dom.root.addEventListener('keydown', this._keyDownHandler.bind(this));
 
         // Exit the Init state.
+        this._initializingState = false;
         _ElementUtilities._inDom(this._dom.root).then(() => {
             this._measureCommands();
             this._positionCommands();
@@ -419,8 +417,6 @@ export class _CommandingSurface {
         }
 
     }
-
-
 
     private _getFocusableElementsInfo(): IFocusableElementsInfo {
         var focusableCommandsInfo: IFocusableElementsInfo = {

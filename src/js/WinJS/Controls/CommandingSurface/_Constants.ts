@@ -15,13 +15,7 @@ export var menuContainsFlyoutCommandClass = "win-menu-containsflyoutcommand";
 
 export var contentMenuCommandDefaultLabel = "Custom content";
 
-export var closedDisplayModes = {
-    "none": "none",
-    "minimal": "minimal",
-    "compact": "compact",
-    "full": "full",
-};
-
+export var defaultClosedDisplayMode = "compact";
 
 // Constants for commands
 export var typeSeparator = "separator";

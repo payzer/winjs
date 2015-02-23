@@ -572,6 +572,13 @@ declare module WinJS {
             constructor(element?: HTMLElement, options?: any);
             public dispose(): void;
             public forceLayout(): void;
+            public closedDisplayMode: string;
+            public static ClosedDisplayMode: {
+                none: string;
+                minimal: string;
+                compact: string;
+                full: string;
+            };
         }
 
         class ToolBar {
