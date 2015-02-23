@@ -984,12 +984,5 @@ export class _CommandingSurface {
     }
 }
 
-_Base.Class.mix(_CommandingSurface, _Events.createEventProperties(
-    EventNames.beforeOpen,
-    EventNames.afterOpen,
-    EventNames.beforeClose,
-    EventNames.afterClose
-    ));
-
 // addEventListener, removeEventListener, dispatchEvent
 _Base.Class.mix(_CommandingSurface, _Control.DOMEventMixin);
