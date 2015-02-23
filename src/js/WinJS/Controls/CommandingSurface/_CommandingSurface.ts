@@ -202,14 +202,10 @@ export class _CommandingSurface {
     set closedDisplayMode(value: string) {
         this._writeProfilerMark("set_closedDisplayMode,info");
 
-        if (ClosedDisplayMode[value]) {
-
-            var isChangingState = (value !== this._closedDisplayMode);
-
-            if (isChangingState) {
-                this._closedDisplayMode = value;
-                this._machine.updateDom();
-            }
+        var isChangingState = (value !== this._closedDisplayMode);
+        if (ClosedDisplayMode[value] && isChangingState) {
+            this._closedDisplayMode = value;
+            this._machine.updateDom();
         }
     }
 
@@ -293,17 +289,17 @@ export class _CommandingSurface {
         this._dom.root.addEventListener('keydown', this._keyDownHandler.bind(this));
 
         // Exit the Init state.
-        this._initializingState = false;
         _ElementUtilities._inDom(this._dom.root).then(() => {
             this._measureCommands();
             this._positionCommands();
             this._rtl = _Global.getComputedStyle(this._dom.root).direction === 'rtl';
+            this._initializingState = false;
             this._machine.initialized();
             this._writeProfilerMark("constructor,StopTM");
         });
     }
 
-    dispose() {
+    dispose(): void {
         /// <signature helpKeyword="WinJS.UI._CommandingSurface.dispose">
         /// <summary locid="WinJS.UI._CommandingSurface.dispose">
         /// Disposes this CommandingSurface.
@@ -322,9 +318,10 @@ export class _CommandingSurface {
 
         _Dispose.disposeSubTree(this.element);
         this._disposed = true;
+        this._machine.dispose();
     }
 
-    forceLayout() {
+    forceLayout(): void {
         /// <signature helpKeyword="WinJS.UI._CommandingSurface.forceLayout">
         /// <summary locid="WinJS.UI._CommandingSurface.forceLayout">
         /// Forces the CommandingSurface to update its layout. Use this function when the window did not change size, but the container of the CommandingSurface changed size.
@@ -346,16 +343,12 @@ export class _CommandingSurface {
         root["winControl"] = this;
 
         this._id = root.id || _ElementUtilities._uniqueID(root);
-        this._writeProfilerMark("constructor,StartTM");
 
         if (!root.hasAttribute("tabIndex")) {
             root.tabIndex = -1;
         }
 
-        // Attach our css class.
         _ElementUtilities.addClass(root, _Constants.controlCssClass);
-
-        this._disposed = false;
         _ElementUtilities.addClass(root, "win-disposable");
 
         // Make sure we have an ARIA role
@@ -403,9 +396,14 @@ export class _CommandingSurface {
         };
     }
 
+
+    // State private to _updateDomImpl. No other method should make use of it.
+    //
+    // Nothing has been rendered yet so these are all initialized to undefined. Because
+    // they are undefined, the first time _updateDomImpl is called, they will all be
+    // rendered.
     private _updateDomImpl_rendered = {
         closedDisplayMode: <string>undefined,
-        isShownMode: <boolean>undefined,
     };
     private _updateDomImpl(): void {
         var rendered = this._updateDomImpl_rendered;
@@ -415,7 +413,6 @@ export class _CommandingSurface {
             addClass(this._dom.root, closedDisplayModeClassMap[this.closedDisplayMode]);
             rendered.closedDisplayMode = this.closedDisplayMode;
         }
-
     }
 
     private _getFocusableElementsInfo(): IFocusableElementsInfo {
@@ -463,7 +460,7 @@ export class _CommandingSurface {
         });
 
         if (this._dom.overflowButton) {
-            // Ensure that the overflow button is the last element in the ationarea
+            // Ensure that the overflow button is the last element in the actionarea
             this._dom.actionArea.appendChild(this._dom.overflowButton);
         }
 

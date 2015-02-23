@@ -1132,21 +1132,21 @@ module CorsicaTests {
                         break;
 
                     case 'minimal':
-                        LiveUnit.Assert.areEqual(actionAreaTotalHeight, commandingSurfaceTotalHeight, "Height of CommandingSurface should size size to its actionarea.");
+                        LiveUnit.Assert.areEqual(actionAreaTotalHeight, commandingSurfaceTotalHeight, "Height of CommandingSurface should size to its actionarea.");
                         LiveUnit.Assert.areEqual(Helper._CommandingSurface.Constants.heightOfMinimal, actionAreaContentHeight, "invalid ActionArea content height for 'minimal' closedDisplayMode");
                         LiveUnit.Assert.areEqual(actionAreaContentHeight, overflowButtonTotalHeight, "overflowButton should stretch to the height of the actionarea");
 
                         if (Array.prototype.some.call(commands, function (command) {
                             return getComputedStyle(command.element).display !== "none";
                         })) {
-                            LiveUnit.Assert.fail("CommandingSurface with 'minimal' closedDisplayMode should not display display primary commands.");
+                            LiveUnit.Assert.fail("CommandingSurface with 'minimal' closedDisplayMode should not display primary commands.");
                         }
 
                         LiveUnit.Assert.areEqual(0, overflowAreaTotalHeight);
                         break;
 
                     case 'compact':
-                        LiveUnit.Assert.areEqual(actionAreaTotalHeight, commandingSurfaceTotalHeight, "Height of CommandingSurface should size size to its actionarea.");
+                        LiveUnit.Assert.areEqual(actionAreaTotalHeight, commandingSurfaceTotalHeight, "Height of CommandingSurface should size to its actionarea.");
                         LiveUnit.Assert.areEqual(Helper._CommandingSurface.Constants.heightOfCompact, actionAreaContentHeight, "invalid ActionArea content height for 'compact' closedDisplayMode");
                         LiveUnit.Assert.areEqual(actionAreaContentHeight, overflowButtonTotalHeight, "overflowButton should stretch to the height of the actionarea");
 
@@ -1169,8 +1169,8 @@ module CorsicaTests {
                         break;
 
                     case 'full':
-                        LiveUnit.Assert.areEqual(actionAreaTotalHeight, commandingSurfaceTotalHeight, "Height of CommandingSurface should size size to its actionarea.");
-                        LiveUnit.Assert.areEqual(fullHeightOfContent, actionAreaContentHeight, "Height of actionarea should size size to its content when closedDisplayMode === 'full'");
+                        LiveUnit.Assert.areEqual(actionAreaTotalHeight, commandingSurfaceTotalHeight, "Height of CommandingSurface should size to its actionarea.");
+                        LiveUnit.Assert.areEqual(fullHeightOfContent, actionAreaContentHeight, "Height of actionarea should size to its content when closedDisplayMode === 'full'");
                         LiveUnit.Assert.areEqual(actionAreaTotalHeight, overflowButtonTotalHeight, "overflowButton should stretch to the height of the actionarea");
 
                         // Verify commands are displayed.
