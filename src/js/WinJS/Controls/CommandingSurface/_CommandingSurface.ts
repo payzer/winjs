@@ -309,6 +309,9 @@ export class _CommandingSurface {
             return;
         }
 
+        this._disposed = true;
+        this._machine.dispose();
+
         _ElementUtilities._resizeNotifier.unsubscribe(this._dom.root, this._resizeHandlerBound);
 
         if (this._contentFlyout) {
@@ -317,8 +320,6 @@ export class _CommandingSurface {
         }
 
         _Dispose.disposeSubTree(this.element);
-        this._disposed = true;
-        this._machine.dispose();
     }
 
     forceLayout(): void {
