@@ -1136,6 +1136,7 @@ module CorsicaTests {
                         LiveUnit.Assert.areEqual(Helper._CommandingSurface.Constants.heightOfMinimal, actionAreaContentHeight, "invalid ActionArea content height for 'minimal' closedDisplayMode");
                         LiveUnit.Assert.areEqual(actionAreaContentHeight, overflowButtonTotalHeight, "overflowButton should stretch to the height of the actionarea");
 
+                        // Verify commands are not displayed.
                         if (Array.prototype.some.call(commands, function (command) {
                             return getComputedStyle(command.element).display !== "none";
                         })) {
