@@ -885,7 +885,7 @@ export class _CommandingSurface {
 
         if (hasCustomContent && !this._contentFlyout) {
             this._contentFlyoutInterior = _Global.document.createElement("div");
-            _ElementUtilities.addClass(this._contentFlyoutInterior, _Constants.overflowContentFlyoutCssClass);
+            _ElementUtilities.addClass(this._contentFlyoutInterior, _Constants.contentFlyoutCssClass);
             this._contentFlyout = new _Flyout.Flyout();
             this._contentFlyout.element.appendChild(this._contentFlyoutInterior);
             _Global.document.body.appendChild(this._contentFlyout.element);
