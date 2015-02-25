@@ -110,7 +110,7 @@ function diffElements(lhs: Array<HTMLElement>, rhs: Array<HTMLElement>): Array<H
 
 /// <field>
 /// <summary locid="WinJS.UI._CommandingSurface">
-/// Represents an apaptive commandingSurface for displaying commands.
+/// Represents an apaptive surface for displaying commands.
 /// </summary>
 /// </field>
 /// <htmlSnippet supportsContent="true"><![CDATA[<div data-win-control="WinJS.UI._CommandingSurface">
@@ -122,29 +122,37 @@ function diffElements(lhs: Array<HTMLElement>, rhs: Array<HTMLElement>): Array<H
 /// <resource type="javascript" src="//$(TARGET_DESTINATION)/js/WinJS.js" shared="true" />
 /// <resource type="css" src="//$(TARGET_DESTINATION)/css/ui-dark.css" shared="true" />
 export class _CommandingSurface {
+
     private _id: string;
-    private _disposed: boolean;
-    private _separatorWidth: number;
-    private _standardCommandWidth: number;
-    private _contentCommandWidths: { [uniqueID: string]: number };
-    private _overflowButtonWidth: number;
-    private _data: BindingList.List<_Command.ICommand>;
-    private _closedDisplayMode: string;
-    private _primaryCommands: _Command.ICommand[];
-    private _secondaryCommands: _Command.ICommand[];
-    private _contentFlyoutInterior: HTMLElement;
     private _contentFlyout: _Flyout.Flyout;
-    private _chosenCommand: _Command.ICommand;
-    private _measured = false;
-    private _initializingState = true;
+    private _contentFlyoutInterior: HTMLElement;
     private _hoverable = _Hoverable.isHoverable; /* force dependency on hoverable module */
     private _winKeyboard: _KeyboardBehavior._WinKeyboard;
-    private _refreshPending: boolean;
     private _refreshBound: Function;
     private _resizeHandlerBound: (ev: any) => any;
     private _dataChangedEvents = ["itemchanged", "iteminserted", "itemmoved", "itemremoved", "reload"];
     private _machine: _ShowHideMachine.ShowHideMachine;
+    private _data: BindingList.List<_Command.ICommand>;
+    private _primaryCommands: _Command.ICommand[];
+    private _secondaryCommands: _Command.ICommand[];
+    private _chosenCommand: _Command.ICommand;
+
+    // State
+    private _closedDisplayMode = _Constants.defaultClosedDisplayMode;
+    private _processNewData = false;
+    private _needLayout = false;
+    private _refreshPending = false;
     private _rtl = false;
+    private _disposed = false;
+
+    // Measurements
+    private _cachedMeasurements: {
+        overflowButtonWidth: number;
+        separatorWidth: number;
+        standardCommandWidth: number;
+        contentCommandWidths: { [uniqueID: string]: number };
+        actionAreaContentBoxWidth: number;
+    };
 
     // Dom elements
     private _dom: {
@@ -178,19 +186,18 @@ export class _CommandingSurface {
     set data(value: BindingList.List<_Command.ICommand>) {
         this._writeProfilerMark("set_data,info");
 
-        if (value === this.data) {
-            return;
-        }
-        if (!(value instanceof BindingList.List)) {
-            throw new _ErrorFromName("WinJS.UI._CommandingSurface.BadData", strings.badData);
-        }
+        if (value !== this.data) {
+            if (!(value instanceof BindingList.List)) {
+                throw new _ErrorFromName("WinJS.UI._CommandingSurface.BadData", strings.badData);
+            }
 
-        if (this._data) {
-            this._removeDataListeners();
+            if (this._data) {
+                this._removeDataListeners();
+            }
+            this._data = value;
+            this._addDataListeners();
+            this._dataUpdated();
         }
-        this._data = value;
-        this._addDataListeners();
-        this._dataUpdated();
     }
 
     /// <field type="String" locid="WinJS.UI._CommandingSurface.closedDisplayMode" helpKeyword="WinJS.UI._CommandingSurface.closedDisplayMode">
@@ -293,7 +300,6 @@ export class _CommandingSurface {
             this._measureCommands();
             this._positionCommands();
             this._rtl = _Global.getComputedStyle(this._dom.root).direction === 'rtl';
-            this._initializingState = false;
             this._machine.initialized();
             this._writeProfilerMark("constructor,StopTM");
         });
@@ -319,7 +325,7 @@ export class _CommandingSurface {
             this._contentFlyout.element.parentNode.removeChild(this._contentFlyout.element);
         }
 
-        _Dispose.disposeSubTree(this.element);
+        _Dispose.disposeSubTree(this._dom.root);
     }
 
     forceLayout(): void {
@@ -469,7 +475,7 @@ export class _CommandingSurface {
         this._secondaryCommands = [];
 
         if (this.data.length > 0) {
-            _ElementUtilities.removeClass(this.element, _Constants.emptyCommandingSurfaceCssClass);
+            _ElementUtilities.removeClass(this._dom.root, _Constants.emptyCommandingSurfaceCssClass);
             this.data.forEach((command) => {
                 if (command.section === "secondary") {
                     this._secondaryCommands.push(command);
@@ -484,7 +490,7 @@ export class _CommandingSurface {
             }
         } else {
             this._setupOverflowArea([]);
-            _ElementUtilities.addClass(this.element, _Constants.emptyCommandingSurfaceCssClass);
+            _ElementUtilities.addClass(this._dom.root, _Constants.emptyCommandingSurfaceCssClass);
         }
 
         // Execute the animation.
@@ -665,7 +671,7 @@ export class _CommandingSurface {
     }
 
     private _resizeHandler() {
-        if (this.element.offsetWidth > 0) {
+        if (this._dom.root.offsetWidth > 0) {
             this._measureCommands(/* skipIfMeasured: */ true);
             this._positionCommands();
         }
@@ -756,7 +762,7 @@ export class _CommandingSurface {
     private _measureCommands(skipIfMeasured: boolean = false) {
         this._writeProfilerMark("_measureCommands,info");
 
-        if (this._disposed || !_Global.document.body.contains(this._dom.root) || this.element.offsetWidth === 0) {
+        if (this._disposed || !_Global.document.body.contains(this._dom.root) || this._dom.root.offsetWidth === 0) {
             return;
         }
 
@@ -816,7 +822,7 @@ export class _CommandingSurface {
             command.element.style.display = (command.hidden ? "none" : "");
         })
 
-        var actionAreaWidth = _ElementUtilities.getContentWidth(this.element);
+        var actionAreaWidth = _ElementUtilities.getContentWidth(this._dom.root);
 
         var commandsLocation = this._getPrimaryCommandsLocation(actionAreaWidth);
 
