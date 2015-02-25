@@ -425,7 +425,10 @@ export class _CommandingSurface {
         this._writeProfilerMark("_updateDomImpl,info");
 
         // Update actionarea DOM
-        if (this._renderNewData) { /////////////////////////////this._writeProfilerMark("_dataUpdated,info");
+        if (this._renderNewData) {
+            this._writeProfilerMark("_renderNewData,info");
+            this._renderNewData = false;
+            this._needToMeasure = true;            
 
             var changeInfo = this._getDataChangeInfo();
 
@@ -452,9 +455,6 @@ export class _CommandingSurface {
 
             // Execute the animation.
             updateCommandAnimation.execute();
-
-            this._renderNewData = false;
-            this._needToMeasure = true;
         }
 
         // Ensure that the overflow button is always the last element in the actionarea
@@ -463,7 +463,7 @@ export class _CommandingSurface {
         if (this._needToMeasure) {
             var canMeasure = (_Global.document.body.contains(this._dom.root) && this._dom.actionArea.offsetWidth > 0);
             if (canMeasure) {
-                ////////////// this._writeProfilerMark("_measureCommands,info");
+                this._writeProfilerMark("_needToMeasure,info");
                 this._needToMeasure = false;
                 this._needLayout = true;
 
@@ -509,8 +509,9 @@ export class _CommandingSurface {
         }
 
         if (this._needLayout && !this._needToMeasure) {
-            ////////////// this._writeProfilerMark("_positionCommands,StartTM");
+            this._writeProfilerMark("_needLayout,StartTM");
             this._needLayout = false;
+
             this._primaryCommands.forEach((command) => {
                 command.element.style.display = (command.hidden ? "none" : "");
             })
@@ -531,7 +532,6 @@ export class _CommandingSurface {
                 command.element.style.display = "none";
             });
 
-            /////////////// this._writeProfilerMark("_setupOverflowArea,info");
             var overflowCommands = primaryCommandsLocation.overflowArea;
 
             // Set up custom flyout for "content" typed commands in the overflowarea. 
@@ -607,7 +607,8 @@ export class _CommandingSurface {
 
             _ElementUtilities[hasToggleCommands ? "addClass" : "removeClass"](this._dom.overflowArea, _Constants.menuContainsToggleCommandClass);
             _ElementUtilities[hasFlyoutCommands ? "addClass" : "removeClass"](this._dom.overflowArea, _Constants.menuContainsFlyoutCommandClass);
-            ////////////// this._writeProfilerMark("_positionCommands,StopTM");
+
+            this._writeProfilerMark("_needLayout,StopTM");
         }
     }
 
