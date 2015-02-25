@@ -514,7 +514,7 @@ export class _CommandingSurface {
 
                 if (command.type === _Constants.typeContent) {
                     // Measure each 'content' command type that we find
-                    this._cachedMeasurements.contentCommandWidths[this._commandUniqueId(command)] = _ElementUtilities.getTotalWidth(command.element);
+                    contentCommandWidths[this._commandUniqueId(command)] = _ElementUtilities.getTotalWidth(command.element);
                 } else if (command.type === _Constants.typeSeparator) {
                     // Measure the first 'separator' command type we find.
                     if (!separatorWidth) {
@@ -762,6 +762,7 @@ export class _CommandingSurface {
         if (this._dom.root.offsetWidth > 0) {
             var currentActionAreaWidth = _ElementUtilities.getContentWidth(this._dom.actionArea);
             if (this._cachedMeasurements.actionAreaContentBoxWidth !== currentActionAreaWidth) {
+                this._cachedMeasurements.actionAreaContentBoxWidth = currentActionAreaWidth
                 this._needLayout = true;
                 this._updateDomImpl();
             }

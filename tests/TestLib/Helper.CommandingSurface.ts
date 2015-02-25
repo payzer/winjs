@@ -18,6 +18,11 @@ module Helper._CommandingSurface {
         commandType: "WinJS.UI.AppBarCommand",
         secondaryCommandSection: "secondary",
         commandSelector: ".win-command",
+
+        actionAreaCommandWidth: 68,
+        actionAreaSeparatorWidth: 34,
+        actionAreaaOverflowButtonWidth: 32,
+
         overflowCommandHeight: 44,
         overflowSeparatorHeight: 12,
         commandingSurfaceMinWidth: 68,

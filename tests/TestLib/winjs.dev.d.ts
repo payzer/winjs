@@ -387,12 +387,17 @@ declare module WinJS {
             _disposed: boolean;
             _primaryCommands: ICommand[];
             _secondaryCommands: ICommand[];
-            _separatorWidth: number;
-            _standardCommandWidth: number;
-            _overflowButtonWidth: number;
             _getCommandWidth(command: ICommand): number;
             _contentFlyout: WinJS.UI.Flyout;
             _contentFlyoutInterior: HTMLElement;
+            _cachedMeasurements: {
+                overflowButtonWidth: number;
+                separatorWidth: number;
+                standardCommandWidth: number;
+                contentCommandWidths: { [uniqueID: string]: number };
+                actionAreaContentBoxWidth: number;
+            };
+
             _dom: {
                 root: HTMLElement;
                 actionArea: HTMLElement;
