@@ -139,7 +139,7 @@ export class _CommandingSurface {
 
     // State
     private _closedDisplayMode = _Constants.defaultClosedDisplayMode;
-    private _processNewData = false;
+    private _renderNewData = false;
     private _needToMeasure = false;
     private _needLayout = false;
     private _refreshPending = false;
@@ -425,7 +425,7 @@ export class _CommandingSurface {
         this._writeProfilerMark("_updateDomImpl,info");
 
         // Update actionarea DOM
-        if (this._processNewData) { /////////////////////////////this._writeProfilerMark("_dataUpdated,info");
+        if (this._renderNewData) { /////////////////////////////this._writeProfilerMark("_dataUpdated,info");
 
             var changeInfo = this._getDataChangeInfo();
 
@@ -453,7 +453,7 @@ export class _CommandingSurface {
             // Execute the animation.
             updateCommandAnimation.execute();
 
-            this._processNewData = false;
+            this._renderNewData = false;
             this._needToMeasure = true;
         }
 
@@ -648,7 +648,7 @@ export class _CommandingSurface {
                 }
             });
         }
-        this._processNewData = true;
+        this._renderNewData = true;
         this._machine.updateDom();
     }
 
