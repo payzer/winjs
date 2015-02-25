@@ -89,7 +89,7 @@ module CorsicaTests {
 
         testDataProperty() {
             // Verify default (empty)
-            var commandingSurface = new _CommandingSurface();
+            var commandingSurface = new _CommandingSurface(this._element);
             LiveUnit.Assert.areEqual(0, commandingSurface.data.length, "Empty list view should have data with length 0");
             LiveUnit.Assert.isTrue(Util.hasClass(commandingSurface.element, Helper._CommandingSurface.Constants.emptyCommandingSurfaceCssClass), "Empty commandingSurface css class that is not present");
 

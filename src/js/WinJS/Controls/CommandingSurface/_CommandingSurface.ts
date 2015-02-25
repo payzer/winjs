@@ -140,6 +140,7 @@ export class _CommandingSurface {
     // State
     private _closedDisplayMode = _Constants.defaultClosedDisplayMode;
     private _processNewData = false;
+    private _needToMeasure = false;
     private _needLayout = false;
     private _refreshPending = false;
     private _rtl = false;
@@ -270,9 +271,6 @@ export class _CommandingSurface {
         });
 
         // Initialize private state.
-        //this._contentCommandWidths = {};
-        //this._separatorWidth = 0;
-        //this._standardCommandWidth = 0;
         this._disposed = false;
         this._primaryCommands = [];
         this._secondaryCommands = [];
@@ -332,9 +330,8 @@ export class _CommandingSurface {
         /// Forces the CommandingSurface to update its layout. Use this function when the window did not change size, but the container of the CommandingSurface changed size.
         /// </summary>
         /// </signature>
-        this._cachedMeasurements = null;
-        this._needLayout = true;
-        this._updateDomImpl();
+        this._needToMeasure = true;
+        this._machine.updateDom();
     }
 
     private _writeProfilerMark(text: string) {
@@ -407,15 +404,15 @@ export class _CommandingSurface {
     // Nothing has been rendered yet so these are all initialized to undefined. Because
     // they are undefined, the first time _updateDomImpl is called, they will all be
     // rendered.
-    private _updateDomImpl_renderedDisplayMode = {
+    private _updateDomImpl_renderedState = {
         closedDisplayMode: <string>undefined,
     };
     private _updateDomImpl(): void {
-        this._updateDomImpl_updateDisplayMode()
-        this._updateDomImpl_updateContent()
+        this._updateDomImpl_renderDisplayMode()
+        this._updateDomImpl_layoutContent()
     }
-    private _updateDomImpl_updateDisplayMode(): void {
-        var rendered = this._updateDomImpl_renderedDisplayMode;
+    private _updateDomImpl_renderDisplayMode(): void {
+        var rendered = this._updateDomImpl_renderedState;
 
         if (rendered.closedDisplayMode !== this.closedDisplayMode) {
             removeClass(this._dom.root, closedDisplayModeClassMap[rendered.closedDisplayMode]);
@@ -424,13 +421,11 @@ export class _CommandingSurface {
         }
     }
 
-    private _updateDomImpl_updateContent(): void {
+    private _updateDomImpl_layoutContent(): void {
         this._writeProfilerMark("_updateDomImpl,info");
 
         // Update actionarea DOM
         if (this._processNewData) { /////////////////////////////this._writeProfilerMark("_dataUpdated,info");
-            this._needLayout = true;
-            this._cachedMeasurements = null;
 
             var changeInfo = this._getDataChangeInfo();
 
@@ -459,26 +454,74 @@ export class _CommandingSurface {
             updateCommandAnimation.execute();
 
             this._processNewData = false;
+            this._needToMeasure = true;
         }
 
         // Ensure that the overflow button is always the last element in the actionarea
         this._dom.actionArea.appendChild(this._dom.overflowButton);
 
-        var canLayout: boolean = (!!this._cachedMeasurements || this._measure());
+        if (this._needToMeasure) {
+            var canMeasure = (_Global.document.body.contains(this._dom.root) && this._dom.actionArea.offsetWidth > 0);
+            if (canMeasure) {
+                ////////////// this._writeProfilerMark("_measureCommands,info");
+                this._needToMeasure = false;
+                this._needLayout = true;
 
-        if (this._needLayout && canLayout) { ////////////// this._writeProfilerMark("_positionCommands,StartTM");
+                var overflowButtonWidth = _ElementUtilities.getTotalWidth(this._dom.overflowButton),
+                    actionAreaContentBoxWidth = _ElementUtilities.getContentWidth(this._dom.actionArea),
+                    separatorWidth = 0,
+                    standardCommandWidth = 0,
+                    contentCommandWidths = {};
 
+                this._primaryCommands.forEach((command) => {
+                    // Ensure that the element we are measuring does not have display: none (e.g. it was just added, and it
+                    // will be animated in)
+                    var originalDisplayStyle = command.element.style.display;
+                    command.element.style.display = "";
+
+                    if (command.type === _Constants.typeContent) {
+                        // Measure each 'content' command type that we find
+                        contentCommandWidths[this._commandUniqueId(command)] = _ElementUtilities.getTotalWidth(command.element);
+                    } else if (command.type === _Constants.typeSeparator) {
+                        // Measure the first 'separator' command type we find.
+                        if (!separatorWidth) {
+                            separatorWidth = _ElementUtilities.getTotalWidth(command.element);
+                        }
+                    } else {
+                        // Button, toggle, 'flyout' command types have the same width. Measure the first one we find.
+                        if (!standardCommandWidth) {
+                            standardCommandWidth = _ElementUtilities.getTotalWidth(command.element);
+                        }
+                    }
+
+                    // Restore the original display style
+                    command.element.style.display = originalDisplayStyle;
+                });
+
+                this._cachedMeasurements = {
+                    contentCommandWidths: contentCommandWidths,
+                    separatorWidth: separatorWidth,
+                    standardCommandWidth: standardCommandWidth,
+                    overflowButtonWidth: overflowButtonWidth,
+                    actionAreaContentBoxWidth: actionAreaContentBoxWidth,
+                };
+            }
+        }
+
+        if (this._needLayout && !this._needToMeasure) {
+            ////////////// this._writeProfilerMark("_positionCommands,StartTM");
+            this._needLayout = false;
             this._primaryCommands.forEach((command) => {
                 command.element.style.display = (command.hidden ? "none" : "");
             })
 
-            var commandsLocation = this._getPrimaryCommandsLocation();
+            var primaryCommandsLocation = this._getPrimaryCommandsLocation();
 
-            this._hideSeparatorsIfNeeded(commandsLocation.actionArea);
+            this._hideSeparatorsIfNeeded(primaryCommandsLocation.actionArea);
 
             // Primary commands that will be mirrored in the overflow area should be hidden so
             // that they are not visible in the actionarea.
-            commandsLocation.overflowArea.forEach((command) => {
+            primaryCommandsLocation.overflowArea.forEach((command) => {
                 command.element.style.display = "none";
             });
 
@@ -488,59 +531,84 @@ export class _CommandingSurface {
                 command.element.style.display = "none";
             });
 
-            this._setupOverflowArea(commandsLocation.overflowArea);
-        }
-        this._writeProfilerMark("_positionCommands,StopTM");
-        // project overflowarea commands
-        // hideseparators if necessary
+            /////////////// this._writeProfilerMark("_setupOverflowArea,info");
+            var overflowCommands = primaryCommandsLocation.overflowArea;
 
-        /// jesse
-    }
+            // Set up custom flyout for "content" typed commands in the overflowarea. 
+            var isCustomContent = (command: _Command.ICommand) => { return command.type === _Constants.typeContent };
+            var hasCustomContent = overflowCommands.some(isCustomContent) || this._secondaryCommands.some(isCustomContent);
 
-    private _measure() {
-        var canMeasure = (_Global.document.body.contains(this._dom.root) && this._dom.actionArea.offsetWidth > 0);
-        if (canMeasure) {
-            var overflowButtonWidth = _ElementUtilities.getTotalWidth(this._dom.overflowButton),
-                actionAreaContentBoxWidth = _ElementUtilities.getContentWidth(this._dom.actionArea),
-                separatorWidth = 0,
-                standardCommandWidth = 0,
-                contentCommandWidths = {};
+            if (hasCustomContent && !this._contentFlyout) {
+                this._contentFlyoutInterior = _Global.document.createElement("div");
+                _ElementUtilities.addClass(this._contentFlyoutInterior, _Constants.contentFlyoutCssClass);
+                this._contentFlyout = new _Flyout.Flyout();
+                this._contentFlyout.element.appendChild(this._contentFlyoutInterior);
+                _Global.document.body.appendChild(this._contentFlyout.element);
+                this._contentFlyout.onbeforeshow = () => {
+                    _ElementUtilities.empty(this._contentFlyoutInterior);
+                    _ElementUtilities._reparentChildren(this._chosenCommand.element, this._contentFlyoutInterior);
+                };
+                this._contentFlyout.onafterhide = () => {
+                    _ElementUtilities._reparentChildren(this._contentFlyoutInterior, this._chosenCommand.element);
+                };
+            }
 
-            this._primaryCommands.forEach((command) => {
-                // Ensure that the element we are measuring does not have display: none (e.g. it was just added, and it
-                // will be animated in)
-                var originalDisplayStyle = command.element.style.display;
-                command.element.style.display = "";
+            var showOverflowButton = (overflowCommands.length > 0 || this._secondaryCommands.length > 0);
+            this._dom.overflowButton.style.display = showOverflowButton ? "" : "none";
 
-                if (command.type === _Constants.typeContent) {
-                    // Measure each 'content' command type that we find
-                    contentCommandWidths[this._commandUniqueId(command)] = _ElementUtilities.getTotalWidth(command.element);
-                } else if (command.type === _Constants.typeSeparator) {
-                    // Measure the first 'separator' command type we find.
-                    if (!separatorWidth) {
-                        separatorWidth = _ElementUtilities.getTotalWidth(command.element);
-                    }
-                } else {
-                    // Button, toggle, 'flyout' command types have the same width. Measure the first one we find.
-                    if (!standardCommandWidth) {
-                        standardCommandWidth = _ElementUtilities.getTotalWidth(command.element);
-                    }
+            // Project overflowing and secondary commands into the overflowArea.
+            _ElementUtilities.empty(this._dom.overflowArea);
+            var hasToggleCommands = false,
+                hasFlyoutCommands = false,
+                menuCommandProjections: _MenuCommand.MenuCommand[] = [];
+
+            // Add primary commands that have overflowed. 
+            overflowCommands.forEach((command) => {
+                if (command.type === _Constants.typeToggle) {
+                    hasToggleCommands = true;
                 }
 
-                // Restore the original display style
-                command.element.style.display = originalDisplayStyle;
+                if (command.type === _Constants.typeFlyout) {
+                    hasFlyoutCommands = true;
+                }
+
+                menuCommandProjections.push(this._projectAsMenuCommand(command));
             });
 
-            this._cachedMeasurements = {
-                contentCommandWidths: contentCommandWidths,
-                separatorWidth: separatorWidth,
-                standardCommandWidth: standardCommandWidth,
-                overflowButtonWidth: overflowButtonWidth,
-                actionAreaContentBoxWidth: actionAreaContentBoxWidth,
-            };
-            return true;
+            // Add separator between primary and secondary command if applicable 
+            var secondaryCommandsLength = this._secondaryCommands.length;
+            if (overflowCommands.length > 0 && secondaryCommandsLength > 0) {
+                var separator = new _CommandingSurfaceMenuCommand._MenuCommand(null, {
+                    type: _Constants.typeSeparator
+                });
+
+                menuCommandProjections.push(separator);
+            }
+
+            // Add secondary commands 
+            this._secondaryCommands.forEach((command) => {
+                if (!command.hidden) {
+                    if (command.type === _Constants.typeToggle) {
+                        hasToggleCommands = true;
+                    }
+
+                    if (command.type === _Constants.typeFlyout) {
+                        hasFlyoutCommands = true;
+                    }
+
+                    menuCommandProjections.push(this._projectAsMenuCommand(command));
+                }
+            });
+
+            this._hideSeparatorsIfNeeded(menuCommandProjections);
+            menuCommandProjections.forEach((command) => {
+                this._dom.overflowArea.appendChild(command.element);
+            })
+
+            _ElementUtilities[hasToggleCommands ? "addClass" : "removeClass"](this._dom.overflowArea, _Constants.menuContainsToggleCommandClass);
+            _ElementUtilities[hasFlyoutCommands ? "addClass" : "removeClass"](this._dom.overflowArea, _Constants.menuContainsFlyoutCommandClass);
+            ////////////// this._writeProfilerMark("_positionCommands,StopTM");
         }
-        return false;
     }
 
     private _getFocusableElementsInfo(): IFocusableElementsInfo {
@@ -568,8 +636,6 @@ export class _CommandingSurface {
     }
 
     private _dataUpdated() {
-        this._processNewData = true;
-
         this._primaryCommands = [];
         this._secondaryCommands = [];
 
@@ -582,7 +648,8 @@ export class _CommandingSurface {
                 }
             });
         }
-        this._updateDomImpl();
+        this._processNewData = true;
+        this._machine.updateDom();
     }
 
     private _getDataChangeInfo(): IDataChangeInfo {
@@ -759,12 +826,12 @@ export class _CommandingSurface {
     }
 
     private _resizeHandler() {
-        if (this._dom.root.offsetWidth > 0) {
+        if (this._dom.root.offsetWidth > 0 && !this._needToMeasure) {
             var currentActionAreaWidth = _ElementUtilities.getContentWidth(this._dom.actionArea);
             if (this._cachedMeasurements.actionAreaContentBoxWidth !== currentActionAreaWidth) {
                 this._cachedMeasurements.actionAreaContentBoxWidth = currentActionAreaWidth
                 this._needLayout = true;
-                this._updateDomImpl();
+                this._machine.updateDom();
             }
         }
     }
@@ -850,92 +917,6 @@ export class _CommandingSurface {
         }
     }
 
-    //private _measureCommands(skipIfMeasured: boolean = false) {
-    //    this._writeProfilerMark("_measureCommands,info");
-
-    //    if (this._disposed || !_Global.document.body.contains(this._dom.root) || this._dom.root.offsetWidth === 0) {
-    //        return;
-    //    }
-
-    //    if (!skipIfMeasured) {
-    //        this._contentCommandWidths = {};
-    //        this._separatorWidth = 0;
-    //        this._standardCommandWidth = 0;
-    //    }
-    //    this._primaryCommands.forEach((command) => {
-    //        if (!command.element.parentElement) {
-    //            this._dom.actionArea.appendChild(command.element);
-    //        }
-
-    //        // Ensure that the element we are measuring does not have display: none (e.g. it was just added, and it
-    //        // will be animated in)
-    //        var originalDisplayStyle = command.element.style.display;
-    //        command.element.style.display = "";
-
-    //        if (command.type === _Constants.typeContent && !this._contentCommandWidths[this._commandUniqueId(command)]) {
-    //            this._contentCommandWidths[this._commandUniqueId(command)] = _ElementUtilities.getTotalWidth(command.element);
-    //        } else if (command.type === _Constants.typeSeparator) {
-    //            if (!this._separatorWidth) {
-    //                this._separatorWidth = _ElementUtilities.getTotalWidth(command.element);
-    //            }
-    //        } else {
-    //            // Button, toggle, flyout command types have the same width
-    //            if (!this._standardCommandWidth) {
-    //                this._standardCommandWidth = _ElementUtilities.getTotalWidth(command.element);
-    //            }
-    //        }
-
-    //        // Restore the original display style
-    //        command.element.style.display = originalDisplayStyle;
-    //    });
-
-    //    if (this._dom.overflowButton && !this._overflowButtonWidth) {
-    //        this._overflowButtonWidth = _ElementUtilities.getTotalWidth(this._dom.overflowButton);
-    //    }
-
-    //    this._measured = true;
-    //}
-
-    //private _positionCommands() {
-    //    this._writeProfilerMark("_positionCommands,StartTM");
-
-    //    if (this._disposed || !this._measured) {
-    //        this._writeProfilerMark("_positionCommands,StopTM");
-    //        return;
-    //    }
-
-    //    if (this._dom.overflowButton) {
-    //        // Ensure that the overflow button is the last element in the actionarea
-    //        this._dom.actionArea.appendChild(this._dom.overflowButton);
-    //    }
-
-    //    this._primaryCommands.forEach((command) => {
-    //        command.element.style.display = (command.hidden ? "none" : "");
-    //    })
-
-    //    var actionAreaWidth = _ElementUtilities.getContentWidth(this._dom.root);
-
-    //    var commandsLocation = this._getPrimaryCommandsLocation(actionAreaWidth);
-
-    //    this._hideSeparatorsIfNeeded(commandsLocation.actionArea);
-
-    //    // Primary commands that will be mirrored in the overflowarea should be hidden so
-    //    // that they are not visible in the actionarea.
-    //    commandsLocation.overflowArea.forEach((command) => {
-    //        command.element.style.display = "none";
-    //    });
-
-    //    // The secondary commands in the the actionarea should be hidden since they are always
-    //    // mirrored as new elements in the overflowarea.
-    //    this._secondaryCommands.forEach((command) => {
-    //        command.element.style.display = "none";
-    //    });
-
-    //    this._setupOverflowArea(commandsLocation.overflowArea);
-
-    //    this._writeProfilerMark("_positionCommands,StopTM");
-    //}
-
     private _projectAsMenuCommand(originalCommand: _Command.ICommand): _MenuCommand.MenuCommand {
         var menuCommand = new _CommandingSurfaceMenuCommand._MenuCommand(null, {
             label: originalCommand.label,
@@ -971,85 +952,6 @@ export class _CommandingSurface {
         }
         menuCommand["_originalICommand"] = originalCommand;
         return menuCommand;
-    }
-
-    private _setupOverflowArea(additionalCommands: _Command.AppBarCommand[]) {
-        this._writeProfilerMark("_setupOverflowArea,info");
-
-        // Set up custom flyout for "content" typed commands in the overflowarea. 
-        var isCustomContent = (command: _Command.ICommand) => { return command.type === _Constants.typeContent };
-        var hasCustomContent = additionalCommands.some(isCustomContent) || this._secondaryCommands.some(isCustomContent);
-
-        if (hasCustomContent && !this._contentFlyout) {
-            this._contentFlyoutInterior = _Global.document.createElement("div");
-            _ElementUtilities.addClass(this._contentFlyoutInterior, _Constants.contentFlyoutCssClass);
-            this._contentFlyout = new _Flyout.Flyout();
-            this._contentFlyout.element.appendChild(this._contentFlyoutInterior);
-            _Global.document.body.appendChild(this._contentFlyout.element);
-            this._contentFlyout.onbeforeshow = () => {
-                _ElementUtilities.empty(this._contentFlyoutInterior);
-                _ElementUtilities._reparentChildren(this._chosenCommand.element, this._contentFlyoutInterior);
-            };
-            this._contentFlyout.onafterhide = () => {
-                _ElementUtilities._reparentChildren(this._contentFlyoutInterior, this._chosenCommand.element);
-            };
-        }
-
-        var showOverflowButton = (additionalCommands.length > 0 || this._secondaryCommands.length > 0);
-        this._dom.overflowButton.style.display = showOverflowButton ? "" : "none";
-
-
-        // Populate the overflowArea with MenuCommands
-        _ElementUtilities.empty(this._dom.overflowArea);
-        var hasToggleCommands = false,
-            hasFlyoutCommands = false,
-            menuCommandProjections: _MenuCommand.MenuCommand[] = [];
-
-        // Add primary commands that have overflowed. 
-        additionalCommands.forEach((command) => {
-            if (command.type === _Constants.typeToggle) {
-                hasToggleCommands = true;
-            }
-
-            if (command.type === _Constants.typeFlyout) {
-                hasFlyoutCommands = true;
-            }
-
-            menuCommandProjections.push(this._projectAsMenuCommand(command));
-        });
-
-        // Add separator between primary and secondary command if applicable 
-        var secondaryCommandsLength = this._secondaryCommands.length;
-        if (additionalCommands.length > 0 && secondaryCommandsLength > 0) {
-            var separator = new _CommandingSurfaceMenuCommand._MenuCommand(null, {
-                type: _Constants.typeSeparator
-            });
-
-            menuCommandProjections.push(separator);
-        }
-
-        // Add secondary commands 
-        this._secondaryCommands.forEach((command) => {
-            if (!command.hidden) {
-                if (command.type === _Constants.typeToggle) {
-                    hasToggleCommands = true;
-                }
-
-                if (command.type === _Constants.typeFlyout) {
-                    hasFlyoutCommands = true;
-                }
-
-                menuCommandProjections.push(this._projectAsMenuCommand(command));
-            }
-        });
-
-        this._hideSeparatorsIfNeeded(menuCommandProjections);
-        menuCommandProjections.forEach((command) => {
-            this._dom.overflowArea.appendChild(command.element);
-        })
-
-        _ElementUtilities[hasToggleCommands ? "addClass" : "removeClass"](this._dom.overflowArea, _Constants.menuContainsToggleCommandClass);
-        _ElementUtilities[hasFlyoutCommands ? "addClass" : "removeClass"](this._dom.overflowArea, _Constants.menuContainsFlyoutCommandClass);
     }
 
     private _hideSeparatorsIfNeeded(commands: ICommandWithType[]): void {
