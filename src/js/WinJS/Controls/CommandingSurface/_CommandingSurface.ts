@@ -664,7 +664,7 @@ export class _CommandingSurface {
 
         this._writeProfilerMark("_layoutCommands,StopTM");
 
-        // Indicate positioning was successful.
+        // Indicate layout was successful.
         return true;
     }
 
