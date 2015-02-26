@@ -458,7 +458,6 @@ export class _CommandingSurface {
                 break;
             }
         }
-
         this._pendingLayout = nextStage;
     }
 
