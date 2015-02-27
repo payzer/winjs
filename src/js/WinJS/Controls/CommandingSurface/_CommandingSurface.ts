@@ -149,6 +149,7 @@ export class _CommandingSurface {
     private _refreshPending = false;
     private _rtl = false;
     private _disposed = false;
+    private _pendingLayout = CommandLayoutPipeline.idle;
 
     // Measurements
     private _cachedMeasurements: {
@@ -402,6 +403,198 @@ export class _CommandingSurface {
         };
     }
 
+    private _getFocusableElementsInfo(): IFocusableElementsInfo {
+        var focusableCommandsInfo: IFocusableElementsInfo = {
+            elements: [],
+            focusedIndex: -1
+        };
+        var elementsInReach = Array.prototype.slice.call(this._dom.actionArea.children);
+
+        var elementsInReach = Array.prototype.slice.call(this._dom.actionArea.children);
+        if (this._dom.overflowArea.style.display !== "none") {
+            elementsInReach = elementsInReach.concat(Array.prototype.slice.call(this._dom.overflowArea.children));
+        }
+
+        elementsInReach.forEach((element: HTMLElement) => {
+            if (this._isElementFocusable(element)) {
+                focusableCommandsInfo.elements.push(element);
+                if (element.contains(<HTMLElement>_Global.document.activeElement)) {
+                    focusableCommandsInfo.focusedIndex = focusableCommandsInfo.elements.length - 1;
+                }
+            }
+        });
+
+        return focusableCommandsInfo;
+    }
+
+    private _dataUpdated() {
+        this._primaryCommands = [];
+        this._secondaryCommands = [];
+
+        if (this.data.length > 0) {
+            this.data.forEach((command) => {
+                if (command.section === "secondary") {
+                    this._secondaryCommands.push(command);
+                } else {
+                    this._primaryCommands.push(command);
+                }
+            });
+        }
+        this._dataDirty();
+        this._machine.updateDom();
+    }
+
+    private _refresh() {
+        if (!this._refreshPending) {
+            this._refreshPending = true;
+
+            // Batch calls to _dataUpdated
+            Scheduler.schedule(() => {
+                if (this._refreshPending && !this._disposed) {
+                    this._refreshPending = false;
+                    this._dataUpdated();
+                }
+            }, Scheduler.Priority.high, null, "WinJS.UI._CommandingSurface._refresh");
+        }
+    }
+
+    private _addDataListeners() {
+        this._dataChangedEvents.forEach((eventName) => {
+            this._data.addEventListener(eventName, this._refreshBound, false);
+        });
+    }
+
+    private _removeDataListeners() {
+        this._dataChangedEvents.forEach((eventName) => {
+            this._data.removeEventListener(eventName, this._refreshBound, false);
+        });
+    }
+
+    private _isElementFocusable(element: HTMLElement): boolean {
+        var focusable = false;
+        if (element) {
+            var command = element["winControl"];
+            if (command) {
+                focusable = command.element.style.display !== "none" &&
+                command.type !== _Constants.typeSeparator &&
+                !command.hidden &&
+                !command.disabled &&
+                (!command.firstElementFocus || command.firstElementFocus.tabIndex >= 0 || command.lastElementFocus.tabIndex >= 0);
+            } else {
+                // e.g. the overflow button
+                focusable = element.style.display !== "none" &&
+                getComputedStyle(element).visibility !== "hidden" &&
+                element.tabIndex >= 0;
+            }
+        }
+        return focusable;
+    }
+
+    private _isCommandInActionArea(element: HTMLElement) {
+        // Returns true if the element is a command in the actionarea, false otherwise
+        return element && element["winControl"] && element.parentElement === this._dom.actionArea;
+    }
+
+    private _getLastElementFocus(element: HTMLElement) {
+        if (this._isCommandInActionArea(element)) {
+            // Only commands in the actionarea support lastElementFocus
+            return element["winControl"].lastElementFocus;
+        } else {
+            return element;
+        }
+    }
+
+    private _getFirstElementFocus(element: HTMLElement) {
+        if (this._isCommandInActionArea(element)) {
+            // Only commands in the actionarea support firstElementFocus
+            return element["winControl"].firstElementFocus;
+        } else {
+            return element;
+        }
+    }
+
+    private _keyDownHandler(ev: any) {
+        if (!ev.altKey) {
+            if (_ElementUtilities._matchesSelector(ev.target, ".win-interactive, .win-interactive *")) {
+                return;
+            }
+            var Key = _ElementUtilities.Key;
+            var focusableElementsInfo = this._getFocusableElementsInfo();
+            var targetCommand: HTMLElement;
+
+            if (focusableElementsInfo.elements.length) {
+                switch (ev.keyCode) {
+                    case (this._rtl ? Key.rightArrow : Key.leftArrow):
+                    case Key.upArrow:
+                        var index = Math.max(0, focusableElementsInfo.focusedIndex - 1);
+                        targetCommand = this._getLastElementFocus(focusableElementsInfo.elements[index % focusableElementsInfo.elements.length]);
+                        break;
+
+                    case (this._rtl ? Key.leftArrow : Key.rightArrow):
+                    case Key.downArrow:
+                        var index = Math.min(focusableElementsInfo.focusedIndex + 1, focusableElementsInfo.elements.length - 1);
+                        targetCommand = this._getFirstElementFocus(focusableElementsInfo.elements[index]);
+                        break;
+
+                    case Key.home:
+                        var index = 0;
+                        targetCommand = this._getFirstElementFocus(focusableElementsInfo.elements[index]);
+                        break;
+
+                    case Key.end:
+                        var index = focusableElementsInfo.elements.length - 1;
+                        targetCommand = this._getLastElementFocus(focusableElementsInfo.elements[index]);
+                        break;
+                }
+            }
+
+            if (targetCommand && targetCommand !== _Global.document.activeElement) {
+                targetCommand.focus();
+                ev.preventDefault();
+            }
+        }
+    }
+
+    private _getDataFromDOMElements(): BindingList.List<_Command.ICommand> {
+        this._writeProfilerMark("_getDataFromDOMElements,info");
+
+        ControlProcessor.processAll(this._dom.actionArea, /*skip root*/ true);
+
+        var commands: _Command.ICommand[] = [];
+        var childrenLength = this._dom.actionArea.children.length;
+        var child: Element;
+        for (var i = 0; i < childrenLength; i++) {
+            child = this._dom.actionArea.children[i];
+            if (child["winControl"] && child["winControl"] instanceof _Command.AppBarCommand) {
+                commands.push(child["winControl"]);
+            } else if (!this._dom.overflowButton) {
+                throw new _ErrorFromName("WinJS.UI._CommandingSurface.MustContainCommands", strings.mustContainCommands);
+            }
+        }
+        return new BindingList.List(commands);
+    }
+
+    private _resizeHandler() {
+        if (this._dom.root.offsetWidth) {
+            var currentActionAreaWidth = _ElementUtilities.getContentWidth(this._dom.actionArea);
+            if (this._cachedMeasurements && this._cachedMeasurements.actionAreaContentBoxWidth !== currentActionAreaWidth) {
+                this._cachedMeasurements.actionAreaContentBoxWidth = currentActionAreaWidth
+                this._layoutDirty();
+                this._machine.updateDom();
+            }
+        }
+    }
+
+    private _dataDirty(): void {
+        this._pendingLayout = Math.max(CommandLayoutPipeline.newDataStage, this._pendingLayout);
+    }
+    private _meaurementsDirty(): void {
+        this._pendingLayout = Math.max(CommandLayoutPipeline.measuringStage, this._pendingLayout);
+    }
+    private _layoutDirty(): void {
+        this._pendingLayout = Math.max(CommandLayoutPipeline.layoutStage, this._pendingLayout);
+    }
+
     private _updateDomImpl(): void {
         this._updateDomImpl_renderDisplayMode();
         this._updateDomImpl_updateCommands();
@@ -425,16 +618,16 @@ export class _CommandingSurface {
         }
     }
 
-    private _pendingLayout: number = CommandLayoutPipeline.idle;
     private _updateDomImpl_updateCommands(): void {
         this._writeProfilerMark("_updateDomImpl_updateCommands,info");
 
         var nextStage = this._pendingLayout;
 
+        // The flow of stages in the CommandLayoutPipeline is defined as:
+        // newDataStage -> measuringStage -> layoutStage -> idle
         while (nextStage !== CommandLayoutPipeline.idle) {
             var currentStage = nextStage;
             var okToProceed = false;
-
             switch (currentStage) {
                 case CommandLayoutPipeline.newDataStage:
                     nextStage = CommandLayoutPipeline.measuringStage;
@@ -451,6 +644,8 @@ export class _CommandingSurface {
             }
 
             if (!okToProceed) {
+                // If a stage fails, exit the loop and track that stage
+                // to be restarted the next time _updateCommands is run.
                 nextStage = currentStage;
                 break;
             }
@@ -458,14 +653,47 @@ export class _CommandingSurface {
         this._pendingLayout = nextStage;
     }
 
-    private _dataDirty(): void {
-        this._pendingLayout = Math.max(CommandLayoutPipeline.newDataStage, this._pendingLayout);
-    }
-    private _meaurementsDirty(): void {
-        this._pendingLayout = Math.max(CommandLayoutPipeline.measuringStage, this._pendingLayout);
-    }
-    private _layoutDirty(): void {
-        this._pendingLayout = Math.max(CommandLayoutPipeline.layoutStage, this._pendingLayout);
+    private _getDataChangeInfo(): IDataChangeInfo {
+        var i = 0, len = 0;
+        var added: HTMLElement[] = [];
+        var deleted: HTMLElement[] = [];
+        var affected: HTMLElement[] = [];
+        var currentShown: HTMLElement[] = [];
+        var currentElements: HTMLElement[] = [];
+        var newShown: HTMLElement[] = [];
+        var newHidden: HTMLElement[] = [];
+        var newElements: HTMLElement[] = [];
+
+        Array.prototype.forEach.call(this._dom.actionArea.querySelectorAll(".win-command"), (commandElement: HTMLElement) => {
+            if (commandElement.style.display !== "none") {
+                currentShown.push(commandElement);
+            }
+            currentElements.push(commandElement);
+        });
+
+        this.data.forEach((command) => {
+            if (command.element.style.display !== "none") {
+                newShown.push(command.element);
+            } else {
+                newHidden.push(command.element);
+            }
+            newElements.push(command.element);
+        });
+
+        deleted = diffElements(currentShown, newShown);
+        affected = diffElements(currentShown, deleted);
+        // "added" must also include the elements from "newHidden" to ensure that we continue
+        // to animate any command elements that have underflowed back into the actionarea
+        // as a part of this data change.
+        added = diffElements(newShown, currentShown).concat(newHidden);
+
+        return {
+            newElements: newElements,
+            currentElements: currentElements,
+            added: added,
+            deleted: deleted,
+            affected: affected,
+        };
     }
 
     private _processNewData(): boolean {
@@ -655,238 +883,13 @@ export class _CommandingSurface {
             this._dom.overflowArea.appendChild(command.element);
         })
 
-            _ElementUtilities[hasToggleCommands ? "addClass" : "removeClass"](this._dom.overflowArea, _Constants.menuContainsToggleCommandClass);
+        _ElementUtilities[hasToggleCommands ? "addClass" : "removeClass"](this._dom.overflowArea, _Constants.menuContainsToggleCommandClass);
         _ElementUtilities[hasFlyoutCommands ? "addClass" : "removeClass"](this._dom.overflowArea, _Constants.menuContainsFlyoutCommandClass);
 
         this._writeProfilerMark("_layoutCommands,StopTM");
 
         // Indicate layout was successful.
         return true;
-    }
-
-    private _getFocusableElementsInfo(): IFocusableElementsInfo {
-        var focusableCommandsInfo: IFocusableElementsInfo = {
-            elements: [],
-            focusedIndex: -1
-        };
-        var elementsInReach = Array.prototype.slice.call(this._dom.actionArea.children);
-
-        var elementsInReach = Array.prototype.slice.call(this._dom.actionArea.children);
-        if (this._dom.overflowArea.style.display !== "none") {
-            elementsInReach = elementsInReach.concat(Array.prototype.slice.call(this._dom.overflowArea.children));
-        }
-
-        elementsInReach.forEach((element: HTMLElement) => {
-            if (this._isElementFocusable(element)) {
-                focusableCommandsInfo.elements.push(element);
-                if (element.contains(<HTMLElement>_Global.document.activeElement)) {
-                    focusableCommandsInfo.focusedIndex = focusableCommandsInfo.elements.length - 1;
-                }
-            }
-        });
-
-        return focusableCommandsInfo;
-    }
-
-    private _dataUpdated() {
-        this._primaryCommands = [];
-        this._secondaryCommands = [];
-
-        if (this.data.length > 0) {
-            this.data.forEach((command) => {
-                if (command.section === "secondary") {
-                    this._secondaryCommands.push(command);
-                } else {
-                    this._primaryCommands.push(command);
-                }
-            });
-        }
-        this._dataDirty();
-        this._machine.updateDom();
-    }
-
-    private _getDataChangeInfo(): IDataChangeInfo {
-        var i = 0, len = 0;
-        var added: HTMLElement[] = [];
-        var deleted: HTMLElement[] = [];
-        var affected: HTMLElement[] = [];
-        var currentShown: HTMLElement[] = [];
-        var currentElements: HTMLElement[] = [];
-        var newShown: HTMLElement[] = [];
-        var newHidden: HTMLElement[] = [];
-        var newElements: HTMLElement[] = [];
-
-        Array.prototype.forEach.call(this._dom.actionArea.querySelectorAll(".win-command"), (commandElement: HTMLElement) => {
-            if (commandElement.style.display !== "none") {
-                currentShown.push(commandElement);
-            }
-            currentElements.push(commandElement);
-        });
-
-        this.data.forEach((command) => {
-            if (command.element.style.display !== "none") {
-                newShown.push(command.element);
-            } else {
-                newHidden.push(command.element);
-            }
-            newElements.push(command.element);
-        });
-
-        deleted = diffElements(currentShown, newShown);
-        affected = diffElements(currentShown, deleted);
-        // "added" must also include the elements from "newHidden" to ensure that we continue
-        // to animate any command elements that have underflowed back into the actionarea
-        // as a part of this data change.
-        added = diffElements(newShown, currentShown).concat(newHidden);
-
-        return {
-            newElements: newElements,
-            currentElements: currentElements,
-            added: added,
-            deleted: deleted,
-            affected: affected,
-        };
-    }
-
-    private _refresh() {
-        if (!this._refreshPending) {
-            this._refreshPending = true;
-
-            // Batch calls to _dataUpdated
-            Scheduler.schedule(() => {
-                if (this._refreshPending && !this._disposed) {
-                    this._refreshPending = false;
-                    this._dataUpdated();
-                }
-            }, Scheduler.Priority.high, null, "WinJS.UI._CommandingSurface._refresh");
-        }
-    }
-
-    private _addDataListeners() {
-        this._dataChangedEvents.forEach((eventName) => {
-            this._data.addEventListener(eventName, this._refreshBound, false);
-        });
-    }
-
-    private _removeDataListeners() {
-        this._dataChangedEvents.forEach((eventName) => {
-            this._data.removeEventListener(eventName, this._refreshBound, false);
-        });
-    }
-
-    private _isElementFocusable(element: HTMLElement): boolean {
-        var focusable = false;
-        if (element) {
-            var command = element["winControl"];
-            if (command) {
-                focusable = command.element.style.display !== "none" &&
-                command.type !== _Constants.typeSeparator &&
-                !command.hidden &&
-                !command.disabled &&
-                (!command.firstElementFocus || command.firstElementFocus.tabIndex >= 0 || command.lastElementFocus.tabIndex >= 0);
-            } else {
-                // e.g. the overflow button
-                focusable = element.style.display !== "none" &&
-                getComputedStyle(element).visibility !== "hidden" &&
-                element.tabIndex >= 0;
-            }
-        }
-        return focusable;
-    }
-
-    private _isCommandInActionArea(element: HTMLElement) {
-        // Returns true if the element is a command in the actionarea, false otherwise
-        return element && element["winControl"] && element.parentElement === this._dom.actionArea;
-    }
-
-    private _getLastElementFocus(element: HTMLElement) {
-        if (this._isCommandInActionArea(element)) {
-            // Only commands in the actionarea support lastElementFocus
-            return element["winControl"].lastElementFocus;
-        } else {
-            return element;
-        }
-    }
-
-    private _getFirstElementFocus(element: HTMLElement) {
-        if (this._isCommandInActionArea(element)) {
-            // Only commands in the actionarea support firstElementFocus
-            return element["winControl"].firstElementFocus;
-        } else {
-            return element;
-        }
-    }
-
-    private _keyDownHandler(ev: any) {
-        if (!ev.altKey) {
-            if (_ElementUtilities._matchesSelector(ev.target, ".win-interactive, .win-interactive *")) {
-                return;
-            }
-            var Key = _ElementUtilities.Key;
-            var focusableElementsInfo = this._getFocusableElementsInfo();
-            var targetCommand: HTMLElement;
-
-            if (focusableElementsInfo.elements.length) {
-                switch (ev.keyCode) {
-                    case (this._rtl ? Key.rightArrow : Key.leftArrow):
-                    case Key.upArrow:
-                        var index = Math.max(0, focusableElementsInfo.focusedIndex - 1);
-                        targetCommand = this._getLastElementFocus(focusableElementsInfo.elements[index % focusableElementsInfo.elements.length]);
-                        break;
-
-                    case (this._rtl ? Key.leftArrow : Key.rightArrow):
-                    case Key.downArrow:
-                        var index = Math.min(focusableElementsInfo.focusedIndex + 1, focusableElementsInfo.elements.length - 1);
-                        targetCommand = this._getFirstElementFocus(focusableElementsInfo.elements[index]);
-                        break;
-
-                    case Key.home:
-                        var index = 0;
-                        targetCommand = this._getFirstElementFocus(focusableElementsInfo.elements[index]);
-                        break;
-
-                    case Key.end:
-                        var index = focusableElementsInfo.elements.length - 1;
-                        targetCommand = this._getLastElementFocus(focusableElementsInfo.elements[index]);
-                        break;
-                }
-            }
-
-            if (targetCommand && targetCommand !== _Global.document.activeElement) {
-                targetCommand.focus();
-                ev.preventDefault();
-            }
-        }
-    }
-
-    private _getDataFromDOMElements(): BindingList.List<_Command.ICommand> {
-        this._writeProfilerMark("_getDataFromDOMElements,info");
-
-        ControlProcessor.processAll(this._dom.actionArea, /*skip root*/ true);
-
-        var commands: _Command.ICommand[] = [];
-        var childrenLength = this._dom.actionArea.children.length;
-        var child: Element;
-        for (var i = 0; i < childrenLength; i++) {
-            child = this._dom.actionArea.children[i];
-            if (child["winControl"] && child["winControl"] instanceof _Command.AppBarCommand) {
-                commands.push(child["winControl"]);
-            } else if (!this._dom.overflowButton) {
-                throw new _ErrorFromName("WinJS.UI._CommandingSurface.MustContainCommands", strings.mustContainCommands);
-            }
-        }
-        return new BindingList.List(commands);
-    }
-
-    private _resizeHandler() {
-        if (this._dom.root.offsetWidth) {
-            var currentActionAreaWidth = _ElementUtilities.getContentWidth(this._dom.actionArea);
-            if (this._cachedMeasurements && this._cachedMeasurements.actionAreaContentBoxWidth  !== currentActionAreaWidth) {
-                this._cachedMeasurements.actionAreaContentBoxWidth = currentActionAreaWidth
-                this._layoutDirty();
-                this._machine.updateDom();
-            }
-        }
     }
 
     private _commandUniqueId(command: _Command.ICommand): string {
