@@ -881,7 +881,7 @@ export class _CommandingSurface {
     private _resizeHandler() {
         if (this._dom.root.offsetWidth) {
             var currentActionAreaWidth = _ElementUtilities.getContentWidth(this._dom.actionArea);
-            if (this._cachedMeasurements.actionAreaContentBoxWidth !== currentActionAreaWidth) {
+            if (this._cachedMeasurements && this._cachedMeasurements.actionAreaContentBoxWidth  !== currentActionAreaWidth) {
                 this._cachedMeasurements.actionAreaContentBoxWidth = currentActionAreaWidth
                 this._layoutDirty();
                 this._machine.updateDom();
