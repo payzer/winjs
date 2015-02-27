@@ -146,9 +146,6 @@ export class _CommandingSurface {
 
     // State
     private _closedDisplayMode = _Constants.defaultClosedDisplayMode;
-    private _renderNewData = false;
-    private _needToMeasure = false;
-    private _needLayout = false;
     private _refreshPending = false;
     private _rtl = false;
     private _disposed = false;
@@ -882,7 +879,7 @@ export class _CommandingSurface {
     }
 
     private _resizeHandler() {
-        if (this._dom.root.offsetWidth > 0 && !this._needToMeasure) {
+        if (this._dom.root.offsetWidth) {
             var currentActionAreaWidth = _ElementUtilities.getContentWidth(this._dom.actionArea);
             if (this._cachedMeasurements.actionAreaContentBoxWidth !== currentActionAreaWidth) {
                 this._cachedMeasurements.actionAreaContentBoxWidth = currentActionAreaWidth
