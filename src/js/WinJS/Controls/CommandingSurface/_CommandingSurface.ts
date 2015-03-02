@@ -62,6 +62,7 @@ var strings = {
     get duplicateConstruction() { return "Invalid argument: Controls may only be instantiated one time for each DOM element"; }
 };
 
+var createEvent = _Events._createEventProperty;
 var EventNames = {
     beforeOpen: "beforeopen",
     afterOpen: "afteropen",
@@ -150,6 +151,7 @@ export class _CommandingSurface {
     private _rtl = false;
     private _disposed = false;
     private _pendingLayout = CommandLayoutPipeline.idle;
+    private _opened: boolean;
 
     // Measurements
     private _cachedMeasurements: {
@@ -222,6 +224,16 @@ export class _CommandingSurface {
         }
     }
 
+    /// <field type="Boolean" hidden="true" locid="WinJS.UI._CommandingSurface.opened" helpKeyword="WinJS.UI._CommandingSurface.opened">
+    /// Gets or sets whether the _CommandingSurface is currently opened.
+    /// </field>
+    get opened(): boolean {
+        return this._machine.hidden;
+    }
+    set opened(value: boolean) {
+        this._machine.hidden = value;
+    }
+
     constructor(element?: HTMLElement, options: any = {}) {
         /// <signature helpKeyword="WinJS.UI._CommandingSurface._CommandingSurface">
         /// <summary locid="WinJS.UI._CommandingSurface.constructor">
@@ -252,16 +264,16 @@ export class _CommandingSurface {
                 //this._cachedHiddenPaneThickness = null;
                 //var hiddenPaneThickness = this._getHiddenPaneThickness();
 
-                //this._isShownMode = true;
-                //this._updateDomImpl();
+                this._opened = true;
+                this._updateDomImpl();
 
                 //return this._playShowAnimation(hiddenPaneThickness);
                 return Promise.wrap();
             },
             onHide: () => {
                 //return this._playHideAnimation(this._getHiddenPaneThickness()).then(() => {
-                //    this._isShownMode = false;
-                //    this._updateDomImpl();
+                   this._opened = false;
+                   this._updateDomImpl();
                 //});
 
                 return Promise.wrap();
@@ -270,7 +282,7 @@ export class _CommandingSurface {
                 this._updateDomImpl();
             },
             onUpdateDomWithIsShown: (isShown: boolean) => {
-                //this._isShownMode = isShown;
+                this._opened = isShown;
                 this._updateDomImpl();
             }
         });
@@ -304,6 +316,44 @@ export class _CommandingSurface {
             this._machine.initialized();
             this._writeProfilerMark("constructor,StopTM");
         });
+    }
+
+    /// <field type="Function" locid="WinJS.UI._CommandingSurface.onbeforeopen" helpKeyword="WinJS.UI._CommandingSurface.onbeforeopen">
+    /// Occurs immediately before the control is opened.
+    /// </field>
+    onbeforeopen = createEvent(EventNames.beforeOpen);
+
+    /// <field type="Function" locid="WinJS.UI._CommandingSurface.onafteropen" helpKeyword="WinJS.UI._CommandingSurface.onafteropen">
+    /// Occurs immediately after the control is opened.
+    /// </field>
+    onafteropen = createEvent(EventNames.afterOpen);
+
+    /// <field type="Function" locid="WinJS.UI._CommandingSurface.onbeforeclose" helpKeyword="WinJS.UI._CommandingSurface.onbeforeclose">
+    /// Occurs immediately before the control is closed.
+    /// </field>
+    onbeforeclose = createEvent(EventNames.afterOpen);
+
+    /// <field type="Function" locid="WinJS.UI._CommandingSurface.onafterclose" helpKeyword="WinJS.UI._CommandingSurface.onafterclose">
+    /// Occurs immediately after the control is closed.
+    /// </field>
+    onafterclose = createEvent(EventNames.afterOpen);
+
+    open(): void {
+        /// <signature helpKeyword="WinJS.UI._CommandingSurface.open">
+        /// <summary locid="WinJS.UI._CommandingSurface.open">
+        /// Opens the _CommandingSurface's actionarea and overflowarea
+        /// </summary>
+        /// </signature>
+        this._machine.show();
+    }
+
+    close(): void {
+        /// <signature helpKeyword="WinJS.UI._CommandingSurface.close">
+        /// <summary locid="WinJS.UI._CommandingSurface.close">
+        /// Closes the _CommandingSurface's actionarea and overflowarea
+        /// </summary>
+        /// </signature>
+        this._machine.hide();
     }
 
     dispose(): void {
@@ -624,7 +674,7 @@ export class _CommandingSurface {
         var nextStage = this._pendingLayout;
 
         // The flow of stages in the CommandLayoutPipeline is defined as:
-        // newDataStage -> measuringStage -> layoutStage -> idle
+        //      newDataStage -> measuringStage -> layoutStage -> idle
         while (nextStage !== CommandLayoutPipeline.idle) {
             var currentStage = nextStage;
             var okToProceed = false;

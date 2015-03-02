@@ -576,6 +576,13 @@ declare module WinJS {
                 compact: string;
                 full: string;
             };
+            public open(): void;
+            public close(): void;
+            public opened: boolean;
+            public onbeforeopen: Function;
+            public onafteropen: Function;
+            public onafterclose: Function;
+            public onbeforeclose: Function;
         }
 
         class ToolBar {
