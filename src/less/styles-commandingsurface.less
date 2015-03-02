@@ -28,7 +28,7 @@
             width: 32px; /* 30px + 2px border */
             margin: 0px;
             padding: 0px;
-            border-width: 1px; 
+            border-width: 1px;
             border-style: dotted;
             min-width: 0px;
             min-height: 0px;
@@ -48,28 +48,43 @@
         }
     }
 
-    &.win-commandingsurface-closeddisplayfull .win-commandingsurface-actionarea {
-        height: auto;
-    }
-
-    &.win-commandingsurface-closeddisplaycompact .win-commandingsurface-actionarea {
-        height: 48px;
-
-        .win-command .win-label {
-            display: none;
+    &.win-commandingsurface-opened {
+        .win-commandingsurface-actionarea {
+            height: auto;
+        }
+        .win-commandingsurface-overflowarea {
+            display: block;
         }
     }
 
-    &.win-commandingsurface-closeddisplayminimal .win-commandingsurface-actionarea {
-        height: 24px;
+    &.win-commandingsurface-closed {
+        .win-commandingsurface-closeddisplayfull .win-commandingsurface-actionarea {
+            height: auto;
+        }
 
-        .win-command, .win-commandingsurface-spacer {
+        &.win-commandingsurface-closeddisplaycompact .win-commandingsurface-actionarea {
+            height: 48px;
+
+            .win-command .win-label {
+                display: none;
+            }
+        }
+
+        &.win-commandingsurface-closeddisplayminimal .win-commandingsurface-actionarea {
+            height: 24px;
+
+            .win-command, .win-commandingsurface-spacer {
+                display: none;
+            }
+        }
+
+        &.win-commandingsurface-closeddisplaynone {
             display: none;
         }
-    }
 
-    &.win-commandingsurface-closeddisplaynone {
-        display: none;
+        .win-commandingsurface-overflowarea {
+            display: none;
+        }
     }
 
     &.win-commandingsurface-empty {

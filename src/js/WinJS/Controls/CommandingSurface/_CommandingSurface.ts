@@ -70,6 +70,17 @@ var EventNames = {
     afterClose: "afterclose"
 };
 
+var ClassNames = {
+    openingClass: "win-commandingsurface-opening",
+    openedClass: "win-commandingsurface-opened",
+    closingClass: "win-commandingsurface-closing",
+    closedClass: "win-commandingsurface-closed",
+    noneClass: "win-commandingsurface-closeddisplaynone",
+    minimalClass: "win-commandingsurface-closeddisplayminimal",
+    compactClass: "win-commandingsurface-closeddisplaycompact",
+    fullClass: "win-commandingsurface-closeddisplayfull",
+};
+
 var ClosedDisplayMode = {
     /// <field locid="WinJS.UI._CommandingSurface.ClosedDisplayMode.none" helpKeyword="WinJS.UI._CommandingSurface.ClosedDisplayMode.none">
     /// When the _CommandingSurface is closed, the actionarea is not visible and doesn't take up any space.
@@ -89,18 +100,18 @@ var ClosedDisplayMode = {
     full: "full",
 };
 
+var closedDisplayModeClassMap = {};
+closedDisplayModeClassMap[ClosedDisplayMode.none] = ClassNames.noneClass;
+closedDisplayModeClassMap[ClosedDisplayMode.minimal] = ClassNames.minimalClass;
+closedDisplayModeClassMap[ClosedDisplayMode.compact] = ClassNames.compactClass;
+closedDisplayModeClassMap[ClosedDisplayMode.full] = ClassNames.fullClass;
+
 var CommandLayoutPipeline = {
     newDataStage: 3,
     measuringStage: 2,
     layoutStage: 1,
     idle: 0,
 };
-
-var closedDisplayModeClassMap = {};
-closedDisplayModeClassMap[ClosedDisplayMode.none] = "win-commandingsurface-closeddisplaynone";
-closedDisplayModeClassMap[ClosedDisplayMode.minimal] = "win-commandingsurface-closeddisplayminimal";
-closedDisplayModeClassMap[ClosedDisplayMode.compact] = "win-commandingsurface-closeddisplaycompact";
-closedDisplayModeClassMap[ClosedDisplayMode.full] = "win-commandingsurface-closeddisplayfull";
 
 // Versions of add/removeClass that are no ops when called with falsy class names.
 function addClass(element: HTMLElement, className: string): void {
@@ -146,11 +157,11 @@ export class _CommandingSurface {
     private _chosenCommand: _Command.ICommand;
 
     // State
-    private _closedDisplayMode = _Constants.defaultClosedDisplayMode;
-    private _refreshPending = false;
-    private _rtl = false;
-    private _disposed = false;
-    private _pendingLayout = CommandLayoutPipeline.idle;
+    private _closedDisplayMode: string;
+    private _refreshPending: boolean;
+    private _rtl: boolean;
+    private _disposed: boolean;
+    private _pendingLayout: number;
     private _opened: boolean;
 
     // Measurements
@@ -272,8 +283,8 @@ export class _CommandingSurface {
             },
             onHide: () => {
                 //return this._playHideAnimation(this._getHiddenPaneThickness()).then(() => {
-                   this._opened = false;
-                   this._updateDomImpl();
+                this._opened = false;
+                this._updateDomImpl();
                 //});
 
                 return Promise.wrap();
@@ -294,6 +305,11 @@ export class _CommandingSurface {
         this._refreshBound = this._refresh.bind(this);
         this._resizeHandlerBound = this._resizeHandler.bind(this);
         this._winKeyboard = new _KeyboardBehavior._WinKeyboard(this._dom.root);
+        this._closedDisplayMode = _Constants.defaultClosedDisplayMode;
+        this._refreshPending = false;
+        this._rtl = false;
+        this._pendingLayout = CommandLayoutPipeline.idle;
+        this._opened = false;
 
         // Initialize public properties.
         this.closedDisplayMode = _Constants.defaultClosedDisplayMode;
@@ -435,7 +451,8 @@ export class _CommandingSurface {
         _ElementUtilities.addClass(overflowButton, _Constants.overflowButtonCssClass);
         actionArea.appendChild(overflowButton);
         overflowButton.addEventListener("click", () => {
-            overflowArea.style.display = (overflowArea.style.display === "none") ? "block" : "none";
+            this.opened = !this.opened;
+            //overflowArea.style.display = (overflowArea.style.display === "none") ? "block" : "none";
         });
 
         var overflowArea = _Global.document.createElement("div");
@@ -657,9 +674,23 @@ export class _CommandingSurface {
     // rendered.
     private _updateDomImpl_renderedState = {
         closedDisplayMode: <string>undefined,
+        opened: <boolean>undefined,
     };
     private _updateDomImpl_renderDisplayMode(): void {
         var rendered = this._updateDomImpl_renderedState;
+
+        if (rendered.opened !== this._opened) {
+            if (rendered.opened && !this._opened) {
+                // Render closed
+                removeClass(this._dom.root, ClassNames.openedClass);
+                addClass(this._dom.root, ClassNames.closedClass);
+            } else {
+                // Render opened
+                removeClass(this._dom.root, ClassNames.closedClass);
+                addClass(this._dom.root, ClassNames.openedClass);
+            }
+        }
+        
 
         if (rendered.closedDisplayMode !== this.closedDisplayMode) {
             removeClass(this._dom.root, closedDisplayModeClassMap[rendered.closedDisplayMode]);
