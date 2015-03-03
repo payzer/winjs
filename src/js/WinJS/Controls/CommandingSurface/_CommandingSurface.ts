@@ -145,11 +145,11 @@ export class _CommandingSurface {
     private _chosenCommand: _Command.ICommand;
 
     // State
-    private _closedDisplayMode = _Constants.defaultClosedDisplayMode;
-    private _refreshPending = false;
-    private _rtl = false;
-    private _disposed = false;
-    private _nextLayoutStage: string;
+    private _closedDisplayMode: string;
+    private _refreshPending: boolean;
+    private _rtl: boolean;
+    private _disposed: boolean;
+    private _nextLayoutStage: number;
 
     // Measurements
     private _cachedMeasurements: {
@@ -282,6 +282,10 @@ export class _CommandingSurface {
         this._refreshBound = this._refresh.bind(this);
         this._resizeHandlerBound = this._resizeHandler.bind(this);
         this._winKeyboard = new _KeyboardBehavior._WinKeyboard(this._dom.root);
+        this._closedDisplayMode = _Constants.defaultClosedDisplayMode;
+        this._refreshPending = false;
+        this._rtl = false;
+        this._nextLayoutStage = CommandLayoutPipeline.idle;
 
         // Initialize public properties.
         this.closedDisplayMode = _Constants.defaultClosedDisplayMode;
