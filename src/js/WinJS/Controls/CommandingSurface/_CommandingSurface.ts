@@ -149,9 +149,6 @@ export class _CommandingSurface {
     private _primaryCommands: _Command.ICommand[];
     private _secondaryCommands: _Command.ICommand[];
     private _chosenCommand: _Command.ICommand;
-
-    // State
-    private _closedDisplayMode: string;
     private _refreshPending: boolean;
     private _rtl: boolean;
     private _disposed: boolean;
@@ -213,6 +210,7 @@ export class _CommandingSurface {
         }
     }
 
+    private _closedDisplayMode: string;
     /// <field type="String" locid="WinJS.UI._CommandingSurface.closedDisplayMode" helpKeyword="WinJS.UI._CommandingSurface.closedDisplayMode">
     /// Gets or sets the closedDisplayMode for the CommandingSurface.
     /// </field>
@@ -299,7 +297,6 @@ export class _CommandingSurface {
         this._refreshBound = this._refresh.bind(this);
         this._resizeHandlerBound = this._resizeHandler.bind(this);
         this._winKeyboard = new _KeyboardBehavior._WinKeyboard(this._dom.root);
-        this._closedDisplayMode = _Constants.defaultClosedDisplayMode;
         this._refreshPending = false;
         this._rtl = false;
         this._nextLayoutStage = CommandLayoutPipeline.idle;

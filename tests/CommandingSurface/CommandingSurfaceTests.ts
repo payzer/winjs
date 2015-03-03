@@ -275,7 +275,7 @@ module CorsicaTests {
 
         testForceLayout() {
             // Verify that force layout will correctly update commands layout when:
-            // 1. The CommandingSurface contstuctor could not measure any of the commands because the CommandingSurface element was originally display none.
+            // 1. The CommandingSurface constructor could not measure any of the commands because the CommandingSurface element was originally display "none".
             // 2. The width of the CommandingSurface itself has changed.
             // 3. The width of content commands in the CommandingSurface have changed
 
@@ -297,12 +297,13 @@ module CorsicaTests {
 
             // The measurement stage of the CommandLayoutPipeline should have failed because our element was display "none". 
             // Therefore, the layout stage should not have been reached and not even secondary commands will have made it into the overflow area yet.
-            LiveUnit.Assert.areEqual(2, commandingSurface._primaryCommands.length, "Primary commands array has an invalid length");
-            LiveUnit.Assert.areEqual(1, commandingSurface._secondaryCommands.length, "Secondary commands array has an invalid length");
-            LiveUnit.Assert.areEqual(3, Helper._CommandingSurface.getVisibleCommandsInElement(commandingSurface._dom.actionArea).length, "until a layout can occur, actionarea should have 3 commands");
-            LiveUnit.Assert.areEqual(0, Helper._CommandingSurface.getVisibleCommandsInElement(commandingSurface._dom.overflowArea).length, "until a layout can occur, overflowarea should have 0 commands");
+            // Sanity check our test expectations before we begin.
+            LiveUnit.Assert.areEqual(2, commandingSurface._primaryCommands.length, "TEST ERROR: Primary commands array has an invalid length");
+            LiveUnit.Assert.areEqual(1, commandingSurface._secondaryCommands.length, "TEST ERROR: Secondary commands array has an invalid length");
+            LiveUnit.Assert.areEqual(3, Helper._CommandingSurface.getVisibleCommandsInElement(commandingSurface._dom.actionArea).length, "TEST ERROR: until a layout can occur, actionarea should have 3 commands");
+            LiveUnit.Assert.areEqual(0, Helper._CommandingSurface.getVisibleCommandsInElement(commandingSurface._dom.overflowArea).length, "TEST ERROR: until a layout can occur, overflowarea should have 0 commands");
 
-            // Restore the display and test forceLayout
+            // Restore the display, then test forceLayout
             this._element.style.display = "";
             commandingSurface.forceLayout();
             LiveUnit.Assert.areEqual(2, Helper._CommandingSurface.getVisibleCommandsInElement(commandingSurface._dom.actionArea).length, "actionarea should have 2 commands");
