@@ -7,23 +7,23 @@ import BindingList = require("../../BindingList");
 import ControlProcessor = require("../../ControlProcessor");
 import _Constants = require("../CommandingSurface/_Constants");
 import _Command = require("../AppBar/_Command");
+import _CommandingSurfaceMenuCommand = require("../CommandingSurface/_MenuCommand");
 import _Control = require("../../Utilities/_Control");
 import _Dispose = require("../../Utilities/_Dispose");
 import _ElementUtilities = require("../../Utilities/_ElementUtilities");
 import _ErrorFromName = require("../../Core/_ErrorFromName");
+import _Events = require('../../Core/_Events');
 import _Flyout = require("../../Controls/Flyout");
 import _Global = require("../../Core/_Global");
 import _Hoverable = require("../../Utilities/_Hoverable");
 import _KeyboardBehavior = require("../../Utilities/_KeyboardBehavior");
 import Menu = require("../../Controls/Menu");
 import _MenuCommand = require("../Menu/_Command");
+import Promise = require('../../Promise');
 import _Resources = require("../../Core/_Resources");
 import Scheduler = require("../../Scheduler");
-import _CommandingSurfaceMenuCommand = require("../CommandingSurface/_MenuCommand");
-import _WriteProfilerMark = require("../../Core/_WriteProfilerMark");
 import _ShowHideMachine = require('../../Utilities/_ShowHideMachine');
-import _Events = require('../../Core/_Events');
-import Promise = require('../../Promise');
+import _WriteProfilerMark = require("../../Core/_WriteProfilerMark");
 
 require(["require-style!less/styles-commandingsurface"]);
 require(["require-style!less/colors-commandingsurface"]);
@@ -149,7 +149,7 @@ export class _CommandingSurface {
     private _refreshPending = false;
     private _rtl = false;
     private _disposed = false;
-    private _pendingLayout = CommandLayoutPipeline.idle;
+    private _nextLayoutStage: string;
 
     // Measurements
     private _cachedMeasurements: {
@@ -586,13 +586,13 @@ export class _CommandingSurface {
     }
 
     private _dataDirty(): void {
-        this._pendingLayout = Math.max(CommandLayoutPipeline.newDataStage, this._pendingLayout);
+        this._nextLayoutStage = Math.max(CommandLayoutPipeline.newDataStage, this._nextLayoutStage);
     }
     private _meaurementsDirty(): void {
-        this._pendingLayout = Math.max(CommandLayoutPipeline.measuringStage, this._pendingLayout);
+        this._nextLayoutStage = Math.max(CommandLayoutPipeline.measuringStage, this._nextLayoutStage);
     }
     private _layoutDirty(): void {
-        this._pendingLayout = Math.max(CommandLayoutPipeline.layoutStage, this._pendingLayout);
+        this._nextLayoutStage = Math.max(CommandLayoutPipeline.layoutStage, this._nextLayoutStage);
     }
 
     private _updateDomImpl(): void {
@@ -621,7 +621,7 @@ export class _CommandingSurface {
     private _updateDomImpl_updateCommands(): void {
         this._writeProfilerMark("_updateDomImpl_updateCommands,info");
 
-        var nextStage = this._pendingLayout;
+        var nextStage = this._nextLayoutStage;
 
         // The flow of stages in the CommandLayoutPipeline is defined as:
         // newDataStage -> measuringStage -> layoutStage -> idle
@@ -650,7 +650,7 @@ export class _CommandingSurface {
                 break;
             }
         }
-        this._pendingLayout = nextStage;
+        this._nextLayoutStage = nextStage;
     }
 
     private _getDataChangeInfo(): IDataChangeInfo {
