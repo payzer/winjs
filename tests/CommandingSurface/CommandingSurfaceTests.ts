@@ -21,29 +21,29 @@ module CorsicaTests {
 
     // Taking the registration mechanism as a parameter allows us to use this code to test both
     // DOM level 0 (e.g. onbeforeopen) and DOM level 2 (e.g. addEventListener) events.
-    function testEvents(registerForEvent: (commandingSurface: WinJS.UI.PrivateCommandingSurface, eventName: string, handler: Function) => void) {
+    function testEvents(testElement, registerForEvent: (commandingSurface: WinJS.UI.PrivateCommandingSurface, eventName: string, handler: Function) => void) {
         var commandingSurface = Helper._CommandingSurface.useSynchronousAnimations(new _CommandingSurface(this.element));
 
         var counter = 0;
-        registerForEvent(commandingSurface, _Constants.EventNames.beforeOpen, () => {
-            LiveUnit.Assert.areEqual(1, counter, _Constants.EventNames.beforeOpen + " fired out of order");
+        registerForEvent(commandingSurface, _Constants.EventNames.beforeShow, () => {
+            LiveUnit.Assert.areEqual(1, counter, _Constants.EventNames.beforeShow + " fired out of order");
             counter++;
-            LiveUnit.Assert.isFalse(commandingSurface.opened, _Constants.EventNames.beforeOpen + ": CommandingSurface should not be in opened state");
+            LiveUnit.Assert.isFalse(commandingSurface.opened, _Constants.EventNames.beforeShow + ": CommandingSurface should not be in opened state");
         });
-        registerForEvent(commandingSurface, _Constants.EventNames.afterOpen, () => {
-            LiveUnit.Assert.areEqual(2, counter, _Constants.EventNames.afterOpen + " fired out of order");
+        registerForEvent(commandingSurface, _Constants.EventNames.afterShow, () => {
+            LiveUnit.Assert.areEqual(2, counter, _Constants.EventNames.afterShow + " fired out of order");
             counter++;
-            LiveUnit.Assert.isTrue(commandingSurface.opened, _Constants.EventNames.afterOpen + ": CommandingSurface should be in opened state");
+            LiveUnit.Assert.isTrue(commandingSurface.opened, _Constants.EventNames.afterShow + ": CommandingSurface should be in opened state");
         });
-        registerForEvent(commandingSurface, _Constants.EventNames.beforeClose, () => {
-            LiveUnit.Assert.areEqual(4, counter, _Constants.EventNames.beforeClose + " fired out of order");
+        registerForEvent(commandingSurface, _Constants.EventNames.beforeShow, () => {
+            LiveUnit.Assert.areEqual(4, counter, _Constants.EventNames.beforeShow + " fired out of order");
             counter++;
-            LiveUnit.Assert.isTrue(commandingSurface.opened, _Constants.EventNames.beforeClose + ": CommandingSurface should be in opened state");
+            LiveUnit.Assert.isTrue(commandingSurface.opened, _Constants.EventNames.beforeShow + ": CommandingSurface should be in opened state");
         });
-        registerForEvent(commandingSurface, _Constants.EventNames.afterClose, () => {
-            LiveUnit.Assert.areEqual(5, counter, _Constants.EventNames.afterClose + " fired out of order");
+        registerForEvent(commandingSurface, _Constants.EventNames.afterShow, () => {
+            LiveUnit.Assert.areEqual(5, counter, _Constants.EventNames.afterShow + " fired out of order");
             counter++;
-            LiveUnit.Assert.isFalse(commandingSurface.opened, _Constants.EventNames.afterClose + ": CommandingSurface should not be in opened state");
+            LiveUnit.Assert.isFalse(commandingSurface.opened, _Constants.EventNames.afterShow + ": CommandingSurface should not be in opened state");
         });
 
         LiveUnit.Assert.areEqual(0, counter, "before open: wrong number of events fired");
@@ -1025,7 +1025,7 @@ module CorsicaTests {
             });
         }
 
-        testKeyboarding_Closed(complete) {
+        xtestKeyboarding_Closed(complete) {
             var Key = WinJS.Utilities.Key;
             var firstEL = document.createElement("button");
             var data = new WinJS.Binding.List([
@@ -1374,13 +1374,13 @@ module CorsicaTests {
         }
 
         testDomLevel0Events() {
-            testEvents((commandingSurface: WinJS.UI.PrivateCommandingSurface, eventName: string, handler: Function) => {
+            testEvents(this._element, (commandingSurface: WinJS.UI.PrivateCommandingSurface, eventName: string, handler: Function) => {
                 commandingSurface["on" + eventName] = handler;
             });
         }
 
         testDomLevel2Events() {
-            testEvents((commandingSurface: WinJS.UI.PrivateCommandingSurface, eventName: string, handler: Function) => {
+            testEvents(this._element, (commandingSurface: WinJS.UI.PrivateCommandingSurface, eventName: string, handler: Function) => {
                 commandingSurface.addEventListener(eventName, handler);
             });
         }

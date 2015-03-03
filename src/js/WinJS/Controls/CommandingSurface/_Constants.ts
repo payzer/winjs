@@ -15,10 +15,10 @@ export var menuContainsFlyoutCommandClass = "win-menu-containsflyoutcommand";
 
 export var EventNames = {
     /*Update the string literals to the proper open/close nomenclature once we move the state machine and splitview over to the new names. */
-    beforeOpen: "beforeshow",
-    afterOpen: "aftershow",
-    beforeClose: "beforehide",
-    afterClose: "afterhide"
+    beforeShow: "beforeshow",
+    afterShow: "aftershow",
+    beforeHide: "beforehide",
+    afterHide: "afterhide"
 };
 
 export var contentMenuCommandDefaultLabel = "Custom content";

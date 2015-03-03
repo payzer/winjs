@@ -332,22 +332,22 @@ export class _CommandingSurface {
     /// <field type="Function" locid="WinJS.UI._CommandingSurface.onbeforeopen" helpKeyword="WinJS.UI._CommandingSurface.onbeforeopen">
     /// Occurs immediately before the control is opened.
     /// </field>
-    onbeforeopen = createEvent(_Constants.EventNames.beforeOpen);
+    onbeforeshow = createEvent(_Constants.EventNames.beforeShow);
 
     /// <field type="Function" locid="WinJS.UI._CommandingSurface.onafteropen" helpKeyword="WinJS.UI._CommandingSurface.onafteropen">
     /// Occurs immediately after the control is opened.
     /// </field>
-    onafteropen = createEvent(_Constants.EventNames.afterOpen);
+    onaftershow = createEvent(_Constants.EventNames.afterShow);
 
     /// <field type="Function" locid="WinJS.UI._CommandingSurface.onbeforeclose" helpKeyword="WinJS.UI._CommandingSurface.onbeforeclose">
     /// Occurs immediately before the control is closed.
     /// </field>
-    onbeforeclose = createEvent(_Constants.EventNames.afterOpen);
+    onbeforehide = createEvent(_Constants.EventNames.beforeHide);
 
     /// <field type="Function" locid="WinJS.UI._CommandingSurface.onafterclose" helpKeyword="WinJS.UI._CommandingSurface.onafterclose">
     /// Occurs immediately after the control is closed.
     /// </field>
-    onafterclose = createEvent(_Constants.EventNames.afterOpen);
+    onafterhide = createEvent(_Constants.EventNames.afterHide);
 
     open(): void {
         /// <signature helpKeyword="WinJS.UI._CommandingSurface.open">
