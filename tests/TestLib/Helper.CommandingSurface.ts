@@ -21,7 +21,7 @@ module Helper._CommandingSurface {
 
         actionAreaCommandWidth: 68,
         actionAreaSeparatorWidth: 34,
-        actionAreaaOverflowButtonWidth: 32,
+        actionAreaOverflowButtonWidth: 32,
 
         overflowCommandHeight: 44,
         overflowSeparatorHeight: 12,

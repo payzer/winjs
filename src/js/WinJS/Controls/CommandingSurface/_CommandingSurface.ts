@@ -792,6 +792,7 @@ export class _CommandingSurface {
         //
         // Filter commands that will not be visible in the actionarea
         //
+
         this._primaryCommands.forEach((command) => {
             command.element.style.display = (command.hidden ? "none" : "");
         })
@@ -839,6 +840,7 @@ export class _CommandingSurface {
         //
         // Project overflowing and secondary commands into the overflowArea as MenuCommands
         //
+
         _ElementUtilities.empty(this._dom.overflowArea);
         var hasToggleCommands = false,
             hasFlyoutCommands = false,

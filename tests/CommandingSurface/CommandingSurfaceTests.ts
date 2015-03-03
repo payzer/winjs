@@ -27,7 +27,7 @@ module CorsicaTests {
                 (args.numStandardCommands || 0) * Helper._CommandingSurface.Constants.actionAreaCommandWidth +
                 (args.numSeparators || 0) * Helper._CommandingSurface.Constants.actionAreaSeparatorWidth +
                 (args.additionalWidth || 0) +
-                (args.visibleOverflowButton ? Helper._CommandingSurface.Constants.actionAreaaOverflowButtonWidth : 0);
+                (args.visibleOverflowButton ? Helper._CommandingSurface.Constants.actionAreaOverflowButtonWidth : 0);
 
             element.style.width = width + "px";
         }
@@ -233,30 +233,67 @@ module CorsicaTests {
         }
 
         testForceLayout() {
-            this._element.style.width = "10px";
+            // Verify that force layout will correctly update commands layout when:
+            // 1. The CommandingSurface contstuctor could not measure any of the commands because the CommandingSurface element was originally display none.
+            // 2. The width of the CommandingSurface itself has changed.
+            // 3. The width of content commands in the CommandingSurface have changed
+
+            var customContentBoxWidth = 100;
+            var customEl = document.createElement("div");
+            customEl.style.width =  customContentBoxWidth + "px";
+            customEl.style.height = "50px";
+
+            this._element.style.display = "none";
+            this._element.style.width = "1000px";
             var data = new WinJS.Binding.List([
                 new Command(null, { type: Helper._CommandingSurface.Constants.typeButton, label: "opt 1" }),
-                new Command(null, { type: Helper._CommandingSurface.Constants.typeButton, label: "opt 2" })
+                new Command(customEl, { type: Helper._CommandingSurface.Constants.typeContent, label: "opt 2" }),
+                new Command(null, { type: Helper._CommandingSurface.Constants.typeButton, label: "sec opt 1", section: Helper._CommandingSurface.Constants.secondaryCommandSection })
             ]);
             var commandingSurface = new _CommandingSurface(this._element, {
                 data: data
             });
 
-            LiveUnit.Assert.areEqual(data.length, commandingSurface._primaryCommands.length, "Primary commands array has an invalid length");
-            LiveUnit.Assert.areNotEqual("none", getComputedStyle(commandingSurface._dom.overflowButton).display, "Overflow button should be visible when the primary commands overflow");
-            LiveUnit.Assert.areEqual(2, Helper._CommandingSurface.getVisibleCommandsInElement(commandingSurface._dom.overflowArea).length, "Menu commands list has an invalid length");
+            // The measurement stage of the CommandLayoutPipeline should have failed because our element was display "none". 
+            // Therefore, the layout stage should not have been reached and not even secondary commands will have made it into the overflow area yet.
+            LiveUnit.Assert.areEqual(2, commandingSurface._primaryCommands.length, "Primary commands array has an invalid length");
+            LiveUnit.Assert.areEqual(1, commandingSurface._secondaryCommands.length, "Secondary commands array has an invalid length");
+            LiveUnit.Assert.areEqual(3, Helper._CommandingSurface.getVisibleCommandsInElement(commandingSurface._dom.actionArea).length, "until a layout can occur, actionarea should have 3 commands");
+            LiveUnit.Assert.areEqual(0, Helper._CommandingSurface.getVisibleCommandsInElement(commandingSurface._dom.overflowArea).length, "until a layout can occur, overflowarea should have 0 commands");
 
-            this._element.style.width = "1000px";
+            // Restore the display and test forceLayout
+            this._element.style.display = "";
             commandingSurface.forceLayout();
-
-            LiveUnit.Assert.areEqual("none", getComputedStyle(commandingSurface._dom.overflowButton).display, "Overflow button should be hidden when the primary commands fit");
             LiveUnit.Assert.areEqual(2, Helper._CommandingSurface.getVisibleCommandsInElement(commandingSurface._dom.actionArea).length, "actionarea should have 2 commands");
-            LiveUnit.Assert.areEqual(0, Helper._CommandingSurface.getVisibleCommandsInElement(commandingSurface._dom.overflowArea).length, "Menu commands list has an invalid length");
+            LiveUnit.Assert.areEqual(1, Helper._CommandingSurface.getVisibleCommandsInElement(commandingSurface._dom.overflowArea).length, "overflowarea should have 1 commands");
+
+            // Decrease the width of the CommandingSurface so that it is 1px too thin to fit both primary commands, then test forceLayout.
+            var customContentTotalWidth = commandingSurface._getCommandWidth(data.getAt(1));
+            var args: ISizeForCommandsArgs = {
+                numStandardCommands: 1,
+                additionalWidth: customContentTotalWidth - 1,
+                visibleOverflowButton: true,
+            };
+            this.sizeForCommands(this._element, args);
+            commandingSurface.forceLayout();
+            LiveUnit.Assert.areEqual(1, Helper._CommandingSurface.getVisibleCommandsInElement(commandingSurface._dom.actionArea).length, "actionarea should have 1 commands");
+            LiveUnit.Assert.areEqual(3 /* 1 primary command + 1 separator + 1 secondary command */, Helper._CommandingSurface.getVisibleCommandsInElement(commandingSurface._dom.overflowArea).length, "overflowarea should have 3 commands");
+
+            // Decrease width of content command by 1px so that both primary commands will fit in the action area, then test forceLayout
+            customContentBoxWidth--;
+            customEl.style.width = customContentBoxWidth + "px"
+            commandingSurface.forceLayout();
+            LiveUnit.Assert.areEqual(2, Helper._CommandingSurface.getVisibleCommandsInElement(commandingSurface._dom.actionArea).length, "actionarea should have 2 commands");
+            LiveUnit.Assert.areEqual(1, Helper._CommandingSurface.getVisibleCommandsInElement(commandingSurface._dom.overflowArea).length, "overflowarea should have 1 command");
         }
 
-        testForceLayoutReMeasures() {
-            this._element.style.display = "none";
-            this._element.style.width = "10px";
+        testResizeHandler() {
+            // Verify that the resize handler knows how to correctly update commands layout if the CommandingSurface width has changed.
+            // Typically the resizeHandler is only called by the window resize event.
+
+            // Make sure everything fits.
+            this._element.style.width = "1000px";
+
             var data = new WinJS.Binding.List([
                 new Command(null, { type: Helper._CommandingSurface.Constants.typeButton, label: "opt 1" }),
                 new Command(null, { type: Helper._CommandingSurface.Constants.typeButton, label: "opt 2" }),
@@ -267,22 +304,21 @@ module CorsicaTests {
             });
 
             LiveUnit.Assert.areEqual(2, commandingSurface._primaryCommands.length, "Primary commands array has an invalid length");
-            LiveUnit.Assert.areNotEqual("none", getComputedStyle(commandingSurface._dom.overflowButton).display, "Overflow button should not be hidden when there are secondary commands");
+            LiveUnit.Assert.areEqual(1, commandingSurface._secondaryCommands.length, "Secondary commands array has an invalid length");
+            LiveUnit.Assert.areEqual(2, Helper._CommandingSurface.getVisibleCommandsInElement(commandingSurface._dom.actionArea).length, "actionarea should have 2 commands");
+            LiveUnit.Assert.areEqual(1, Helper._CommandingSurface.getVisibleCommandsInElement(commandingSurface._dom.overflowArea).length, "overflowarea should have 1 command");
 
-            this._element.style.display = "";
-            commandingSurface.forceLayout();
-
-            // Increase size to fit 1 command + the overflow button in the actionarea
+            // Decrease the width of our control to fit exactly 1 command + the overflow button in the actionarea.
             var args: ISizeForCommandsArgs = {
                 numStandardCommands: 1,
                 visibleOverflowButton: true,
             };
             this.sizeForCommands(this._element, args);
 
-            // Now that we have changed the parent's size to fit 1 command + the overflow button, let's ensure that one primary command goes to the overflowarea
+            // Ensure that the resizeHandler will overflow one primary command into the overflowarea.
             WinJS.Utilities._resizeNotifier._handleResize();
-            LiveUnit.Assert.areEqual(3 /* 1 primary command + 1 separator + 1 secondary command */, Helper._CommandingSurface.getVisibleCommandsInElement(commandingSurface._dom.overflowArea).length, "Menu commands list has an invalid length");
             LiveUnit.Assert.areEqual(1, Helper._CommandingSurface.getVisibleCommandsInElement(commandingSurface._dom.actionArea).length, "actionarea should have 1 command");
+            LiveUnit.Assert.areEqual(3 /* 1 primary command + 1 separator + 1 secondary command */, Helper._CommandingSurface.getVisibleCommandsInElement(commandingSurface._dom.overflowArea).length, "overflowarea should have 3 commands");
         }
 
         testSeparatorAddedBetweenPrimaryAndSecondary() {
@@ -585,7 +621,6 @@ module CorsicaTests {
             args = {
                 numStandardCommands: 0,
                 numSeparators: 0,
-                customContentWidth: 0,
                 visibleOverflowButton: true,
             };
             this.sizeForCommands(this._element, args);
