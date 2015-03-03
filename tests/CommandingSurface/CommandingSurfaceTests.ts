@@ -19,6 +19,47 @@ module CorsicaTests {
 
     interface ISizeForCommandsArgs { numStandardCommands?: number; numSeparators?: number; additionalWidth?: number; visibleOverflowButton?: boolean;};
 
+    // Taking the registration mechanism as a parameter allows us to use this code to test both
+    // DOM level 0 (e.g. onbeforeopen) and DOM level 2 (e.g. addEventListener) events.
+    function testEvents(registerForEvent: (commandingSurface: WinJS.UI.PrivateCommandingSurface, eventName: string, handler: Function) => void) {
+        var commandingSurface = Helper._CommandingSurface.useSynchronousAnimations(new _CommandingSurface(this.element));
+
+        var counter = 0;
+        registerForEvent(commandingSurface, _Constants.EventNames.beforeOpen, () => {
+            LiveUnit.Assert.areEqual(1, counter, _Constants.EventNames.beforeOpen + " fired out of order");
+            counter++;
+            LiveUnit.Assert.isFalse(commandingSurface.opened, _Constants.EventNames.beforeOpen + ": CommandingSurface should not be in opened state");
+        });
+        registerForEvent(commandingSurface, _Constants.EventNames.afterOpen, () => {
+            LiveUnit.Assert.areEqual(2, counter, _Constants.EventNames.afterOpen + " fired out of order");
+            counter++;
+            LiveUnit.Assert.isTrue(commandingSurface.opened, _Constants.EventNames.afterOpen + ": CommandingSurface should be in opened state");
+        });
+        registerForEvent(commandingSurface, _Constants.EventNames.beforeClose, () => {
+            LiveUnit.Assert.areEqual(4, counter, _Constants.EventNames.beforeClose + " fired out of order");
+            counter++;
+            LiveUnit.Assert.isTrue(commandingSurface.opened, _Constants.EventNames.beforeClose + ": CommandingSurface should be in opened state");
+        });
+        registerForEvent(commandingSurface, _Constants.EventNames.afterClose, () => {
+            LiveUnit.Assert.areEqual(5, counter, _Constants.EventNames.afterClose + " fired out of order");
+            counter++;
+            LiveUnit.Assert.isFalse(commandingSurface.opened, _Constants.EventNames.afterClose + ": CommandingSurface should not be in opened state");
+        });
+
+        LiveUnit.Assert.areEqual(0, counter, "before open: wrong number of events fired");
+        counter++;
+        LiveUnit.Assert.isFalse(commandingSurface.opened, "before open: CommandingSurface should not be in opened state");
+
+        commandingSurface.open();
+        LiveUnit.Assert.areEqual(3, counter, "after open: wrong number of events fired");
+        counter++;
+        LiveUnit.Assert.isTrue(commandingSurface.opened, "after open: CommandingSurface should be in opened state");
+
+        commandingSurface.close();
+        LiveUnit.Assert.areEqual(6, counter, "after close: wrong number of events fired");
+        LiveUnit.Assert.isFalse(commandingSurface.opened, "after close: CommandingSurface should not be in opened state");
+    }
+
     export class _CommandingSurfaceTests {
         "use strict";
 
@@ -27,7 +68,7 @@ module CorsicaTests {
                 (args.numStandardCommands || 0) * Helper._CommandingSurface.Constants.actionAreaCommandWidth +
                 (args.numSeparators || 0) * Helper._CommandingSurface.Constants.actionAreaSeparatorWidth +
                 (args.additionalWidth || 0) +
-                (args.visibleOverflowButton ? Helper._CommandingSurface.Constants.actionAreaaOverflowButtonWidth : 0);
+                (args.visibleOverflowButton ? Helper._CommandingSurface.Constants.actionAreaOverflowButtonWidth : 0);
 
             element.style.width = width + "px";
         }
@@ -988,14 +1029,14 @@ module CorsicaTests {
             var Key = WinJS.Utilities.Key;
             var firstEL = document.createElement("button");
             var data = new WinJS.Binding.List([
-                new Command(firstEL, { type: Helper._CommandingSurface.Constants.typeButton, label: "1" }),
-                new Command(null, { type: Helper._CommandingSurface.Constants.typeButton, label: "2", disabled: true }),
-                new Command(null, { type: Helper._CommandingSurface.Constants.typeButton, label: "3" }),
-                new Command(null, { type: Helper._CommandingSurface.Constants.typeButton, label: "4" }),
-                new Command(null, { type: Helper._CommandingSurface.Constants.typeButton, label: "s1", section: Helper._CommandingSurface.Constants.secondaryCommandSection }),
-                new Command(null, { type: Helper._CommandingSurface.Constants.typeButton, label: "s2", section: Helper._CommandingSurface.Constants.secondaryCommandSection }),
-                new Command(null, { type: Helper._CommandingSurface.Constants.typeButton, label: "s3", section: Helper._CommandingSurface.Constants.secondaryCommandSection }),
-                new Command(null, { type: Helper._CommandingSurface.Constants.typeButton, label: "s4", section: Helper._CommandingSurface.Constants.secondaryCommandSection }),
+                new Command(firstEL, { type: Helper._CommandingSurface.Constants.typeButton, icon: "1", label: "1" }),
+                new Command(null, { type: Helper._CommandingSurface.Constants.typeButton, icon: "2", label: "2", disabled: true }),
+                new Command(null, { type: Helper._CommandingSurface.Constants.typeButton, icon: "3", label: "3" }),
+                new Command(null, { type: Helper._CommandingSurface.Constants.typeButton, icon: "4", label: "4" }),
+                new Command(null, { type: Helper._CommandingSurface.Constants.typeButton, icon: "5", label: "s1", section: Helper._CommandingSurface.Constants.secondaryCommandSection }),
+                new Command(null, { type: Helper._CommandingSurface.Constants.typeButton, icon: "6", label: "s2", section: Helper._CommandingSurface.Constants.secondaryCommandSection }),
+                new Command(null, { type: Helper._CommandingSurface.Constants.typeButton, icon: "7", label: "s3", section: Helper._CommandingSurface.Constants.secondaryCommandSection }),
+                new Command(null, { type: Helper._CommandingSurface.Constants.typeButton, icon: "8", label: "s4", section: Helper._CommandingSurface.Constants.secondaryCommandSection })
             ]);
             this._element.style.width = "10px";
             var commandingSurface = new _CommandingSurface(this._element, {
@@ -1330,6 +1371,18 @@ module CorsicaTests {
                         break;
                 }
             }
+        }
+
+        testDomLevel0Events() {
+            testEvents((commandingSurface: WinJS.UI.PrivateCommandingSurface, eventName: string, handler: Function) => {
+                commandingSurface["on" + eventName] = handler;
+            });
+        }
+
+        testDomLevel2Events() {
+            testEvents((commandingSurface: WinJS.UI.PrivateCommandingSurface, eventName: string, handler: Function) => {
+                commandingSurface.addEventListener(eventName, handler);
+            });
         }
     }
 }

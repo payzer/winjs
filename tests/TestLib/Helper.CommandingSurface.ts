@@ -19,9 +19,14 @@ module Helper._CommandingSurface {
         secondaryCommandSection: "secondary",
         commandSelector: ".win-command",
 
+        beforeOpenEvent: "beforeshow",
+        afterOpenEvent: "aftershow",
+        beforeCloseEvent: "beforehide",
+        afterCloseEvent: "afterhide",
+
         actionAreaCommandWidth: 68,
         actionAreaSeparatorWidth: 34,
-        actionAreaaOverflowButtonWidth: 32,
+        actionAreaOverflowButtonWidth: 32,
 
         overflowCommandHeight: 44,
         overflowSeparatorHeight: 12,
@@ -69,5 +74,15 @@ module Helper._CommandingSurface {
         labels.forEach((label, index) => {
             LiveUnit.Assert.areEqual(label, commands[index].winControl.label);
         });
+    }
+
+    export function useSynchronousAnimations(commandingSurface: WinJS.UI.PrivateCommandingSurface) {
+        commandingSurface._playShowAnimation = function () {
+            return WinJS.Promise.wrap();
+        };
+        commandingSurface._playHideAnimation = function () {
+            return WinJS.Promise.wrap();
+        };
+        return commandingSurface;
     }
 }

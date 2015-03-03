@@ -13,6 +13,14 @@ export var menuCssClass = "win-menu";
 export var menuContainsToggleCommandClass = "win-menu-containstogglecommand";
 export var menuContainsFlyoutCommandClass = "win-menu-containsflyoutcommand";
 
+export var EventNames = {
+    /*Update the string literals to the proper open/close nomenclature once we move the state machine and splitview over to the new names. */
+    beforeOpen: "beforeshow",
+    afterOpen: "aftershow",
+    beforeClose: "beforehide",
+    afterClose: "afterhide"
+};
+
 export var contentMenuCommandDefaultLabel = "Custom content";
 
 export var defaultClosedDisplayMode = "compact";

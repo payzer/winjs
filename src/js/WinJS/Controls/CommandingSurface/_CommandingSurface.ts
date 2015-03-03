@@ -54,20 +54,14 @@ interface IDataChangeInfo {
     affected: HTMLElement[];
 }
 
+var createEvent = _Events._createEventProperty;
+
 var strings = {
     get ariaLabel() { return _Resources._getWinJSString("ui/commandingSurfaceAriaLabel").value; },
     get overflowButtonAriaLabel() { return _Resources._getWinJSString("ui/commandingSurfaceOverflowButtonAriaLabel").value; },
     get badData() { return "Invalid argument: The data property must an instance of a WinJS.Binding.List"; },
     get mustContainCommands() { return "The commandingSurface can only contain WinJS.UI.Command or WinJS.UI.AppBarCommand controls"; },
     get duplicateConstruction() { return "Invalid argument: Controls may only be instantiated one time for each DOM element"; }
-};
-
-var createEvent = _Events._createEventProperty;
-var EventNames = {
-    beforeOpen: "beforeopen",
-    afterOpen: "afteropen",
-    beforeClose: "beforeclose",
-    afterClose: "afterclose"
 };
 
 var ClassNames = {
@@ -239,10 +233,10 @@ export class _CommandingSurface {
     /// Gets or sets whether the _CommandingSurface is currently opened.
     /// </field>
     get opened(): boolean {
-        return this._machine.hidden;
+        return !this._machine.hidden;
     }
     set opened(value: boolean) {
-        this._machine.hidden = value;
+        this._machine.hidden = !value;
     }
 
     constructor(element?: HTMLElement, options: any = {}) {
@@ -313,6 +307,7 @@ export class _CommandingSurface {
 
         // Initialize public properties.
         this.closedDisplayMode = _Constants.defaultClosedDisplayMode;
+        this.opened = this._opened;
         if (!options.data) {
             // Shallow copy object so we can modify it.
             options = _BaseUtils._shallowCopy(options);
@@ -337,22 +332,22 @@ export class _CommandingSurface {
     /// <field type="Function" locid="WinJS.UI._CommandingSurface.onbeforeopen" helpKeyword="WinJS.UI._CommandingSurface.onbeforeopen">
     /// Occurs immediately before the control is opened.
     /// </field>
-    onbeforeopen = createEvent(EventNames.beforeOpen);
+    onbeforeopen = createEvent(_Constants.EventNames.beforeOpen);
 
     /// <field type="Function" locid="WinJS.UI._CommandingSurface.onafteropen" helpKeyword="WinJS.UI._CommandingSurface.onafteropen">
     /// Occurs immediately after the control is opened.
     /// </field>
-    onafteropen = createEvent(EventNames.afterOpen);
+    onafteropen = createEvent(_Constants.EventNames.afterOpen);
 
     /// <field type="Function" locid="WinJS.UI._CommandingSurface.onbeforeclose" helpKeyword="WinJS.UI._CommandingSurface.onbeforeclose">
     /// Occurs immediately before the control is closed.
     /// </field>
-    onbeforeclose = createEvent(EventNames.afterOpen);
+    onbeforeclose = createEvent(_Constants.EventNames.afterOpen);
 
     /// <field type="Function" locid="WinJS.UI._CommandingSurface.onafterclose" helpKeyword="WinJS.UI._CommandingSurface.onafterclose">
     /// Occurs immediately after the control is closed.
     /// </field>
-    onafterclose = createEvent(EventNames.afterOpen);
+    onafterclose = createEvent(_Constants.EventNames.afterOpen);
 
     open(): void {
         /// <signature helpKeyword="WinJS.UI._CommandingSurface.open">
@@ -456,7 +451,6 @@ export class _CommandingSurface {
         });
 
         var overflowArea = _Global.document.createElement("div");
-        overflowArea.style.display = "none";
         _ElementUtilities.addClass(overflowArea, _Constants.overflowAreaCssClass);
         _ElementUtilities.addClass(overflowArea, _Constants.menuCssClass);
         root.appendChild(overflowArea);
@@ -652,6 +646,18 @@ export class _CommandingSurface {
         }
     }
 
+    // Should be called while _CommandingSurface is rendered in its shown mode
+    // Overridden by tests.
+    private _playShowAnimation(): Promise<any> {
+        return Promise.wrap();
+    }
+
+    // Should be called while SplitView is rendered in its shown mode
+    // Overridden by tests.
+    private _playHideAnimation(): Promise<any> {
+        return Promise.wrap();
+    }
+
     private _dataDirty(): void {
         this._pendingLayout = Math.max(CommandLayoutPipeline.newDataStage, this._pendingLayout);
     }
@@ -680,14 +686,16 @@ export class _CommandingSurface {
         var rendered = this._updateDomImpl_renderedState;
 
         if (rendered.opened !== this._opened) {
-            if (rendered.opened && !this._opened) {
-                // Render closed
-                removeClass(this._dom.root, ClassNames.openedClass);
-                addClass(this._dom.root, ClassNames.closedClass);
-            } else {
+            if (this._opened && !rendered.opened) {
                 // Render opened
                 removeClass(this._dom.root, ClassNames.closedClass);
                 addClass(this._dom.root, ClassNames.openedClass);
+                rendered.opened = true;
+            } else {
+                // Render closed
+                removeClass(this._dom.root, ClassNames.openedClass);
+                addClass(this._dom.root, ClassNames.closedClass);
+                rendered.opened = false;
             }
         }
         

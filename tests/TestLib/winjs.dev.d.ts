@@ -390,6 +390,8 @@ declare module WinJS {
             _getCommandWidth(command: ICommand): number;
             _contentFlyout: WinJS.UI.Flyout;
             _contentFlyoutInterior: HTMLElement;
+            _playShowAnimation(): Promise<any>;
+            _playHideAnimation(): Promise<any>;
             _dom: {
                 root: HTMLElement;
                 actionArea: HTMLElement;
@@ -583,6 +585,9 @@ declare module WinJS {
             public onafteropen: Function;
             public onafterclose: Function;
             public onbeforeclose: Function;
+            public addEventListener(eventName: string, eventHandler: Function, useCapture?: boolean): void;
+            public removeEventListener(eventName: string, eventCallback: Function, useCapture?: boolean): void;
+            public dispatchEvent(type: string, eventProperties: any): boolean;
         }
 
         class ToolBar {
