@@ -332,22 +332,22 @@ export class _CommandingSurface {
     /// <field type="Function" locid="WinJS.UI._CommandingSurface.onbeforeopen" helpKeyword="WinJS.UI._CommandingSurface.onbeforeopen">
     /// Occurs immediately before the control is opened.
     /// </field>
-    onbeforeshow = createEvent(_Constants.EventNames.beforeShow);
+    onbeforeshow: (ev: CustomEvent) => void;
 
     /// <field type="Function" locid="WinJS.UI._CommandingSurface.onafteropen" helpKeyword="WinJS.UI._CommandingSurface.onafteropen">
     /// Occurs immediately after the control is opened.
     /// </field>
-    onaftershow = createEvent(_Constants.EventNames.afterShow);
+    onaftershow: (ev: CustomEvent) => void;
 
     /// <field type="Function" locid="WinJS.UI._CommandingSurface.onbeforeclose" helpKeyword="WinJS.UI._CommandingSurface.onbeforeclose">
     /// Occurs immediately before the control is closed.
     /// </field>
-    onbeforehide = createEvent(_Constants.EventNames.beforeHide);
+    onbeforehide: (ev: CustomEvent) => void;
 
     /// <field type="Function" locid="WinJS.UI._CommandingSurface.onafterclose" helpKeyword="WinJS.UI._CommandingSurface.onafterclose">
     /// Occurs immediately after the control is closed.
     /// </field>
-    onafterhide = createEvent(_Constants.EventNames.afterHide);
+    onafterhide: (ev: CustomEvent) => void;
 
     open(): void {
         /// <signature helpKeyword="WinJS.UI._CommandingSurface.open">
@@ -1126,6 +1126,14 @@ export class _CommandingSurface {
         }
     }
 }
+
+_Base.Class.mix(_CommandingSurface, _Events.createEventProperties(
+    _Constants.EventNames.beforeShow,
+    _Constants.EventNames.afterShow,
+    _Constants.EventNames.beforeHide,
+    _Constants.EventNames.afterHide
+    ));
+
 
 // addEventListener, removeEventListener, dispatchEvent
 _Base.Class.mix(_CommandingSurface, _Control.DOMEventMixin);
