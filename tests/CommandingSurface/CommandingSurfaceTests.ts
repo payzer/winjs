@@ -22,7 +22,7 @@ module CorsicaTests {
     // Taking the registration mechanism as a parameter allows us to use this code to test both
     // DOM level 0 (e.g. onbeforeopen) and DOM level 2 (e.g. addEventListener) events.
     function testEvents(testElement, registerForEvent: (commandingSurface: WinJS.UI.PrivateCommandingSurface, eventName: string, handler: Function) => void) {
-        var commandingSurface = Helper._CommandingSurface.useSynchronousAnimations(new _CommandingSurface(this.element));
+        var commandingSurface = Helper._CommandingSurface.useSynchronousAnimations(new _CommandingSurface(testElement));
 
         var counter = 0;
         registerForEvent(commandingSurface, _Constants.EventNames.beforeShow, () => {
@@ -35,15 +35,15 @@ module CorsicaTests {
             counter++;
             LiveUnit.Assert.isTrue(commandingSurface.opened, _Constants.EventNames.afterShow + ": CommandingSurface should be in opened state");
         });
-        registerForEvent(commandingSurface, _Constants.EventNames.beforeShow, () => {
-            LiveUnit.Assert.areEqual(4, counter, _Constants.EventNames.beforeShow + " fired out of order");
+        registerForEvent(commandingSurface, _Constants.EventNames.beforeHide, () => {
+            LiveUnit.Assert.areEqual(4, counter, _Constants.EventNames.beforeHide + " fired out of order");
             counter++;
-            LiveUnit.Assert.isTrue(commandingSurface.opened, _Constants.EventNames.beforeShow + ": CommandingSurface should be in opened state");
+            LiveUnit.Assert.isTrue(commandingSurface.opened, _Constants.EventNames.beforeHide + ": CommandingSurface should be in opened state");
         });
-        registerForEvent(commandingSurface, _Constants.EventNames.afterShow, () => {
-            LiveUnit.Assert.areEqual(5, counter, _Constants.EventNames.afterShow + " fired out of order");
+        registerForEvent(commandingSurface, _Constants.EventNames.afterHide, () => {
+            LiveUnit.Assert.areEqual(5, counter, _Constants.EventNames.afterHide + " fired out of order");
             counter++;
-            LiveUnit.Assert.isFalse(commandingSurface.opened, _Constants.EventNames.afterShow + ": CommandingSurface should not be in opened state");
+            LiveUnit.Assert.isFalse(commandingSurface.opened, _Constants.EventNames.afterHide + ": CommandingSurface should not be in opened state");
         });
 
         LiveUnit.Assert.areEqual(0, counter, "before open: wrong number of events fired");
