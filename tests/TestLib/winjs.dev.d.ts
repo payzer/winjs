@@ -13,6 +13,11 @@ interface IStyleEquivalentsMap {
     [key: string]: IStyleEquivalents;
 }
 
+interface IShowHideMachine {
+    _state: { name: string } };
+}
+
+
 declare module WinJS {
 
     interface IPosition {
@@ -194,7 +199,7 @@ declare module WinJS {
             _prepareAnimation(paneRect: any, contentRect: any): void;
             _clearAnimation(): void;
             _disposed: boolean;
-            _machine: { _state: { name: string } };
+            _machine: IShowHideMachine
         }
 
         interface ISelect {
@@ -399,6 +404,7 @@ declare module WinJS {
                 overflowButton: HTMLButtonElement;
                 overflowArea: HTMLElement;
             };
+            _machine: IShowHideMachine;
         }
 
         class PrivateToolBar extends WinJS.UI.ToolBar {

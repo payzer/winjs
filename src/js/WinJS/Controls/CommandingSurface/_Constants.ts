@@ -24,6 +24,7 @@ export var EventNames = {
 export var contentMenuCommandDefaultLabel = "Custom content";
 
 export var defaultClosedDisplayMode = "compact";
+export var defaultOpened = false;
 
 // Constants for commands
 export var typeSeparator = "separator";

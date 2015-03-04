@@ -300,11 +300,11 @@ export class _CommandingSurface {
         this._refreshPending = false;
         this._rtl = false;
         this._nextLayoutStage = CommandLayoutPipeline.idle;
-        this._opened = false;
+        this._opened = _Constants.defaultOpened;
 
         // Initialize public properties.
         this.closedDisplayMode = _Constants.defaultClosedDisplayMode;
-        this.opened = this._opened;
+        this.opened = this._opened
         if (!options.data) {
             // Shallow copy object so we can modify it.
             options = _BaseUtils._shallowCopy(options);
@@ -695,7 +695,7 @@ export class _CommandingSurface {
                 rendered.opened = false;
             }
         }
-        
+
 
         if (rendered.closedDisplayMode !== this.closedDisplayMode) {
             removeClass(this._dom.root, closedDisplayModeClassMap[rendered.closedDisplayMode]);
@@ -1130,7 +1130,6 @@ _Base.Class.mix(_CommandingSurface, _Events.createEventProperties(
     _Constants.EventNames.beforeHide,
     _Constants.EventNames.afterHide
     ));
-
 
 // addEventListener, removeEventListener, dispatchEvent
 _Base.Class.mix(_CommandingSurface, _Control.DOMEventMixin);

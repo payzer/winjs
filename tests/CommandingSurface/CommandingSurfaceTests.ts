@@ -157,7 +157,6 @@ module CorsicaTests {
             }
 
             // if the commandingSurface element contains children, they should be parsed as the data
-
             var el = document.createElement("div");
             var child = document.createElement("table");
             el.appendChild(child);
@@ -224,6 +223,30 @@ module CorsicaTests {
             el.setAttribute("aria-label", "myList");
             LiveUnit.Assert.areEqual("list", commandingSurface.element.getAttribute("role"), "CommandingSurface should have not set a default aria role");
             LiveUnit.Assert.areEqual("myList", commandingSurface.element.getAttribute("aria-label"), "CommandingSurface should have not set a default aria label");
+        }
+
+        testDispose() {
+            function failEventHandler(eventName) {
+                return function () {
+                    LiveUnit.Assert.fail(eventName + ": shouldn't have run due to control being disposed");
+                };
+            }
+
+            var commandingSurface = Helper._CommandingSurface.useSynchronousAnimations(new _CommandingSurface(this._element));
+            commandingSurface.open();
+
+            commandingSurface.onbeforeshow = failEventHandler(_Constants.Events.beforeShow);
+            commandingSurface.onbeforehide = failEventHandler(_Constants.Events.afterShow);
+            commandingSurface.onaftershow = failEventHandler(_Constants.Events.beforeHide);
+            commandingSurface.onafterhide = failEventHandler(_Constants.Events.afterHide);
+
+            commandingSurface.dispose();
+            LiveUnit.Assert.isTrue(commandingSurface._disposed, "CommandingSurface didn't mark itself as disposed");
+            LiveUnit.Assert.areEqual("Disposed", commandingSurface._machine._state.name, "CommandingSurface didn't move into the disposed state");
+
+            commandingSurface.close();
+            commandingSurface.open();
+            commandingSurface.dispose();
         }
 
         testOverflowButtonHiddenWithoutSecondaryCommands() {
@@ -1419,6 +1442,51 @@ module CorsicaTests {
             testEvents(this._element, (commandingSurface: WinJS.UI.PrivateCommandingSurface, eventName: string, handler: Function) => {
                 commandingSurface.addEventListener(eventName, handler);
             });
+        }
+
+        testBeforeShowIsCancelable() {
+            //var splitView = Utils.useSynchronousAnimations(createSplitView());
+
+            //splitView.onbeforeshow = function (eventObject) {
+            //    eventObject.preventDefault();
+            //};
+            //splitView.onaftershow = function (eventObject) {
+            //    LiveUnit.Assert.fail("aftershow shouldn't have fired due to beforeshow being canceled");
+            //};
+            //splitView.onbeforehide = function (eventObject) {
+            //    LiveUnit.Assert.fail("beforehide shouldn't have fired due to beforeshow being canceled");
+            //};
+            //splitView.onafterhide = function (eventObject) {
+            //    LiveUnit.Assert.fail("afterhide shouldn't have fired due to beforeshow being canceled");
+            //};
+
+            //splitView.showPane();
+            //LiveUnit.Assert.isTrue(splitView.paneHidden, "SplitView should still be hidden");
+        }
+
+        testBeforeHideIsCancelable() {
+            //function showShouldNotHaveCompleted() {
+            //    LiveUnit.Assert.fail("show should not have completed");
+            //}
+
+            //var splitView = Utils.useSynchronousAnimations(createSplitView());
+
+            //splitView.showPane();
+            //splitView.onbeforehide = function (eventObject) {
+            //    eventObject.preventDefault();
+            //};
+            //splitView.onafterhide = function (eventObject) {
+            //    LiveUnit.Assert.fail("Hide should have been canceled");
+            //};
+            //splitView.hidePane();
+            //LiveUnit.Assert.isFalse(splitView.paneHidden, "SplitView should still be shown");
+        }
+
+        testOpenedProperty() {
+            var commandingSurface = new _CommandingSurface(this._element);
+
+            // Verify default value
+            LiveUnit.Assert.areEqual(_Constants.defaultOpened, commandingSurface.opened);
         }
     }
 }

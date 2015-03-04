@@ -19,11 +19,6 @@ module Helper._CommandingSurface {
         secondaryCommandSection: "secondary",
         commandSelector: ".win-command",
 
-        beforeOpenEvent: "beforeshow",
-        afterOpenEvent: "aftershow",
-        beforeCloseEvent: "beforehide",
-        afterCloseEvent: "afterhide",
-
         actionAreaCommandWidth: 68,
         actionAreaSeparatorWidth: 34,
         actionAreaOverflowButtonWidth: 32,
@@ -84,5 +79,34 @@ module Helper._CommandingSurface {
             return WinJS.Promise.wrap();
         };
         return commandingSurface;
+    }
+
+    export function show(commandingSurface): WinJS.Promise<any> {
+        return new WinJS.Promise(function (c, e, p): void {
+            function afterShow(): void {
+                commandingSurface.removeEventListener("aftershow", afterShow, false);
+                c();
+            };
+            commandingSurface.addEventListener("aftershow", afterShow, false);
+            commandingSurface.show();
+        });
+    };
+
+    export function hide(commandingSurface): WinJS.Promise<any> {
+        return new WinJS.Promise(function (c, e, p): void {
+            function afterHide(): void {
+                commandingSurface.removeEventListener("afterhide", afterHide, false);
+                c();
+            };
+            commandingSurface.addEventListener("afterhide", afterHide, false);
+            commandingSurface._hideOrDismiss();
+        });
+    };
+
+    export function listenOnce (commandingSurface: WinJS.UI.PrivateCommandingSurface, eventName: string, callback: () => any): void {
+        commandingSurface.addEventListener(eventName, function handler() {
+            commandingSurface.removeEventListener(eventName, handler, false);
+            callback();
+        }, false);
     }
 }
