@@ -18,7 +18,6 @@
             min-height: 48px; /* height of a primary command with no label */
             width: 0px;
         }
-
         .win-command,
         .win-commandingsurface-overflowbutton {
             #flex > .flex(none);
@@ -39,12 +38,42 @@
 
             .win-commandingsurface-ellipsis {
                 font-size: 16px;
-                font-family: "Segoe UI Symbol", "Symbols";
+                font-family: "Segoe MDL2 Assets", "Symbols";
 
                 &::before {
                     content: "\E10C";
                 }
             }
+        }
+    }
+
+    &.win-commandingsurface-closeddisplayfull .win-commandingsurface-actionarea {
+        height: auto;
+    }
+
+    &.win-commandingsurface-closeddisplaycompact .win-commandingsurface-actionarea {
+        height: 48px;
+
+        .win-command .win-label {
+            display: none;
+        }
+    }
+
+    &.win-commandingsurface-closeddisplayminimal .win-commandingsurface-actionarea {
+        height: 24px;
+
+        .win-command, .win-commandingsurface-spacer {
+            display: none;
+        }
+    }
+
+    &.win-commandingsurface-closeddisplaynone {
+        display: none;
+    }
+
+    &.win-commandingsurface-empty {
+        .win-commandingsurface-overflowbutton {
+            display: none;
         }
     }
 

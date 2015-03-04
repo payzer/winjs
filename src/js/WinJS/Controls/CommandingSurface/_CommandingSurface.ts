@@ -54,14 +54,38 @@ interface IDataChangeInfo {
     affected: HTMLElement[];
 }
 
-var createEvent = _Events._createEventProperty;
-
 var strings = {
     get ariaLabel() { return _Resources._getWinJSString("ui/commandingSurfaceAriaLabel").value; },
     get overflowButtonAriaLabel() { return _Resources._getWinJSString("ui/commandingSurfaceOverflowButtonAriaLabel").value; },
     get badData() { return "Invalid argument: The data property must an instance of a WinJS.Binding.List"; },
     get mustContainCommands() { return "The commandingSurface can only contain WinJS.UI.Command or WinJS.UI.AppBarCommand controls"; },
     get duplicateConstruction() { return "Invalid argument: Controls may only be instantiated one time for each DOM element"; }
+};
+
+var CommandLayoutPipeline = {
+    newDataStage: 3,
+    measuringStage: 2,
+    layoutStage: 1,
+    idle: 0,
+};
+
+var ClosedDisplayMode = {
+    /// <field locid="WinJS.UI._CommandingSurface.ClosedDisplayMode.none" helpKeyword="WinJS.UI._CommandingSurface.ClosedDisplayMode.none">
+    /// When the _CommandingSurface is closed, the actionarea is not visible and doesn't take up any space.
+    /// </field>
+    none: "none",
+    /// <field locid="WinJS.UI._CommandingSurface.ClosedDisplayMode.minimal" helpKeyword="WinJS.UI._CommandingSurface.ClosedDisplayMode.minimal">
+    /// When the _CommandingSurface is closed, the height of the actionarea is reduced to the minimal height required to display only the actionarea overflowbutton. All other content in the actionarea is not displayed.
+    /// </field>
+    minimal: "minimal",
+    /// <field locid="WinJS.UI._CommandingSurface.ClosedDisplayMode.compact" helpKeyword="WinJS.UI._CommandingSurface.ClosedDisplayMode.compact">
+    /// When the _CommandingSurface is closed, the height of the actionarea is reduced such that button commands are still visible, but their labels are hidden.
+    /// </field>
+    compact: "compact",
+    /// <field locid="WinJS.UI._CommandingSurface.ClosedDisplayMode.full" helpKeyword="WinJS.UI._CommandingSurface.ClosedDisplayMode.full">
+    /// When the _CommandingSurface is closed, the height of the actionarea is always sized to content and does not change between opened and closed states.
+    /// </field>
+    full: "full",
 };
 
 var ClassNames = {
@@ -99,13 +123,6 @@ closedDisplayModeClassMap[ClosedDisplayMode.none] = ClassNames.noneClass;
 closedDisplayModeClassMap[ClosedDisplayMode.minimal] = ClassNames.minimalClass;
 closedDisplayModeClassMap[ClosedDisplayMode.compact] = ClassNames.compactClass;
 closedDisplayModeClassMap[ClosedDisplayMode.full] = ClassNames.fullClass;
-
-var CommandLayoutPipeline = {
-    newDataStage: 3,
-    measuringStage: 2,
-    layoutStage: 1,
-    idle: 0,
-};
 
 // Versions of add/removeClass that are no ops when called with falsy class names.
 function addClass(element: HTMLElement, className: string): void {
@@ -325,22 +342,18 @@ export class _CommandingSurface {
             this._writeProfilerMark("constructor,StopTM");
         });
     }
-
     /// <field type="Function" locid="WinJS.UI._CommandingSurface.onbeforeopen" helpKeyword="WinJS.UI._CommandingSurface.onbeforeopen">
     /// Occurs immediately before the control is opened.
     /// </field>
     onbeforeshow: (ev: CustomEvent) => void;
-
     /// <field type="Function" locid="WinJS.UI._CommandingSurface.onafteropen" helpKeyword="WinJS.UI._CommandingSurface.onafteropen">
     /// Occurs immediately after the control is opened.
     /// </field>
     onaftershow: (ev: CustomEvent) => void;
-
     /// <field type="Function" locid="WinJS.UI._CommandingSurface.onbeforeclose" helpKeyword="WinJS.UI._CommandingSurface.onbeforeclose">
     /// Occurs immediately before the control is closed.
     /// </field>
     onbeforehide: (ev: CustomEvent) => void;
-
     /// <field type="Function" locid="WinJS.UI._CommandingSurface.onafterclose" helpKeyword="WinJS.UI._CommandingSurface.onafterclose">
     /// Occurs immediately after the control is closed.
     /// </field>
@@ -454,6 +467,11 @@ export class _CommandingSurface {
 
         this._dom = {
             root: root,
+            actionArea: actionArea,
+            spacer: spacer,
+            overflowButton: overflowButton,
+            overflowArea: overflowArea,
+        };
             actionArea: actionArea,
             spacer: spacer,
             overflowButton: overflowButton,
@@ -648,13 +666,12 @@ export class _CommandingSurface {
     private _playShowAnimation(): Promise<any> {
         return Promise.wrap();
     }
-
     // Should be called while SplitView is rendered in its shown mode
     // Overridden by tests.
     private _playHideAnimation(): Promise<any> {
         return Promise.wrap();
     }
-
+        this._nextLayoutStage = Math.max(CommandLayoutPipeline.measuringStage, this._nextLayoutStage);
     private _dataDirty(): void {
         this._nextLayoutStage = Math.max(CommandLayoutPipeline.newDataStage, this._nextLayoutStage);
     }
@@ -664,7 +681,7 @@ export class _CommandingSurface {
     private _layoutDirty(): void {
         this._nextLayoutStage = Math.max(CommandLayoutPipeline.layoutStage, this._nextLayoutStage);
     }
-
+    private _layoutDirty(): void {
     private _updateDomImpl(): void {
         this._updateDomImpl_renderDisplayMode();
         this._updateDomImpl_updateCommands();
@@ -696,6 +713,8 @@ export class _CommandingSurface {
             }
         }
 
+        }
+    }
 
         if (rendered.closedDisplayMode !== this.closedDisplayMode) {
             removeClass(this._dom.root, closedDisplayModeClassMap[rendered.closedDisplayMode]);
@@ -708,6 +727,23 @@ export class _CommandingSurface {
         this._writeProfilerMark("_updateDomImpl_updateCommands,info");
 
         var nextStage = this._nextLayoutStage;
+        while (nextStage !== CommandLayoutPipeline.idle) {
+            var currentStage = nextStage;
+            var okToProceed = false;
+            switch (currentStage) {
+                case CommandLayoutPipeline.newDataStage:
+                    nextStage = CommandLayoutPipeline.measuringStage;
+                    okToProceed = this._processNewData();
+                    break;
+                case CommandLayoutPipeline.measuringStage:
+                    nextStage = CommandLayoutPipeline.layoutStage;
+                    okToProceed = this._measure();
+                    break;
+                case CommandLayoutPipeline.layoutStage:
+                    nextStage = CommandLayoutPipeline.idle;
+                    okToProceed = this._layoutCommands();
+                    break;
+            }
 
         // The flow of stages in the CommandLayoutPipeline is defined as:
         //      newDataStage -> measuringStage -> layoutStage -> idle
@@ -825,7 +861,7 @@ export class _CommandingSurface {
                 actionAreaContentBoxWidth = _ElementUtilities.getContentWidth(this._dom.actionArea),
                 separatorWidth = 0,
                 standardCommandWidth = 0,
-                contentCommandWidths = {};
+                contentCommandWidths: { [uniqueID: string]: number; } = {};
 
             this._primaryCommands.forEach((command) => {
                 // Ensure that the element we are measuring does not have display: none (e.g. it was just added, and it

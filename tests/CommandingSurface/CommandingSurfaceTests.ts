@@ -1389,6 +1389,73 @@ module CorsicaTests {
                             return getComputedStyle(command.element).display === "none";
                         })) {
                             LiveUnit.Assert.fail("CommandingSurface with 'compact' closedDisplayMode should display primary commands.");
+        }
+
+        testClosedDisplayModes() {
+            this._element.style.width = "1000px";
+            var fullHeightOfContent = 100;
+            var contentElement = document.createElement("DIV");
+            contentElement.style.height = fullHeightOfContent + "px";
+            contentElement.style.border = "none";
+
+            var data = new WinJS.Binding.List([
+                new Command(null, { type: Helper._CommandingSurface.Constants.typeButton, icon: 'add', label: "button" }),
+                new Command(null, { type: Helper._CommandingSurface.Constants.typeSeparator }),
+                new Command(contentElement, { type: Helper._CommandingSurface.Constants.typeContent, label: "content" }),
+                new Command(null, { type: Helper._CommandingSurface.Constants.typeButton, section: 'secondary', label: "secondary" }),
+            ]);
+            var commandingSurface = new _CommandingSurface(this._element, {
+                data: data
+            });
+
+            Object.keys(_CommandingSurface.ClosedDisplayMode).forEach(function (mode) {
+                verifyClosedDisplayMode(mode)
+            });
+
+            function verifyClosedDisplayMode(mode) {
+                commandingSurface.closedDisplayMode = mode;
+                LiveUnit.Assert.areEqual(mode, commandingSurface.closedDisplayMode, "closedDisplayMode property should be writeable.");
+
+                var commands = commandingSurface._primaryCommands,
+                    commandingSurfaceTotalHeight = WinJS.Utilities.getTotalHeight(commandingSurface.element),
+                    actionAreaTotalHeight = WinJS.Utilities.getTotalHeight(commandingSurface._dom.actionArea),
+                    actionAreaContentHeight = WinJS.Utilities.getContentHeight(commandingSurface._dom.actionArea),
+                    overflowButtonTotalHeight = WinJS.Utilities.getTotalHeight(commandingSurface._dom.overflowButton),
+                    overflowAreaTotalHeight = WinJS.Utilities.getTotalHeight(commandingSurface._dom.overflowArea);
+
+                switch (mode) {
+                    case 'none':
+                        LiveUnit.Assert.areEqual("none", getComputedStyle(commandingSurface.element).display);
+                        LiveUnit.Assert.areEqual(0, actionAreaTotalHeight);
+                        LiveUnit.Assert.areEqual(0, overflowButtonTotalHeight);
+                        LiveUnit.Assert.areEqual(0, overflowAreaTotalHeight);
+                        break;
+
+                    case 'minimal':
+                        LiveUnit.Assert.areEqual(actionAreaTotalHeight, commandingSurfaceTotalHeight, "Height of CommandingSurface should size to its actionarea.");
+                        LiveUnit.Assert.areEqual(Helper._CommandingSurface.Constants.heightOfMinimal, actionAreaContentHeight, "invalid ActionArea content height for 'minimal' closedDisplayMode");
+                        LiveUnit.Assert.areEqual(actionAreaContentHeight, overflowButtonTotalHeight, "overflowButton should stretch to the height of the actionarea");
+
+                        // Verify commands are not displayed.
+                        if (Array.prototype.some.call(commands, function (command) {
+                            return getComputedStyle(command.element).display !== "none";
+                        })) {
+                            LiveUnit.Assert.fail("CommandingSurface with 'minimal' closedDisplayMode should not display primary commands.");
+                        }
+
+                        LiveUnit.Assert.areEqual(0, overflowAreaTotalHeight);
+                        break;
+
+                    case 'compact':
+                        LiveUnit.Assert.areEqual(actionAreaTotalHeight, commandingSurfaceTotalHeight, "Height of CommandingSurface should size to its actionarea.");
+                        LiveUnit.Assert.areEqual(Helper._CommandingSurface.Constants.heightOfCompact, actionAreaContentHeight, "invalid ActionArea content height for 'compact' closedDisplayMode");
+                        LiveUnit.Assert.areEqual(actionAreaContentHeight, overflowButtonTotalHeight, "overflowButton should stretch to the height of the actionarea");
+
+                        // Verify commands are displayed.
+                        if (Array.prototype.some.call(commands, function (command) {
+                            return getComputedStyle(command.element).display === "none";
+                        })) {
+                            LiveUnit.Assert.fail("CommandingSurface with 'compact' closedDisplayMode should display primary commands.");
                         }
 
                         // Verify command labels are not displayed.
