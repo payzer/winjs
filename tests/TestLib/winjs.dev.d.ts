@@ -14,7 +14,7 @@ interface IStyleEquivalentsMap {
 }
 
 interface IShowHideMachine {
-    _state: { name: string } };
+    _state: { name: string; } 
 }
 
 

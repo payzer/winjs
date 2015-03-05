@@ -472,11 +472,6 @@ export class _CommandingSurface {
             overflowButton: overflowButton,
             overflowArea: overflowArea,
         };
-            actionArea: actionArea,
-            spacer: spacer,
-            overflowButton: overflowButton,
-            overflowArea: overflowArea,
-        };
     }
 
     private _getFocusableElementsInfo(): IFocusableElementsInfo {
@@ -671,7 +666,7 @@ export class _CommandingSurface {
     private _playHideAnimation(): Promise<any> {
         return Promise.wrap();
     }
-        this._nextLayoutStage = Math.max(CommandLayoutPipeline.measuringStage, this._nextLayoutStage);
+
     private _dataDirty(): void {
         this._nextLayoutStage = Math.max(CommandLayoutPipeline.newDataStage, this._nextLayoutStage);
     }
@@ -681,7 +676,6 @@ export class _CommandingSurface {
     private _layoutDirty(): void {
         this._nextLayoutStage = Math.max(CommandLayoutPipeline.layoutStage, this._nextLayoutStage);
     }
-    private _layoutDirty(): void {
     private _updateDomImpl(): void {
         this._updateDomImpl_renderDisplayMode();
         this._updateDomImpl_updateCommands();
@@ -713,9 +707,6 @@ export class _CommandingSurface {
             }
         }
 
-        }
-    }
-
         if (rendered.closedDisplayMode !== this.closedDisplayMode) {
             removeClass(this._dom.root, closedDisplayModeClassMap[rendered.closedDisplayMode]);
             addClass(this._dom.root, closedDisplayModeClassMap[this.closedDisplayMode]);
@@ -727,24 +718,6 @@ export class _CommandingSurface {
         this._writeProfilerMark("_updateDomImpl_updateCommands,info");
 
         var nextStage = this._nextLayoutStage;
-        while (nextStage !== CommandLayoutPipeline.idle) {
-            var currentStage = nextStage;
-            var okToProceed = false;
-            switch (currentStage) {
-                case CommandLayoutPipeline.newDataStage:
-                    nextStage = CommandLayoutPipeline.measuringStage;
-                    okToProceed = this._processNewData();
-                    break;
-                case CommandLayoutPipeline.measuringStage:
-                    nextStage = CommandLayoutPipeline.layoutStage;
-                    okToProceed = this._measure();
-                    break;
-                case CommandLayoutPipeline.layoutStage:
-                    nextStage = CommandLayoutPipeline.idle;
-                    okToProceed = this._layoutCommands();
-                    break;
-            }
-
         // The flow of stages in the CommandLayoutPipeline is defined as:
         //      newDataStage -> measuringStage -> layoutStage -> idle
         while (nextStage !== CommandLayoutPipeline.idle) {
