@@ -25,7 +25,6 @@ module Helper._CommandingSurface {
 
         overflowCommandHeight: 44,
         overflowSeparatorHeight: 12,
-        overflowBottomPadding: 24,
 
         commandingSurfaceMinWidth: 68,
         heightOfMinimal: 24,
