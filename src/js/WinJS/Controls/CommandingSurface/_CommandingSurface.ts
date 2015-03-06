@@ -244,6 +244,17 @@ export class _CommandingSurface {
         }
     }
 
+    private _openDirection: string;
+    /// <field type="Boolean" hidden="true" locid="WinJS.UI._CommandingSurface.opened" helpKeyword="WinJS.UI._CommandingSurface.opened">
+    /// Gets or sets whether the _CommandingSurface is currently opened.
+    /// </field>
+    get openDirection(): string {
+        return this._openDirection;
+    }
+    set openDirection(value: string) {
+        this._openDirection = value;
+    }
+
     /// <field type="Boolean" hidden="true" locid="WinJS.UI._CommandingSurface.opened" helpKeyword="WinJS.UI._CommandingSurface.opened">
     /// Gets or sets whether the _CommandingSurface is currently opened.
     /// </field>
