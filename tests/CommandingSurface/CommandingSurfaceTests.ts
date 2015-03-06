@@ -949,7 +949,7 @@ module CorsicaTests {
             LiveUnit.Assert.areEqual(0, WinJS.Utilities.getTotalHeight(commandingSurface._dom.overflowArea), "Invalid height for the overflowarea container when there are no commands that overflow");
         }
 
-        testOverflowAreaContainerSize() {
+        xtestOverflowAreaContainerSize() {
             var data = new WinJS.Binding.List([
                 new Command(null, { type: Helper._CommandingSurface.Constants.typeButton, label: "1" }),
                 new Command(null, { type: Helper._CommandingSurface.Constants.typeButton, label: "2" }),
@@ -983,7 +983,7 @@ module CorsicaTests {
             LiveUnit.Assert.areEqual(commandingSurface.element, commandingSurface._dom.actionArea.parentNode, "Invalid parent for the actionarea container");
         }
 
-        testOverflowMaxHeightForOnlySecondaryCommands() {
+        xtestOverflowMaxHeightForOnlySecondaryCommands() {
             var data = new WinJS.Binding.List([
                 new Command(null, { type: Helper._CommandingSurface.Constants.typeButton, label: "1", section: Helper._CommandingSurface.Constants.secondaryCommandSection }),
                 new Command(null, { type: Helper._CommandingSurface.Constants.typeButton, label: "2", section: Helper._CommandingSurface.Constants.secondaryCommandSection }),
@@ -1006,7 +1006,7 @@ module CorsicaTests {
             LiveUnit.Assert.areEqual(9, Helper._CommandingSurface.getVisibleCommandsInElement(commandingSurface._dom.overflowArea).length, "There should be 9 commands in the overflowarea");
         }
 
-        testOverflowMaxHeightForMixedCommands() {
+        xtestOverflowMaxHeightForMixedCommands() {
             var data = new WinJS.Binding.List([
                 new Command(null, { type: Helper._CommandingSurface.Constants.typeButton, label: "1" }),
                 new Command(null, { type: Helper._CommandingSurface.Constants.typeButton, label: "2" }),

@@ -457,7 +457,6 @@ export class _CommandingSurface {
         actionArea.appendChild(overflowButton);
         overflowButton.addEventListener("click", () => {
             this.opened = !this.opened;
-            //overflowArea.style.display = (overflowArea.style.display === "none") ? "block" : "none";
         });
 
         var overflowArea = _Global.document.createElement("div");

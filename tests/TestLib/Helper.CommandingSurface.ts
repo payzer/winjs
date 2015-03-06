@@ -25,8 +25,9 @@ module Helper._CommandingSurface {
 
         overflowCommandHeight: 44,
         overflowSeparatorHeight: 12,
-        commandingSurfaceMinWidth: 68,
+        overflowBottomPadding: 24,
 
+        commandingSurfaceMinWidth: 68,
         heightOfMinimal: 24,
         heightOfCompact: 48,
     }
@@ -72,11 +73,10 @@ module Helper._CommandingSurface {
     }
 
     export function verifyRenderedOpened(commandingSurface: WinJS.UI.PrivateCommandingSurface) {
-        // Verifies actionarea and overflowarea are opened
+        // Verify actionarea and overflowarea are opened
         verifyRenderedOpened_actionArea(commandingSurface);
         verifyRenderedOpened_overflowArea(commandingSurface);
     };
-
 
     function verifyRenderedOpened_actionArea(commandingSurface: WinJS.UI.PrivateCommandingSurface) {
 
@@ -112,11 +112,12 @@ module Helper._CommandingSurface {
         }
     };
 
-
     function verifyRenderedOpened_overflowArea(commandingSurface: WinJS.UI.PrivateCommandingSurface) {
+        LiveUnit.Assert.areNotEqual("none", getComputedStyle(commandingSurface._dom.overflowArea).display);
 
+        var overflowAreaTotalHeight = WinJS.Utilities.getTotalHeight(commandingSurface._dom.overflowArea);
+        LiveUnit.Assert.isTrue(0 < overflowAreaTotalHeight);
     };
-
 
     export function verifyRenderedClosed(commandingSurface: WinJS.UI.PrivateCommandingSurface) {
         // Verifies actionarea and overflowarea are closed
@@ -189,33 +190,4 @@ module Helper._CommandingSurface {
         var overflowAreaTotalHeight = WinJS.Utilities.getTotalHeight(commandingSurface._dom.overflowArea);
         LiveUnit.Assert.areEqual(0, overflowAreaTotalHeight);
     };
-
-    //export function show(commandingSurface): WinJS.Promise<any> {
-    //    return new WinJS.Promise(function (c, e, p): void {
-    //        function afterShow(): void {
-    //            commandingSurface.removeEventListener("aftershow", afterShow, false);
-    //            c();
-    //        };
-    //        commandingSurface.addEventListener("aftershow", afterShow, false);
-    //        commandingSurface.show();
-    //    });
-    //};
-
-    //export function hide(commandingSurface): WinJS.Promise<any> {
-    //    return new WinJS.Promise(function (c, e, p): void {
-    //        function afterHide(): void {
-    //            commandingSurface.removeEventListener("afterhide", afterHide, false);
-    //            c();
-    //        };
-    //        commandingSurface.addEventListener("afterhide", afterHide, false);
-    //        commandingSurface._hideOrDismiss();
-    //    });
-    //};
-
-    //export function listenOnce (commandingSurface: WinJS.UI.PrivateCommandingSurface, eventName: string, callback: () => any): void {
-    //    commandingSurface.addEventListener(eventName, function handler() {
-    //        commandingSurface.removeEventListener(eventName, handler, false);
-    //        callback();
-    //    }, false);
-    //}
 };

@@ -3,29 +3,7 @@
 #win-commandingsurface {
     .variableDefs(@theme) when not (@theme = highcontrast) {
         .colorDefinitions(@theme);
-
-        /*@accentColorDefaultOpacity: @listSelectRestOpacity;
-        @accentColorHoverOpacity: @listSelectHoverOpacity;
-        @accentColorActiveOpacity: @listSelectPressOpacity;
-        @borderColor: @baseHigh;
-        @textColor: @baseHigh;
-        @textColorDisabled: @baseLow;
-        @textColorActive:  @baseHigh;
-        @textColorSelected:  @baseHigh;
-        @textColorHover:  @baseHigh;
-        @separatorBackgroundColor: @baseMediumMid;
-        @appbarBackgroundColor: @chromeMid;
-        @appbarBorderColor: @chromeMid;
-        @commandHoverBackgroundColor: @listHover;
-        @commandActiveBackgroundColor: @listPress;
-        @flyoutBorderColor: @accentColor;
-        @flyoutBackgroundColor: @altHigh;
-        @menuCommandActiveBackgroundColor: @listPress;
-        @menuCommandHoverBackgroundColor: @listHover;
-        @menuCommandDisabledColor: @baseLow;
-        @settingsFlyoutBackgroundColor: @altHigh;
-        @settingsFlyoutBorderColor: @accentColor;*/
-
+        
         @backgroundColor: @chromeMid;
         @textColorActive: @baseHigh;
         @commandFocusBorderColor: @baseHigh;
@@ -39,30 +17,6 @@
         @overflowAreaCommandHoverBackground: @listHover;
         @overflowAreaCommandActiveBackground: @listPress;
     }
-    
-    /*.variableDefs(dark) {
-        @backgroundColor:rgb(43, 43, 43);
-        @textColorActive: rgb(255, 255, 255);
-        @commandFocusBorderColor: rgb(255, 255, 255);
-        @overflowButtonEllipsisHoverColor: rgb(255, 255, 255);
-        @overflowButtonEllipsisColor: rgb(255, 255, 255);
-        @overflowButtonBackground: transparent;
-        @overflowButtonActiveBackground: rgb(128, 128, 128);
-        @overflowAreaCommandHoverBackground: rgb(85, 85, 85);
-        @overflowAreaCommandActiveBackground: rgb(128, 128, 128);
-    }
-
-    .variableDefs(light) {
-        @backgroundColor:rgb(230, 230, 230);
-        @textColorActive: rgb(0, 0, 0);
-        @commandFocusBorderColor: rgb(0, 0, 0);
-        @overflowButtonEllipsisColor: rgb(0, 0, 0);
-        @overflowButtonEllipsisHoverColor: rgb(0, 0, 0);
-        @overflowButtonBackground: transparent;
-        @overflowButtonActiveBackground: rgb(138, 138, 138);
-        @overflowAreaCommandHoverBackground: rgb(184, 184, 184);
-        @overflowAreaCommandActiveBackground:  rgb(138, 138, 138);
-    }*/
 
     .variableDefs(highcontrast) {
         @backgroundColor:ButtonFace;
