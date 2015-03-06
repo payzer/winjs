@@ -4,6 +4,7 @@
     width: 100%;
     outline: none;
     min-width: 68px; /* enough for one primary command */
+    position:relative;
     .win-commandingsurface-actionarea {
         width: 100%;
         min-height: 24px;
@@ -107,13 +108,14 @@
         overflow-y: auto;
         overflow-x: hidden;
         padding: 0px 0px 24px 0px;
+        position: absolute;
 
         &.win-menu {
             max-width: inherit; /* Turn off max-width styles from .win-menu */
         }
 
         button.win-command {
-            #flex > .flex(@grow: 0; @shrink: 0);
+            #flex > .flex(none);
             border: 1px dotted transparent;
             padding: 10px 11px 12px 11px;
             .win-type-body();
@@ -123,7 +125,7 @@
         }
 
         hr.win-command {
-            #flex > .flex(@grow: 0; @shrink: 0);
+            #flex > .flex(none);
             height: 2px;
             margin: 6px 12px 4px 12px;
         }

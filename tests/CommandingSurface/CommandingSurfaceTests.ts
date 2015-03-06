@@ -1399,7 +1399,7 @@ module CorsicaTests {
         }
 
         testOpen() {
-                        var data = new WinJS.Binding.List([
+            var data = new WinJS.Binding.List([
                 new Command(null, { type: Helper._CommandingSurface.Constants.typeButton, icon: 'add', label: "button" }),
                 new Command(null, { type: Helper._CommandingSurface.Constants.typeSeparator }),
                 new Command(null, { type: Helper._CommandingSurface.Constants.typeButton, section: 'secondary', label: "secondary" })
@@ -1407,6 +1407,29 @@ module CorsicaTests {
             var commandingSurface = new _CommandingSurface(this._element, { data: data, opened: false });
             useSynchronousAnimations(commandingSurface);
 
+            commandingSurface.open();
+            LiveUnit.Assert.isTrue(commandingSurface.opened)
+            Helper._CommandingSurface.verifyRenderedOpened(commandingSurface);
+        }
+
+        testOpenIsIdempotent() {
+            var data = new WinJS.Binding.List([
+                new Command(null, { type: Helper._CommandingSurface.Constants.typeButton, icon: 'add', label: "button" }),
+                new Command(null, { type: Helper._CommandingSurface.Constants.typeSeparator }),
+                new Command(null, { type: Helper._CommandingSurface.Constants.typeButton, section: 'secondary', label: "secondary" })
+            ]);
+
+            // Initialize opened.
+            var commandingSurface = new _CommandingSurface(this._element, { data: data, opened: true });
+            useSynchronousAnimations(commandingSurface);
+
+            var msg = "Opening an already opened AppBar should not fire events";
+            commandingSurface.onbeforeshow = failEventHandler(_Constants.EventNames.beforeShow, msg);
+            commandingSurface.onbeforehide = failEventHandler(_Constants.EventNames.afterShow, msg);
+            commandingSurface.onaftershow = failEventHandler(_Constants.EventNames.beforeHide, msg);
+            commandingSurface.onafterhide = failEventHandler(_Constants.EventNames.afterHide, msg);
+
+            // Verify nothing changes when opening again.
             commandingSurface.open();
             LiveUnit.Assert.isTrue(commandingSurface.opened)
             Helper._CommandingSurface.verifyRenderedOpened(commandingSurface);
@@ -1421,6 +1444,29 @@ module CorsicaTests {
             var commandingSurface = new _CommandingSurface(this._element, { data: data, opened: true });
             useSynchronousAnimations(commandingSurface);
 
+            commandingSurface.close();
+            LiveUnit.Assert.isFalse(commandingSurface.opened)
+            Helper._CommandingSurface.verifyRenderedClosed(commandingSurface);
+        }
+
+        testCloseIsIdempotent() {
+            var data = new WinJS.Binding.List([
+                new Command(null, { type: Helper._CommandingSurface.Constants.typeButton, icon: 'add', label: "button" }),
+                new Command(null, { type: Helper._CommandingSurface.Constants.typeSeparator }),
+                new Command(null, { type: Helper._CommandingSurface.Constants.typeButton, section: 'secondary', label: "secondary" })
+            ]);
+
+            // Initialize closed.
+            var commandingSurface = new _CommandingSurface(this._element, { data: data, opened: false });
+            useSynchronousAnimations(commandingSurface);
+
+            var msg = "Closing an already closed AppBar should not fire events";
+            commandingSurface.onbeforeshow = failEventHandler(_Constants.EventNames.beforeShow, msg);
+            commandingSurface.onbeforehide = failEventHandler(_Constants.EventNames.afterShow, msg);
+            commandingSurface.onaftershow = failEventHandler(_Constants.EventNames.beforeHide, msg);
+            commandingSurface.onafterhide = failEventHandler(_Constants.EventNames.afterHide, msg);
+
+            // Verify nothing changes when closing again.
             commandingSurface.close();
             LiveUnit.Assert.isFalse(commandingSurface.opened)
             Helper._CommandingSurface.verifyRenderedClosed(commandingSurface);
@@ -1444,13 +1490,13 @@ module CorsicaTests {
             Helper._CommandingSurface.verifyRenderedOpened(commandingSurface);
         }
 
-        testDomLevel0Events() {
+        testDomLevel0_OpenCloseEvents() {
             testEvents(this._element, (commandingSurface: WinJS.UI.PrivateCommandingSurface, eventName: string, handler: Function) => {
                 commandingSurface["on" + eventName] = handler;
             });
         }
 
-        testDomLevel2Events() {
+        testDomLevel2_OpenCloseEvents() {
             testEvents(this._element, (commandingSurface: WinJS.UI.PrivateCommandingSurface, eventName: string, handler: Function) => {
                 commandingSurface.addEventListener(eventName, handler);
             });
