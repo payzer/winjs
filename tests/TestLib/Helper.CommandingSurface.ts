@@ -73,43 +73,77 @@ module Helper._CommandingSurface {
 
     export function verifyRenderedOpened(commandingSurface: WinJS.UI.PrivateCommandingSurface) {
         // Verifies actionarea and overflowarea are opened
-        verifyActionAreaRenderedOpened(commandingSurface);
-        verifyOverflowAreaRenderedOpened(commandingSurface);
+        verifyRenderedOpened_actionArea(commandingSurface);
+        verifyRenderedOpened_overflowArea(commandingSurface);
     };
-    function verifyActionAreaRenderedOpened(commandingSurface: WinJS.UI.PrivateCommandingSurface) {
+
+
+    function verifyRenderedOpened_actionArea(commandingSurface: WinJS.UI.PrivateCommandingSurface) {
+
+        var commandElements = Helper._CommandingSurface.getVisibleCommandsInElement(commandingSurface._dom.actionArea),
+            commandingSurfaceTotalHeight = WinJS.Utilities.getTotalHeight(commandingSurface.element),
+            actionAreaTotalHeight = WinJS.Utilities.getTotalHeight(commandingSurface._dom.actionArea),
+            actionAreaContentBoxHeight = WinJS.Utilities.getContentHeight(commandingSurface._dom.actionArea),
+            overflowButtonTotalHeight = WinJS.Utilities.getTotalHeight(commandingSurface._dom.overflowButton);
+
+        var heightOfTallestChildElement = 0;
+        Array.prototype.forEach.call(commandingSurface._dom.actionArea.children, function (element) {
+            var elementHeight = WinJS.Utilities.getTotalHeight(element);
+            heightOfTallestChildElement = Math.max(heightOfTallestChildElement, elementHeight);
+        });
+
+        LiveUnit.Assert.areEqual(actionAreaTotalHeight, commandingSurfaceTotalHeight, "Height of CommandingSurface should size to its actionarea.");
+        LiveUnit.Assert.areEqual(heightOfTallestChildElement, actionAreaContentBoxHeight, "Height of actionarea should size to its content when closedDisplayMode === 'full'");
+        LiveUnit.Assert.areEqual(actionAreaTotalHeight, overflowButtonTotalHeight, "overflowButton should stretch to the height of the actionarea");
+
+        // Verify commands are displayed.
+        if (Array.prototype.some.call(commandElements, function (commandEl) {
+            return getComputedStyle(commandEl).display === "none";
+        })) {
+            LiveUnit.Assert.fail("CommandingSurface with 'compact' closedDisplayMode should display primary commands.");
+        }
+
+        // Verify command labels are displayed.
+        if (Array.prototype.some.call(commandElements, function (commandEl) {
+            var label = commandEl.querySelector(".win-label");
+            return (label && getComputedStyle(label).display == "none");
+        })) {
+            LiveUnit.Assert.fail("CommandingSurface with 'compact' closedDisplayMode should display primary command labels.");
+        }
+    };
+
+
+    function verifyRenderedOpened_overflowArea(commandingSurface: WinJS.UI.PrivateCommandingSurface) {
 
     };
-    function verifyOverflowAreaRenderedOpened(commandingSurface: WinJS.UI.PrivateCommandingSurface) { };
 
 
     export function verifyRenderedClosed(commandingSurface: WinJS.UI.PrivateCommandingSurface) {
         // Verifies actionarea and overflowarea are closed
-        verifyActionAreaRenderedClosed(commandingSurface);
-        verifyOveflowAreaRenderedClosed(commandingSurface);
+        verifyRenderedClosed_actionArea(commandingSurface);
+        verifyRenderedClosed_oveflowArea(commandingSurface);
     };
-    function verifyActionAreaRenderedClosed(commandingSurface: WinJS.UI.PrivateCommandingSurface) {
+
+    function verifyRenderedClosed_actionArea(commandingSurface: WinJS.UI.PrivateCommandingSurface) {
         var mode = commandingSurface.closedDisplayMode;
 
-        //var commands = commandingSurface._primaryCommands,
         var commandElements = Helper._CommandingSurface.getVisibleCommandsInElement(commandingSurface._dom.actionArea),
             commandingSurfaceTotalHeight = WinJS.Utilities.getTotalHeight(commandingSurface.element),
             actionAreaTotalHeight = WinJS.Utilities.getTotalHeight(commandingSurface._dom.actionArea),
-            actionAreaContentHeight = WinJS.Utilities.getContentHeight(commandingSurface._dom.actionArea),
-            overflowButtonTotalHeight = WinJS.Utilities.getTotalHeight(commandingSurface._dom.overflowButton),
-            overflowAreaTotalHeight = WinJS.Utilities.getTotalHeight(commandingSurface._dom.overflowArea);
+            actionAreaContentBoxHeight = WinJS.Utilities.getContentHeight(commandingSurface._dom.actionArea),
+            overflowButtonTotalHeight = WinJS.Utilities.getTotalHeight(commandingSurface._dom.overflowButton);
 
         switch (mode) {
             case 'none':
                 LiveUnit.Assert.areEqual("none", getComputedStyle(commandingSurface.element).display);
                 LiveUnit.Assert.areEqual(0, actionAreaTotalHeight);
                 LiveUnit.Assert.areEqual(0, overflowButtonTotalHeight);
-                LiveUnit.Assert.areEqual(0, overflowAreaTotalHeight);
                 break;
 
             case 'minimal':
                 LiveUnit.Assert.areEqual(actionAreaTotalHeight, commandingSurfaceTotalHeight, "Height of CommandingSurface should size to its actionarea.");
-                LiveUnit.Assert.areEqual(Helper._CommandingSurface.Constants.heightOfMinimal, actionAreaContentHeight, "invalid ActionArea content height for 'minimal' closedDisplayMode");
-                LiveUnit.Assert.areEqual(actionAreaContentHeight, overflowButtonTotalHeight, "overflowButton should stretch to the height of the actionarea");
+                LiveUnit.Assert.areEqual(Helper._CommandingSurface.Constants.heightOfMinimal, actionAreaContentBoxHeight, "invalid ActionArea content height for 'minimal' closedDisplayMode");
+                LiveUnit.Assert.areEqual(actionAreaContentBoxHeight, overflowButtonTotalHeight, "overflowButton should stretch to the height of the actionarea");
 
                 // Verify commands are not displayed.
                 if (Array.prototype.some.call(commandElements, function (commandEl) {
@@ -117,14 +151,12 @@ module Helper._CommandingSurface {
                 })) {
                     LiveUnit.Assert.fail("CommandingSurface with 'minimal' closedDisplayMode should not display primary commands.");
                 }
-
-                LiveUnit.Assert.areEqual(0, overflowAreaTotalHeight);
                 break;
 
             case 'compact':
                 LiveUnit.Assert.areEqual(actionAreaTotalHeight, commandingSurfaceTotalHeight, "Height of CommandingSurface should size to its actionarea.");
-                LiveUnit.Assert.areEqual(Helper._CommandingSurface.Constants.heightOfCompact, actionAreaContentHeight, "invalid ActionArea content height for 'compact' closedDisplayMode");
-                LiveUnit.Assert.areEqual(actionAreaContentHeight, overflowButtonTotalHeight, "overflowButton should stretch to the height of the actionarea");
+                LiveUnit.Assert.areEqual(Helper._CommandingSurface.Constants.heightOfCompact, actionAreaContentBoxHeight, "invalid ActionArea content height for 'compact' closedDisplayMode");
+                LiveUnit.Assert.areEqual(actionAreaContentBoxHeight, overflowButtonTotalHeight, "overflowButton should stretch to the height of the actionarea");
 
                 // Verify commands are displayed.
                 if (Array.prototype.some.call(commandElements, function (commandEl) {
@@ -140,37 +172,11 @@ module Helper._CommandingSurface {
                 })) {
                     LiveUnit.Assert.fail("CommandingSurface with 'compact' closedDisplayMode should not display primary command labels.");
                 }
-
-                LiveUnit.Assert.areEqual(0, overflowAreaTotalHeight);
                 break;
 
             case 'full':
-                var heightOfTallestChildElement = 0;
-                Array.prototype.forEach.call(commandingSurface._dom.actionArea.children, function (element) {
-                    var elementHeight = WinJS.Utilities.getTotalHeight(element);
-                    heightOfTallestChildElement = Math.max(heightOfTallestChildElement, elementHeight);
-                });
-
-                LiveUnit.Assert.areEqual(actionAreaTotalHeight, commandingSurfaceTotalHeight, "Height of CommandingSurface should size to its actionarea.");
-                LiveUnit.Assert.areEqual(heightOfTallestChildElement, actionAreaContentHeight, "Height of actionarea should size to its content when closedDisplayMode === 'full'");
-                LiveUnit.Assert.areEqual(actionAreaTotalHeight, overflowButtonTotalHeight, "overflowButton should stretch to the height of the actionarea");
-
-                // Verify commands are displayed.
-                if (Array.prototype.some.call(commandElements, function (commandEl) {
-                    return getComputedStyle(commandEl).display === "none";
-                })) {
-                    LiveUnit.Assert.fail("CommandingSurface with 'compact' closedDisplayMode should display primary commands.");
-                }
-
-                // Verify command labels are displayed.
-                if (Array.prototype.some.call(commandElements, function (commandEl) {
-                    var label = commandEl.querySelector(".win-label");
-                    return (label && getComputedStyle(label).display == "none");
-                })) {
-                    LiveUnit.Assert.fail("CommandingSurface with 'compact' closedDisplayMode should display primary command labels.");
-                }
-
-                LiveUnit.Assert.areEqual(0, overflowAreaTotalHeight);
+                // closedDisplayMode "full" actionarea, and opened actionarea, render exactly the same.
+                verifyRenderedOpened_actionArea(commandingSurface);
                 break;
 
             default:
@@ -179,7 +185,10 @@ module Helper._CommandingSurface {
         }
     }
 
-    function verifyOveflowAreaRenderedClosed(commandingSurface: WinJS.UI.PrivateCommandingSurface) { };
+    function verifyRenderedClosed_oveflowArea(commandingSurface: WinJS.UI.PrivateCommandingSurface) {
+        var overflowAreaTotalHeight = WinJS.Utilities.getTotalHeight(commandingSurface._dom.overflowArea);
+        LiveUnit.Assert.areEqual(0, overflowAreaTotalHeight);
+    };
 
     //export function show(commandingSurface): WinJS.Promise<any> {
     //    return new WinJS.Promise(function (c, e, p): void {
