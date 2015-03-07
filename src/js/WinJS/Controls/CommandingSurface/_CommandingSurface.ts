@@ -88,41 +88,11 @@ var ClosedDisplayMode = {
     full: "full",
 };
 
-var ClassNames = {
-    openingClass: "win-commandingsurface-opening",
-    openedClass: "win-commandingsurface-opened",
-    closingClass: "win-commandingsurface-closing",
-    closedClass: "win-commandingsurface-closed",
-    noneClass: "win-commandingsurface-closeddisplaynone",
-    minimalClass: "win-commandingsurface-closeddisplayminimal",
-    compactClass: "win-commandingsurface-closeddisplaycompact",
-    fullClass: "win-commandingsurface-closeddisplayfull",
-};
-
-var ClosedDisplayMode = {
-    /// <field locid="WinJS.UI._CommandingSurface.ClosedDisplayMode.none" helpKeyword="WinJS.UI._CommandingSurface.ClosedDisplayMode.none">
-    /// When the _CommandingSurface is closed, the actionarea is not visible and doesn't take up any space.
-    /// </field>
-    none: "none",
-    /// <field locid="WinJS.UI._CommandingSurface.ClosedDisplayMode.minimal" helpKeyword="WinJS.UI._CommandingSurface.ClosedDisplayMode.minimal">
-    /// When the _CommandingSurface is closed, the height of the actionarea is reduced to the minimal height required to display only the actionarea overflowbutton. All other content in the actionarea is not displayed.
-    /// </field>
-    minimal: "minimal",
-    /// <field locid="WinJS.UI._CommandingSurface.ClosedDisplayMode.compact" helpKeyword="WinJS.UI._CommandingSurface.ClosedDisplayMode.compact">
-    /// When the _CommandingSurface is closed, the height of the actionarea is reduced such that button commands are still visible, but their labels are hidden.
-    /// </field>
-    compact: "compact",
-    /// <field locid="WinJS.UI._CommandingSurface.ClosedDisplayMode.full" helpKeyword="WinJS.UI._CommandingSurface.ClosedDisplayMode.full">
-    /// When the _CommandingSurface is closed, the height of the actionarea is always sized to content and does not change between opened and closed states.
-    /// </field>
-    full: "full",
-};
-
 var closedDisplayModeClassMap = {};
-closedDisplayModeClassMap[ClosedDisplayMode.none] = ClassNames.noneClass;
-closedDisplayModeClassMap[ClosedDisplayMode.minimal] = ClassNames.minimalClass;
-closedDisplayModeClassMap[ClosedDisplayMode.compact] = ClassNames.compactClass;
-closedDisplayModeClassMap[ClosedDisplayMode.full] = ClassNames.fullClass;
+closedDisplayModeClassMap[ClosedDisplayMode.none] = _Constants.ClassNames.noneClass;
+closedDisplayModeClassMap[ClosedDisplayMode.minimal] = _Constants.ClassNames.minimalClass;
+closedDisplayModeClassMap[ClosedDisplayMode.compact] = _Constants.ClassNames.compactClass;
+closedDisplayModeClassMap[ClosedDisplayMode.full] = _Constants.ClassNames.fullClass;
 
 // Versions of add/removeClass that are no ops when called with falsy class names.
 function addClass(element: HTMLElement, className: string): void {
@@ -427,7 +397,7 @@ export class _CommandingSurface {
             root.tabIndex = -1;
         }
 
-        _ElementUtilities.addClass(root, _Constants.controlCssClass);
+        _ElementUtilities.addClass(root, _Constants.ClassNames.controlCssClass);
         _ElementUtilities.addClass(root, "win-disposable");
 
         // Make sure we have an ARIA role
@@ -442,26 +412,26 @@ export class _CommandingSurface {
         }
 
         var actionArea = _Global.document.createElement("div");
-        _ElementUtilities.addClass(actionArea, _Constants.actionAreaCssClass);
+        _ElementUtilities.addClass(actionArea, _Constants.ClassNames.actionAreaCssClass);
         _ElementUtilities._reparentChildren(root, actionArea);
         root.appendChild(actionArea);
 
         var spacer = _Global.document.createElement("div");
-        _ElementUtilities.addClass(spacer, _Constants.spacerCssClass);
+        _ElementUtilities.addClass(spacer, _Constants.ClassNames.spacerCssClass);
         actionArea.appendChild(spacer);
 
         var overflowButton = _Global.document.createElement("button");
         overflowButton.tabIndex = 0;
-        overflowButton.innerHTML = "<span class='" + _Constants.ellipsisCssClass + "'></span>";
-        _ElementUtilities.addClass(overflowButton, _Constants.overflowButtonCssClass);
+        overflowButton.innerHTML = "<span class='" + _Constants.ClassNames.ellipsisCssClass + "'></span>";
+        _ElementUtilities.addClass(overflowButton, _Constants.ClassNames.overflowButtonCssClass);
         actionArea.appendChild(overflowButton);
         overflowButton.addEventListener("click", () => {
             this.opened = !this.opened;
         });
 
         var overflowArea = _Global.document.createElement("div");
-        _ElementUtilities.addClass(overflowArea, _Constants.overflowAreaCssClass);
-        _ElementUtilities.addClass(overflowArea, _Constants.menuCssClass);
+        _ElementUtilities.addClass(overflowArea, _Constants.ClassNames.overflowAreaCssClass);
+        _ElementUtilities.addClass(overflowArea, _Constants.ClassNames.menuCssClass);
         root.appendChild(overflowArea);
 
         this._dom = {
@@ -695,13 +665,13 @@ export class _CommandingSurface {
         if (rendered.opened !== this._opened) {
             if (this._opened && !rendered.opened) {
                 // Render opened
-                removeClass(this._dom.root, ClassNames.closedClass);
-                addClass(this._dom.root, ClassNames.openedClass);
+                removeClass(this._dom.root, _Constants.ClassNames.closedClass);
+                addClass(this._dom.root, _Constants.ClassNames.openedClass);
                 rendered.opened = true;
             } else {
                 // Render closed
-                removeClass(this._dom.root, ClassNames.openedClass);
-                addClass(this._dom.root, ClassNames.closedClass);
+                removeClass(this._dom.root, _Constants.ClassNames.openedClass);
+                addClass(this._dom.root, _Constants.ClassNames.closedClass);
                 rendered.opened = false;
             }
         }
@@ -813,9 +783,9 @@ export class _CommandingSurface {
         // Ensure that the overflow button is always the last element in the actionarea
         this._dom.actionArea.appendChild(this._dom.overflowButton);
         if (this.data.length > 0) {
-            _ElementUtilities.removeClass(this._dom.root, _Constants.emptyCommandingSurfaceCssClass);
+            _ElementUtilities.removeClass(this._dom.root, _Constants.ClassNames.emptyCommandingSurfaceCssClass);
         } else {
-            _ElementUtilities.addClass(this._dom.root, _Constants.emptyCommandingSurfaceCssClass);
+            _ElementUtilities.addClass(this._dom.root, _Constants.ClassNames.emptyCommandingSurfaceCssClass);
         }
 
         // Execute the animation.
@@ -914,7 +884,7 @@ export class _CommandingSurface {
 
         if (hasCustomContent && !this._contentFlyout) {
             this._contentFlyoutInterior = _Global.document.createElement("div");
-            _ElementUtilities.addClass(this._contentFlyoutInterior, _Constants.contentFlyoutCssClass);
+            _ElementUtilities.addClass(this._contentFlyoutInterior, _Constants.ClassNames.contentFlyoutCssClass);
             this._contentFlyout = new _Flyout.Flyout();
             this._contentFlyout.element.appendChild(this._contentFlyoutInterior);
             _Global.document.body.appendChild(this._contentFlyout.element);
@@ -979,8 +949,8 @@ export class _CommandingSurface {
             this._dom.overflowArea.appendChild(command.element);
         })
 
-        _ElementUtilities[hasToggleCommands ? "addClass" : "removeClass"](this._dom.overflowArea, _Constants.menuContainsToggleCommandClass);
-        _ElementUtilities[hasFlyoutCommands ? "addClass" : "removeClass"](this._dom.overflowArea, _Constants.menuContainsFlyoutCommandClass);
+        _ElementUtilities[hasToggleCommands ? "addClass" : "removeClass"](this._dom.overflowArea, _Constants.ClassNames.menuContainsToggleCommandClass);
+        _ElementUtilities[hasFlyoutCommands ? "addClass" : "removeClass"](this._dom.overflowArea, _Constants.ClassNames.menuContainsFlyoutCommandClass);
 
         this._writeProfilerMark("_layoutCommands,StopTM");
 
