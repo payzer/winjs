@@ -69,6 +69,12 @@ var CommandLayoutPipeline = {
     idle: 0,
 };
 
+var OpenDirection = {
+    bottom: "bottom",
+    top: "top",
+    auto: "auto",
+}
+
 var ClosedDisplayMode = {
     /// <field locid="WinJS.UI._CommandingSurface.ClosedDisplayMode.none" helpKeyword="WinJS.UI._CommandingSurface.ClosedDisplayMode.none">
     /// When the _CommandingSurface is closed, the actionarea is not visible and doesn't take up any space.
@@ -165,6 +171,11 @@ export class _CommandingSurface {
     /// </field>
     static ClosedDisplayMode = ClosedDisplayMode;
 
+    /// <field locid="WinJS.UI._CommandingSurface.OpenDirection" helpKeyword="WinJS.UI._CommandingSurface.OpenDirection">
+    /// Display options used by the _Commandingsurface to determine which direction it should expand when opening.
+    /// </field>
+    static OpenDirection = OpenDirection;
+
     static supportedForProcessing: boolean = true;
 
     /// <field type="HTMLElement" domElement="true" hidden="true" locid="WinJS.UI._CommandingSurface.element" helpKeyword="WinJS.UI._CommandingSurface.element">
@@ -199,7 +210,7 @@ export class _CommandingSurface {
 
     private _closedDisplayMode: string;
     /// <field type="String" locid="WinJS.UI._CommandingSurface.closedDisplayMode" helpKeyword="WinJS.UI._CommandingSurface.closedDisplayMode">
-    /// Gets or sets the closedDisplayMode for the CommandingSurface.
+    /// Gets or sets the closedDisplayMode for the CommandingSurface. Values are "none", "minimal", "compact", and "full".
     /// </field>
     get closedDisplayMode() {
         return this._closedDisplayMode;
@@ -215,14 +226,18 @@ export class _CommandingSurface {
     }
 
     private _openDirection: string;
-    /// <field type="Boolean" hidden="true" locid="WinJS.UI._CommandingSurface.opened" helpKeyword="WinJS.UI._CommandingSurface.opened">
-    /// Gets or sets whether the _CommandingSurface is currently opened.
+    /// <field type="String" hidden="true" locid="WinJS.UI._CommandingSurface.openDirection" helpKeyword="WinJS.UI._CommandingSurface.openDirection">
+    /// Gets or sets which direction the commandingSurface opens. Values are "bottom", "top", and "auto".
     /// </field>
     get openDirection(): string {
         return this._openDirection;
     }
     set openDirection(value: string) {
-        this._openDirection = value;
+
+        var isChangingState = (value !== this._openDirection);
+        if (OpenDirection[value] && isChangingState) {
+            this._openDirection = value;
+        }
     }
 
     /// <field type="Boolean" hidden="true" locid="WinJS.UI._CommandingSurface.opened" helpKeyword="WinJS.UI._CommandingSurface.opened">
@@ -301,6 +316,7 @@ export class _CommandingSurface {
         this._isShownMode = _Constants.defaultOpened;
 
         // Initialize public properties.
+        this.openDirection = _Constants.defaultOpenDirection;
         this.closedDisplayMode = _Constants.defaultClosedDisplayMode;
         this.opened = this._isShownMode
         if (!options.data) {

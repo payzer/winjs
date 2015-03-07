@@ -1338,9 +1338,8 @@ module CorsicaTests {
 
         testClosedDisplayModes() {
             this._element.style.width = "1000px";
-            var fullHeightOfContent = 100;
             var contentElement = document.createElement("DIV");
-            contentElement.style.height = fullHeightOfContent + "px";
+            contentElement.style.height = "100px";
             contentElement.style.border = "none";
 
             var data = new WinJS.Binding.List([
@@ -1390,11 +1389,11 @@ module CorsicaTests {
             Helper._CommandingSurface.verifyRenderedClosed(commandingSurface);
 
             commandingSurface.opened = true;
-            LiveUnit.Assert.isTrue(commandingSurface.opened)
+            LiveUnit.Assert.isTrue(commandingSurface.opened, "opened property should be writeable.");
             Helper._CommandingSurface.verifyRenderedOpened(commandingSurface);
 
             commandingSurface.opened = false;
-            LiveUnit.Assert.isFalse(commandingSurface.opened)
+            LiveUnit.Assert.isFalse(commandingSurface.opened, "opened property should be writeable.");
             Helper._CommandingSurface.verifyRenderedClosed(commandingSurface);
         }
 
@@ -1536,6 +1535,28 @@ module CorsicaTests {
 
             commandingSurface.opened = false;
             LiveUnit.Assert.isTrue(commandingSurface.opened, "CommandingSurface should still be open");
+        }
+
+        testOpenDirectionConstructorOptions() {
+            var commandingSurface = new _CommandingSurface();
+            LiveUnit.Assert.areEqual(_Constants.defaultOpenDirection, commandingSurface.openDirection, "openDirection property has incorrect default value");
+            commandingSurface.dispose();
+
+            Object.keys(_CommandingSurface.OpenDirection).forEach(function (direction) {
+                commandingSurface = new _CommandingSurface(null, { openDirection: direction });
+                LiveUnit.Assert.areEqual(direction, commandingSurface.openDirection, "openDirection does not match the value passed to the constructor.");
+                commandingSurface.dispose();
+            });
+        }
+
+        testOpenDirectionProperty() {
+            var data = new WinJS.Binding.List([
+                new Command(null, { type: Helper._CommandingSurface.Constants.typeButton, icon: 'add', label: "button" }),
+                new Command(null, { type: Helper._CommandingSurface.Constants.typeSeparator }),
+                new Command(null, { type: Helper._CommandingSurface.Constants.typeButton, section: 'secondary', label: "secondary" })
+            ]);
+            var commandingSurface = new _CommandingSurface(this._element, { data: data, opened: false });
+            useSynchronousAnimations(commandingSurface);
         }
     }
 }

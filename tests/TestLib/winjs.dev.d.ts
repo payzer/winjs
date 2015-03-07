@@ -572,25 +572,31 @@ declare module WinJS {
         }
 
         class _CommandingSurface {
-            public element: HTMLElement;
-            public data: WinJS.Binding.List<ICommand>;
-            constructor(element?: HTMLElement, options?: any);
-            public dispose(): void;
-            public forceLayout(): void;
-            public closedDisplayMode: string;
             public static ClosedDisplayMode: {
                 none: string;
                 minimal: string;
                 compact: string;
                 full: string;
             };
+            public static OpenDirection: {
+                auto: string;
+                bottom: string;
+                top: string;
+            };
+            public element: HTMLElement;
+            public data: WinJS.Binding.List<ICommand>;
+            constructor(element?: HTMLElement, options?: any);
+            public dispose(): void;
+            public forceLayout(): void;
+            public closedDisplayMode: string;
             public open(): void;
             public close(): void;
             public opened: boolean;
-            public onbeforeshow: Function;
-            public onaftershow: Function;
-            public onbeforehide: Function;
-            public onafterhide: Function;
+            public onbeforeshow: (ev: CustomEvent) => void;
+            public onaftershow: (ev: CustomEvent) => void;
+            public onbeforehide: (ev: CustomEvent) => void;
+            public onafterhide: (ev: CustomEvent) => void;
+            public openDirection: string;
             public addEventListener(eventName: string, eventHandler: Function, useCapture?: boolean): void;
             public removeEventListener(eventName: string, eventCallback: Function, useCapture?: boolean): void;
             public dispatchEvent(type: string, eventProperties: any): boolean;
