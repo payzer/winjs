@@ -71,8 +71,16 @@ module Helper._CommandingSurface {
         });
     }
 
+
+    //
+    // Verify correct rendered states for opened and closed _CommandingSurface
+    //
+
     export function verifyRenderedOpened(commandingSurface: WinJS.UI.PrivateCommandingSurface) {
-        // Verify actionarea and overflowarea are opened
+        // Verifies actionarea and overflowarea are opened. 
+        // Currently only works if their is at least one command in the actionarea and overflow area.
+        // TODO: Make this work even if actionarea and overflowarea don't have commands.
+
         verifyRenderedOpened_actionArea(commandingSurface);
         verifyRenderedOpened_overflowArea(commandingSurface);
     };
@@ -119,7 +127,10 @@ module Helper._CommandingSurface {
     };
 
     export function verifyRenderedClosed(commandingSurface: WinJS.UI.PrivateCommandingSurface) {
-        // Verifies actionarea and overflowarea are closed
+        // Verifies actionarea and overflowarea are closed.
+        // Currently only works if their is at least one command in the actionarea and overflow area.
+        // TODO: Make this work even if actionarea and overflowarea don't have commands.
+
         verifyRenderedClosed_actionArea(commandingSurface);
         verifyRenderedClosed_oveflowArea(commandingSurface);
     };
