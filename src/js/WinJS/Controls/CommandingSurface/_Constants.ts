@@ -24,7 +24,7 @@ export var ClassNames = {
 };
 
 export var EventNames = {
-    /*Update the string literals to the proper open/close nomenclature once we move the state machine and splitview over to the new names. */
+    /* TODO Update the string literals to the proper open/close nomenclature once we move the state machine and splitview over to the new names. */
     beforeShow: "beforeshow",
     afterShow: "aftershow",
     beforeHide: "beforehide",

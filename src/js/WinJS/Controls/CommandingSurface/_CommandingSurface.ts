@@ -140,7 +140,7 @@ export class _CommandingSurface {
     private _rtl: boolean;
     private _disposed: boolean;
     private _nextLayoutStage: number;
-    private _opened: boolean;
+    private _isShownMode: boolean;
 
     // Measurements
     private _cachedMeasurements: {
@@ -254,7 +254,7 @@ export class _CommandingSurface {
                 //this._cachedHiddenPaneThickness = null;
                 //var hiddenPaneThickness = this._getHiddenPaneThickness();
 
-                this._opened = true;
+                this._isShownMode = true;
                 this._updateDomImpl();
 
                 //return this._playShowAnimation(hiddenPaneThickness);
@@ -262,7 +262,7 @@ export class _CommandingSurface {
             },
             onHide: () => {
                 //return this._playHideAnimation(this._getHiddenPaneThickness()).then(() => {
-                this._opened = false;
+                this._isShownMode = false;
                 this._updateDomImpl();
                 //});
 
@@ -272,7 +272,7 @@ export class _CommandingSurface {
                 this._updateDomImpl();
             },
             onUpdateDomWithIsShown: (isShown: boolean) => {
-                this._opened = isShown;
+                this._isShownMode = isShown;
                 this._updateDomImpl();
             }
         });
@@ -287,11 +287,11 @@ export class _CommandingSurface {
         this._refreshPending = false;
         this._rtl = false;
         this._nextLayoutStage = CommandLayoutPipeline.idle;
-        this._opened = _Constants.defaultOpened;
+        this._isShownMode = _Constants.defaultOpened;
 
         // Initialize public properties.
         this.closedDisplayMode = _Constants.defaultClosedDisplayMode;
-        this.opened = this._opened
+        this.opened = this._isShownMode
         if (!options.data) {
             // Shallow copy object so we can modify it.
             options = _BaseUtils._shallowCopy(options);
@@ -662,8 +662,8 @@ export class _CommandingSurface {
     private _updateDomImpl_renderDisplayMode(): void {
         var rendered = this._updateDomImpl_renderedState;
 
-        if (rendered.opened !== this._opened) {
-            if (this._opened && !rendered.opened) {
+        if (rendered.opened !== this._isShownMode) {
+            if (this._isShownMode) {
                 // Render opened
                 removeClass(this._dom.root, _Constants.ClassNames.closedClass);
                 addClass(this._dom.root, _Constants.ClassNames.openedClass);
@@ -1106,8 +1106,7 @@ _Base.Class.mix(_CommandingSurface, _Events.createEventProperties(
     _Constants.EventNames.beforeShow,
     _Constants.EventNames.afterShow,
     _Constants.EventNames.beforeHide,
-    _Constants.EventNames.afterHide
-    ));
+    _Constants.EventNames.afterHide));
 
 // addEventListener, removeEventListener, dispatchEvent
 _Base.Class.mix(_CommandingSurface, _Control.DOMEventMixin);
