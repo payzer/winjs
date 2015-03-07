@@ -587,10 +587,10 @@ declare module WinJS {
             public open(): void;
             public close(): void;
             public opened: boolean;
-            public onbeforeshow: Function;
-            public onaftershow: Function;
-            public onbeforehide: Function;
-            public onafterhide: Function;
+            public onbeforeshow: (ev: CustomEvent) => void;
+            public onaftershow: (ev: CustomEvent) => void;
+            public onbeforehide: (ev: CustomEvent) => void;
+            public onafterhide: (ev: CustomEvent) => void;
             public addEventListener(eventName: string, eventHandler: Function, useCapture?: boolean): void;
             public removeEventListener(eventName: string, eventCallback: Function, useCapture?: boolean): void;
             public dispatchEvent(type: string, eventProperties: any): boolean;
