@@ -14,7 +14,7 @@ interface IStyleEquivalentsMap {
 }
 
 interface IShowHideMachine {
-    _state: { name: string; } 
+    _state: { name: string; }
 }
 
 
@@ -61,7 +61,7 @@ declare module WinJS {
 
         function _require(dep: string, callback);
         function _require(deps: string[], callback);
-        function _uniqueID(e: HTMLElement):string;
+        function _uniqueID(e: HTMLElement): string;
         function _isDOMElement(e: HTMLElement): boolean;
 
         function _yieldForEvents(handler: Function);
@@ -131,7 +131,7 @@ declare module WinJS {
         class _ParallelWorkQueue {
             constructor(maxRunning: number);
             sort(sortFunc: (a: any, b: any) => number);
-            queue(f:()=>WinJS.Promise<any>, data?:any, first?:boolean);
+            queue(f: () => WinJS.Promise<any>, data?: any, first?: boolean);
         }
 
         class PrivateToggleSwitch extends WinJS.UI.ToggleSwitch {
@@ -240,7 +240,7 @@ declare module WinJS {
 
         module _ListViewAnimationHelper {
             function fadeInElement(element): Promise<any>;
-            function fadeOutElement(element): Promise < any>;
+            function fadeOutElement(element): Promise<any>;
             function animateEntrance(canvas, firstEntrance): Promise<any>;
         }
 
@@ -578,7 +578,7 @@ declare module WinJS {
                 compact: string;
                 full: string;
             };
-            public static OpenDirection: {
+            public static Orientation: {
                 auto: string;
                 bottom: string;
                 top: string;
@@ -596,7 +596,7 @@ declare module WinJS {
             public onaftershow: (ev: CustomEvent) => void;
             public onbeforehide: (ev: CustomEvent) => void;
             public onafterhide: (ev: CustomEvent) => void;
-            public openDirection: string;
+            public orientation: string;
             public addEventListener(eventName: string, eventHandler: Function, useCapture?: boolean): void;
             public removeEventListener(eventName: string, eventCallback: Function, useCapture?: boolean): void;
             public dispatchEvent(type: string, eventProperties: any): boolean;
@@ -650,7 +650,7 @@ declare module WinJS {
 
         var _seenUrlsMaxSize: number;
         var _seenUrlsMRUMaxSize: number;
-        function _seenUrl(url:string);
+        function _seenUrl(url: string);
         function _getSeenUrlsMRU(): string[];
         function _getSeenUrls(): string[];
 
