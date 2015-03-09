@@ -1537,19 +1537,19 @@ module CorsicaTests {
             LiveUnit.Assert.isTrue(commandingSurface.opened, "CommandingSurface should still be open");
         }
 
-        testOpenDirectionConstructorOptions() {
+        testOrientationConstructorOptions() {
             var commandingSurface = new _CommandingSurface();
-            LiveUnit.Assert.areEqual(_Constants.defaultOpenDirection, commandingSurface.openDirection, "openDirection property has incorrect default value");
+            LiveUnit.Assert.areEqual(_Constants.defaultOrientation, commandingSurface.orientation, "orientation property has incorrect default value");
             commandingSurface.dispose();
 
-            Object.keys(_CommandingSurface.OpenDirection).forEach(function (direction) {
-                commandingSurface = new _CommandingSurface(null, { openDirection: direction });
-                LiveUnit.Assert.areEqual(direction, commandingSurface.openDirection, "openDirection does not match the value passed to the constructor.");
+            Object.keys(_CommandingSurface.Orientation).forEach(function (direction) {
+                commandingSurface = new _CommandingSurface(null, { orientation: direction });
+                LiveUnit.Assert.areEqual(direction, commandingSurface.orientation, "orientation does not match the value passed to the constructor.");
                 commandingSurface.dispose();
             });
         }
 
-        testOpenDirectionProperty() {
+        testOrientationProperty() {
             var data = new WinJS.Binding.List([
                 new Command(null, { type: Helper._CommandingSurface.Constants.typeButton, icon: 'add', label: "button" }),
                 new Command(null, { type: Helper._CommandingSurface.Constants.typeSeparator }),
@@ -1557,6 +1557,14 @@ module CorsicaTests {
             ]);
             var commandingSurface = new _CommandingSurface(this._element, { data: data, opened: false });
             useSynchronousAnimations(commandingSurface);
+
+            Object.keys(_CommandingSurface.Orientation).forEach(function (direction) {
+                commandingSurface.orientation = direction;
+                LiveUnit.Assert.areEqual(direction, commandingSurface.orientation, "orientation property should be writeable.");
+                commandingSurface.open();
+
+                // Verify correct open direction.
+            });
         }
     }
 }

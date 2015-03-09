@@ -21,6 +21,8 @@ export var ClassNames = {
     minimalClass: "win-commandingsurface-closeddisplayminimal",
     compactClass: "win-commandingsurface-closeddisplaycompact",
     fullClass: "win-commandingsurface-closeddisplayfull",
+    topToBottomClass: "win-commandingsurface-toptobottom",
+    bottomToTopClass: "win-commandingsurface-bottomtotop",
 };
 
 export var EventNames = {
@@ -35,7 +37,7 @@ export var contentMenuCommandDefaultLabel = "Custom content";
 
 export var defaultClosedDisplayMode = "compact";
 export var defaultOpened = false;
-export var defaultOpenDirection = "auto";
+export var defaultOrientation = "auto";
 
 // Constants for commands
 export var typeSeparator = "separator";
