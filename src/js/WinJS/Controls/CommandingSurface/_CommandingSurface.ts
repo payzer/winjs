@@ -411,19 +411,19 @@ export class _CommandingSurface {
 
         switch (nextOrientation) {
             case Orientation.bottom:
-                removeClass(this._dom.root, _Constants.ClassNames.bottomToTopClass);
-                addClass(this._dom.root, _Constants.ClassNames.topToBottomClass);
+                removeClass(this._dom.root, _Constants.ClassNames.topToBottomClass);
+                addClass(this._dom.root, _Constants.ClassNames.bottomToTopClass);
                 break;
 
             case Orientation.top:
-                removeClass(this._dom.root, _Constants.ClassNames.topToBottomClass);
-                addClass(this._dom.root, _Constants.ClassNames.bottomToTopClass);
+                removeClass(this._dom.root, _Constants.ClassNames.bottomToTopClass);
+                addClass(this._dom.root, _Constants.ClassNames.topToBottomClass);
                 break;
 
             case Orientation.auto:
             default:
                 // TODO build auto behaviour.
-                this._applyOrientation(Orientation.bottom);
+                this._applyOrientation(Orientation.top);
                 break;
         }
 
