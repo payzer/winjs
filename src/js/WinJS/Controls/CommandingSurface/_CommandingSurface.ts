@@ -148,8 +148,6 @@ export class _CommandingSurface {
     private _nextLayoutStage: number;
     private _isShownMode: boolean;
 
-    private _helper: any;
-
     // Measurements
     private _cachedMeasurements: {
         overflowButtonWidth: number;
