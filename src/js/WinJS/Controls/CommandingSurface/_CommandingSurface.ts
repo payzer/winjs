@@ -279,13 +279,9 @@ export class _CommandingSurface {
             eventElement: this._dom.root,
             onShow: () => {
 
-                this._helper = {
-                    closedActionAreaRect: this._dom.actionArea.getBoundingClientRect(),
-                };
 
                 this._isShownMode = true;
                 this._updateDomImpl();
-
                 this._applyOrientation(this.orientation);
                 //return this._playShowAnimation(hiddenPaneThickness);
                 return Promise.wrap();
@@ -419,25 +415,25 @@ export class _CommandingSurface {
 
         switch (nextOrientation) {
             case Orientation.bottom:
-                removeClass(this._dom.root, _Constants.ClassNames.bottomToTopClass);
-                addClass(this._dom.root, _Constants.ClassNames.topToBottomClass);
-                break;
-
-            case Orientation.top:
                 removeClass(this._dom.root, _Constants.ClassNames.topToBottomClass);
                 addClass(this._dom.root, _Constants.ClassNames.bottomToTopClass);
                 break;
 
+            case Orientation.top:
+                removeClass(this._dom.root, _Constants.ClassNames.bottomToTopClass);
+                addClass(this._dom.root, _Constants.ClassNames.topToBottomClass);
+                break;
+
             case Orientation.auto:
             default:
-                if (this._fitBottom()) {
-                    this._applyOrientation(Orientation.bottom);
-                } else {
-                    this._applyOrientation(Orientation.top);
-                }
-                //} else if (this._fitTop()) {
-                //    this._applyOrientation(Orientation.top);
-                //} else {
+                // TODO build auto behaviour.
+                this._applyOrientation(Orientation.top);
+                break;
+        }
+
+        return "";
+    }
+
                 //    this._applyOrientation(Orientation.bottom);
                 //}
                 break;
@@ -757,6 +753,7 @@ export class _CommandingSurface {
                 removeClass(this._dom.root, _Constants.ClassNames.closedClass);
                 addClass(this._dom.root, _Constants.ClassNames.openedClass);
                 rendered.opened = true;
+                this._applyOrientation(this.orientation);
             } else {
                 // Render closed
                 removeClass(this._dom.root, _Constants.ClassNames.openedClass);
@@ -1199,7 +1196,6 @@ _Base.Class.mix(_CommandingSurface, _Events.createEventProperties(
 
 // addEventListener, removeEventListener, dispatchEvent
 _Base.Class.mix(_CommandingSurface, _Control.DOMEventMixin);
-
 // WWA Soft Keyboard offsets
 var _keyboardInfo = {
     // Determine if the keyboard is visible or not.
