@@ -140,7 +140,7 @@ export class _CommandingSurface {
     private _rtl: boolean;
     private _disposed: boolean;
     private _nextLayoutStage: number;
-    private _isShownMode: boolean;
+    private _isOpenedMode: boolean;
 
     // Measurements
     private _cachedMeasurements: {
@@ -254,7 +254,7 @@ export class _CommandingSurface {
                 //this._cachedHiddenPaneThickness = null;
                 //var hiddenPaneThickness = this._getHiddenPaneThickness();
 
-                this._isShownMode = true;
+                this._isOpenedMode = true;
                 this._updateDomImpl();
 
                 //return this._playShowAnimation(hiddenPaneThickness);
@@ -262,7 +262,7 @@ export class _CommandingSurface {
             },
             onHide: () => {
                 //return this._playHideAnimation(this._getHiddenPaneThickness()).then(() => {
-                this._isShownMode = false;
+                this._isOpenedMode = false;
                 this._updateDomImpl();
                 //});
 
@@ -272,7 +272,7 @@ export class _CommandingSurface {
                 this._updateDomImpl();
             },
             onUpdateDomWithIsShown: (isShown: boolean) => {
-                this._isShownMode = isShown;
+                this._isOpenedMode = isShown;
                 this._updateDomImpl();
             }
         });
@@ -287,11 +287,11 @@ export class _CommandingSurface {
         this._refreshPending = false;
         this._rtl = false;
         this._nextLayoutStage = CommandLayoutPipeline.idle;
-        this._isShownMode = _Constants.defaultOpened;
+        this._isOpenedMode = _Constants.defaultOpened;
 
         // Initialize public properties.
         this.closedDisplayMode = _Constants.defaultClosedDisplayMode;
-        this.opened = this._isShownMode
+        this.opened = this._isOpenedMode
         if (!options.data) {
             // Shallow copy object so we can modify it.
             options = _BaseUtils._shallowCopy(options);
@@ -625,12 +625,12 @@ export class _CommandingSurface {
         }
     }
 
-    // Should be called while _CommandingSurface is rendered in its shown mode
+    // Should be called while _CommandingSurface is rendered in its opened mode
     // Overridden by tests.
     private _playShowAnimation(): Promise<any> {
         return Promise.wrap();
     }
-    // Should be called while SplitView is rendered in its shown mode
+    // Should be called while SplitView is rendered in its opened mode
     // Overridden by tests.
     private _playHideAnimation(): Promise<any> {
         return Promise.wrap();
@@ -662,18 +662,17 @@ export class _CommandingSurface {
     private _updateDomImpl_renderDisplayMode(): void {
         var rendered = this._updateDomImpl_renderedState;
 
-        if (rendered.opened !== this._isShownMode) {
-            if (this._isShownMode) {
+        if (rendered.opened !== this._isOpenedMode) {
+            if (this._isOpenedMode) {
                 // Render opened
                 removeClass(this._dom.root, _Constants.ClassNames.closedClass);
                 addClass(this._dom.root, _Constants.ClassNames.openedClass);
-                rendered.opened = true;
             } else {
                 // Render closed
                 removeClass(this._dom.root, _Constants.ClassNames.openedClass);
                 addClass(this._dom.root, _Constants.ClassNames.closedClass);
-                rendered.opened = false;
             }
+            rendered.opened = this._isOpenedMode;
         }
 
         if (rendered.closedDisplayMode !== this.closedDisplayMode) {
