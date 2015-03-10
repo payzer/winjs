@@ -279,7 +279,6 @@ export class _CommandingSurface {
             eventElement: this._dom.root,
             onShow: () => {
 
-
                 this._isShownMode = true;
                 this._updateDomImpl();
                 this._applyOrientation(this.orientation);
