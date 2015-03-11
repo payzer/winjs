@@ -72,7 +72,6 @@ var CommandLayoutPipeline = {
 var Orientation = {
     bottom: "bottom",
     top: "top",
-    auto: "auto",
 }
 
 var ClosedDisplayMode = {
@@ -229,7 +228,7 @@ export class _CommandingSurface {
 
     private _orientation: string;
     /// <field type="String" hidden="true" locid="WinJS.UI._CommandingSurface.orientation" helpKeyword="WinJS.UI._CommandingSurface.orientation">
-    /// Gets or sets which direction the commandingSurface opens. Values are "toptobottom", "bottomtotop", and "auto".
+    /// Gets or sets which direction the commandingSurface opens. Values are "top" for top-to-bottom and "bottom" for bottom-to-top.
     /// </field>
     get orientation(): string {
         return this._orientation;
@@ -421,12 +420,6 @@ export class _CommandingSurface {
             case Orientation.top:
                 removeClass(this._dom.root, _Constants.ClassNames.bottomToTopClass);
                 addClass(this._dom.root, _Constants.ClassNames.topToBottomClass);
-                break;
-
-            case Orientation.auto:
-            default:
-                // TODO build auto behaviour.
-                this._applyOrientation(Orientation.top);
                 break;
         }
 
