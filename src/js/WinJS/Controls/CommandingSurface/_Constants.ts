@@ -26,7 +26,7 @@ export var ClassNames = {
 };
 
 export var EventNames = {
-    /* TODO Update these to use the open/close nomenclature once we move the state machine and splitview over to the new names. */
+    /* TODO Update the string literals to the proper open/close nomenclature once we move the state machine and splitview over to the new names. */
     beforeShow: "beforeshow",
     afterShow: "aftershow",
     beforeHide: "beforehide",
@@ -37,7 +37,7 @@ export var contentMenuCommandDefaultLabel = "Custom content";
 
 export var defaultClosedDisplayMode = "compact";
 export var defaultOpened = false;
-export var defaultOrientation = "auto";
+export var defaultOrientation = "top";
 
 // Constants for commands
 export var typeSeparator = "separator";

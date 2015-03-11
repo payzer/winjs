@@ -147,8 +147,6 @@ export class _CommandingSurface {
     private _nextLayoutStage: number;
     private _isOpenedMode: boolean;
 
-    private _helper: any;
-
     // Measurements
     private _cachedMeasurements: {
         overflowButtonWidth: number;
@@ -277,7 +275,8 @@ export class _CommandingSurface {
         this._machine = new _ShowHideMachine.ShowHideMachine({
             eventElement: this._dom.root,
             onShow: () => {
-
+                //this._cachedHiddenPaneThickness = null;
+                //var hiddenPaneThickness = this._getHiddenPaneThickness();
                 this._isOpenedMode = true;
                 this._updateDomImpl();
                 this._applyOrientation(this.orientation);

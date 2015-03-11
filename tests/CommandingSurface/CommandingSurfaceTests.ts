@@ -170,15 +170,20 @@ module CorsicaTests {
                 LiveUnit.Assert.areEqual(2, commandingSurface.data.length, "CommandingSurface data has an invalid length");
                 LiveUnit.Assert.isFalse(Util.hasClass(commandingSurface.element, Helper._CommandingSurface.Constants.emptyCommandingSurfaceCssClass), "Empty commandingSurface css class should not be present");
             }
+        }
 
-            // if the commandingSurface element contains children, they should be parsed as the data
+        testDeclarativeData() {
+            // Verify that if the CommandingSurface element contains children elements at construction, those elements are parsed as data.
             var el = document.createElement("div");
             var child = document.createElement("table");
             el.appendChild(child);
+            var commandingSurface: WinJS.UI.PrivateCommandingSurface;
             try {
                 new _CommandingSurface(el);
             } catch (e) {
                 LiveUnit.Assert.areEqual("WinJS.UI._CommandingSurface.MustContainCommands", e.name, "Toobar should have thrown MustContainCommands exception");
+            } finally {
+
             }
 
             el = document.createElement("div");
@@ -190,7 +195,7 @@ module CorsicaTests {
                 el.appendChild(commandEl);
             }
             commandingSurface = new _CommandingSurface(el);
-            LiveUnit.Assert.areEqual(numberOfCommands, commandingSurface.data.length, "CommandingSurface data has an invalid length");
+            LiveUnit.Assert.areEqual(numberOfCommands, commandingSurface.data.length, "CommandingSurface declarative commands were not parsed as data.");
             LiveUnit.Assert.isFalse(Util.hasClass(commandingSurface.element, Helper._CommandingSurface.Constants.emptyCommandingSurfaceCssClass), "Empty commandingSurface css class should not be present");
         }
 
@@ -1563,9 +1568,10 @@ module CorsicaTests {
                 LiveUnit.Assert.areEqual(direction, commandingSurface.orientation, "orientation property should be writeable.");
                 commandingSurface.open();
 
-                // Verify correct open direction.
+                // Verify correct rendered orientation.
             });
         }
+
     }
 }
 LiveUnit.registerTestClass("CorsicaTests._CommandingSurfaceTests");
