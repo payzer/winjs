@@ -291,7 +291,7 @@ export class _CommandingSurface {
 
         // Initialize public properties.
         this.closedDisplayMode = _Constants.defaultClosedDisplayMode;
-        this.opened = this._isOpenedMode
+        this.opened = this._isOpenedMode;
         if (!options.data) {
             // Shallow copy object so we can modify it.
             options = _BaseUtils._shallowCopy(options);

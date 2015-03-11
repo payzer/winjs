@@ -78,7 +78,7 @@ module Helper._CommandingSurface {
 
     export function verifyRenderedOpened(commandingSurface: WinJS.UI.PrivateCommandingSurface) {
         // Verifies actionarea and overflowarea are opened. 
-        // Currently only works if their is at least one command in the actionarea and overflow area.
+        // Currently only works if there is at least one command in the actionarea and overflow area.
         // TODO: Make this work even if actionarea and overflowarea don't have commands.
 
         verifyRenderedOpened_actionArea(commandingSurface);
@@ -93,21 +93,19 @@ module Helper._CommandingSurface {
             actionAreaContentBoxHeight = WinJS.Utilities.getContentHeight(commandingSurface._dom.actionArea),
             overflowButtonTotalHeight = WinJS.Utilities.getTotalHeight(commandingSurface._dom.overflowButton);
 
-        var heightOfTallestChildElement = 0;
-        Array.prototype.forEach.call(commandingSurface._dom.actionArea.children, function (element) {
-            var elementHeight = WinJS.Utilities.getTotalHeight(element);
-            heightOfTallestChildElement = Math.max(heightOfTallestChildElement, elementHeight);
-        });
+        var heightOfTallestChildElement: number = Array.prototype.reduce.call(commandingSurface._dom.actionArea.children, function (tallest, element) {
+            return Math.max(tallest, WinJS.Utilities.getTotalHeight(element));
+        }, 0);
 
         LiveUnit.Assert.areEqual(actionAreaTotalHeight, commandingSurfaceTotalHeight, "Height of CommandingSurface should size to its actionarea.");
-        LiveUnit.Assert.areEqual(heightOfTallestChildElement, actionAreaContentBoxHeight, "Height of actionarea should size to its content when closedDisplayMode === 'full'");
+        LiveUnit.Assert.areEqual(heightOfTallestChildElement, actionAreaContentBoxHeight, "Actionarea height should be fully expanded and size to the heights of its content");
         LiveUnit.Assert.areEqual(actionAreaTotalHeight, overflowButtonTotalHeight, "overflowButton should stretch to the height of the actionarea");
 
         // Verify commands are displayed.
         if (Array.prototype.some.call(commandElements, function (commandEl) {
             return getComputedStyle(commandEl).display === "none";
         })) {
-            LiveUnit.Assert.fail("CommandingSurface with 'compact' closedDisplayMode should display primary commands.");
+            LiveUnit.Assert.fail("Fully expanded actionarea should display primary commands.");
         }
 
         // Verify command labels are displayed.
@@ -115,7 +113,7 @@ module Helper._CommandingSurface {
             var label = commandEl.querySelector(".win-label");
             return (label && getComputedStyle(label).display == "none");
         })) {
-            LiveUnit.Assert.fail("CommandingSurface with 'compact' closedDisplayMode should display primary command labels.");
+            LiveUnit.Assert.fail("Fully expanded actionarea should display primary command labels");
         }
     };
 

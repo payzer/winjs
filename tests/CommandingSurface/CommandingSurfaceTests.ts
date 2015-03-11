@@ -81,7 +81,7 @@ module CorsicaTests {
 
     function failEventHandler(eventName: string, msg?: string) {
         return function () {
-            LiveUnit.Assert.fail("Failure, " + eventName + "dectected: " + msg);
+            LiveUnit.Assert.fail("Failure, " + eventName + " dectected: " + msg);
         };
     }
 
@@ -248,8 +248,8 @@ module CorsicaTests {
 
             var msg = "Shouldn't have fired due to control being disposed";
             commandingSurface.onbeforeshow = failEventHandler(_Constants.EventNames.beforeShow, msg);
-            commandingSurface.onbeforehide = failEventHandler(_Constants.EventNames.afterShow, msg);
-            commandingSurface.onaftershow = failEventHandler(_Constants.EventNames.beforeHide, msg);
+            commandingSurface.onbeforehide = failEventHandler(_Constants.EventNames.beforeHide, msg);
+            commandingSurface.onaftershow = failEventHandler(_Constants.EventNames.afterShow, msg);
             commandingSurface.onafterhide = failEventHandler(_Constants.EventNames.afterHide, msg);
 
             commandingSurface.dispose();
@@ -1104,10 +1104,10 @@ module CorsicaTests {
                 new Command(null, { type: Helper._CommandingSurface.Constants.typeButton, icon: "2", label: "2", disabled: true }),
                 new Command(null, { type: Helper._CommandingSurface.Constants.typeButton, icon: "3", label: "3" }),
                 new Command(null, { type: Helper._CommandingSurface.Constants.typeButton, icon: "4", label: "4" }),
-                new Command(null, { type: Helper._CommandingSurface.Constants.typeButton, icon: "5", label: "s1", section: Helper._CommandingSurface.Constants.secondaryCommandSection }),
-                new Command(null, { type: Helper._CommandingSurface.Constants.typeButton, icon: "6", label: "s2", section: Helper._CommandingSurface.Constants.secondaryCommandSection }),
-                new Command(null, { type: Helper._CommandingSurface.Constants.typeButton, icon: "7", label: "s3", section: Helper._CommandingSurface.Constants.secondaryCommandSection }),
-                new Command(null, { type: Helper._CommandingSurface.Constants.typeButton, icon: "8", label: "s4", section: Helper._CommandingSurface.Constants.secondaryCommandSection })
+                new Command(null, { type: Helper._CommandingSurface.Constants.typeButton, label: "s1", section: Helper._CommandingSurface.Constants.secondaryCommandSection }),
+                new Command(null, { type: Helper._CommandingSurface.Constants.typeButton, label: "s2", section: Helper._CommandingSurface.Constants.secondaryCommandSection }),
+                new Command(null, { type: Helper._CommandingSurface.Constants.typeButton, label: "s3", section: Helper._CommandingSurface.Constants.secondaryCommandSection }),
+                new Command(null, { type: Helper._CommandingSurface.Constants.typeButton, label: "s4", section: Helper._CommandingSurface.Constants.secondaryCommandSection })
             ]);
             this._element.style.width = "10px";
             var commandingSurface = new _CommandingSurface(this._element, {
