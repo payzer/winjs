@@ -685,7 +685,7 @@ declare module WinJS {
         var _Selection;
         var _LayoutCommon;
         var _LISTVIEW_PROGRESS_DELAY;
-        //var _Overlay;
+        var _Overlay;
         var _AppBarCommandsLayout;
 
         module XYFocus {
