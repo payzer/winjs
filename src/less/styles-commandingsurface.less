@@ -4,32 +4,7 @@
     width: 100%;
     outline: none;
     min-width: 68px; /* enough for one primary command */
-    position: relative;
-
-    &.win-commandingsurface-toptobottom {
-        .win-commandingsurface-actionarea {
-            top: 0px;
-            bottom: auto;
-        }
-
-        .win-commandingsurface-overflowarea {
-            top: 100%;
-            bottom: auto;
-        }
-    }
-
-    &.win-commandingsurface-bottomtotop {
-        .win-commandingsurface-actionarea {
-            top: auto;
-            bottom: 0px;
-        }
-
-        .win-commandingsurface-overflowarea {
-            top: auto;
-            bottom: 100%;
-        }
-    }
-
+    position:relative;
     .win-commandingsurface-actionarea {
         width: 100%;
         min-height: 24px;
@@ -44,7 +19,6 @@
             min-height: 48px; /* height of a primary command with no label */
             width: 0px;
         }
-
         .win-command,
         .win-commandingsurface-overflowbutton {
             #flex > .flex(none);
@@ -84,15 +58,13 @@
         .win-commandingsurface-actionarea {
             height: auto;
         }
-
         .win-commandingsurface-overflowarea {
             display: block;
         }
     }
 
     &.win-commandingsurface-closed {
-        
-        .win-commandingsurface-closeddisplayfull .win-commandingsurface-actionarea {
+        &.win-commandingsurface-closeddisplayfull .win-commandingsurface-actionarea {
             height: auto;
         }
 
@@ -135,7 +107,7 @@
         max-height: 50vh;
         overflow-y: auto;
         overflow-x: hidden;
-        padding: 0px;
+        padding: 0;
         position: absolute;
 
         &.win-menu {

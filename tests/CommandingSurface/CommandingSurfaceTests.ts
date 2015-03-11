@@ -81,7 +81,7 @@ module CorsicaTests {
 
     function failEventHandler(eventName: string, msg?: string) {
         return function () {
-            LiveUnit.Assert.fail("Failure, " + eventName + "dectected: " + msg);
+            LiveUnit.Assert.fail("Failure, " + eventName + " dectected: " + msg);
         };
     }
 
@@ -248,8 +248,8 @@ module CorsicaTests {
 
             var msg = "Shouldn't have fired due to control being disposed";
             commandingSurface.onbeforeshow = failEventHandler(_Constants.EventNames.beforeShow, msg);
-            commandingSurface.onbeforehide = failEventHandler(_Constants.EventNames.afterShow, msg);
-            commandingSurface.onaftershow = failEventHandler(_Constants.EventNames.beforeHide, msg);
+            commandingSurface.onbeforehide = failEventHandler(_Constants.EventNames.beforeHide, msg);
+            commandingSurface.onaftershow = failEventHandler(_Constants.EventNames.afterShow, msg);
             commandingSurface.onafterhide = failEventHandler(_Constants.EventNames.afterHide, msg);
 
             commandingSurface.dispose();
@@ -1104,10 +1104,10 @@ module CorsicaTests {
                 new Command(null, { type: Helper._CommandingSurface.Constants.typeButton, icon: "2", label: "2", disabled: true }),
                 new Command(null, { type: Helper._CommandingSurface.Constants.typeButton, icon: "3", label: "3" }),
                 new Command(null, { type: Helper._CommandingSurface.Constants.typeButton, icon: "4", label: "4" }),
-                new Command(null, { type: Helper._CommandingSurface.Constants.typeButton, icon: "5", label: "s1", section: Helper._CommandingSurface.Constants.secondaryCommandSection }),
-                new Command(null, { type: Helper._CommandingSurface.Constants.typeButton, icon: "6", label: "s2", section: Helper._CommandingSurface.Constants.secondaryCommandSection }),
-                new Command(null, { type: Helper._CommandingSurface.Constants.typeButton, icon: "7", label: "s3", section: Helper._CommandingSurface.Constants.secondaryCommandSection }),
-                new Command(null, { type: Helper._CommandingSurface.Constants.typeButton, icon: "8", label: "s4", section: Helper._CommandingSurface.Constants.secondaryCommandSection })
+                new Command(null, { type: Helper._CommandingSurface.Constants.typeButton, label: "s1", section: Helper._CommandingSurface.Constants.secondaryCommandSection }),
+                new Command(null, { type: Helper._CommandingSurface.Constants.typeButton, label: "s2", section: Helper._CommandingSurface.Constants.secondaryCommandSection }),
+                new Command(null, { type: Helper._CommandingSurface.Constants.typeButton, label: "s3", section: Helper._CommandingSurface.Constants.secondaryCommandSection }),
+                new Command(null, { type: Helper._CommandingSurface.Constants.typeButton, label: "s4", section: Helper._CommandingSurface.Constants.secondaryCommandSection })
             ]);
             this._element.style.width = "10px";
             var commandingSurface = new _CommandingSurface(this._element, {
@@ -1338,8 +1338,9 @@ module CorsicaTests {
 
         testClosedDisplayModes() {
             this._element.style.width = "1000px";
+            var fullHeightOfContent = 100;
             var contentElement = document.createElement("DIV");
-            contentElement.style.height = "100px";
+            contentElement.style.height = fullHeightOfContent + "px";
             contentElement.style.border = "none";
 
             var data = new WinJS.Binding.List([
@@ -1389,11 +1390,11 @@ module CorsicaTests {
             Helper._CommandingSurface.verifyRenderedClosed(commandingSurface);
 
             commandingSurface.opened = true;
-            LiveUnit.Assert.isTrue(commandingSurface.opened, "opened property should be writeable.");
+            LiveUnit.Assert.isTrue(commandingSurface.opened)
             Helper._CommandingSurface.verifyRenderedOpened(commandingSurface);
 
             commandingSurface.opened = false;
-            LiveUnit.Assert.isFalse(commandingSurface.opened, "opened property should be writeable.");
+            LiveUnit.Assert.isFalse(commandingSurface.opened)
             Helper._CommandingSurface.verifyRenderedClosed(commandingSurface);
         }
 
@@ -1535,36 +1536,6 @@ module CorsicaTests {
 
             commandingSurface.opened = false;
             LiveUnit.Assert.isTrue(commandingSurface.opened, "CommandingSurface should still be open");
-        }
-
-        testOrientationConstructorOptions() {
-            var commandingSurface = new _CommandingSurface();
-            LiveUnit.Assert.areEqual(_Constants.defaultOrientation, commandingSurface.orientation, "orientation property has incorrect default value");
-            commandingSurface.dispose();
-
-            Object.keys(_CommandingSurface.Orientation).forEach(function (direction) {
-                commandingSurface = new _CommandingSurface(null, { orientation: direction });
-                LiveUnit.Assert.areEqual(direction, commandingSurface.orientation, "orientation does not match the value passed to the constructor.");
-                commandingSurface.dispose();
-            });
-        }
-
-        testOrientationProperty() {
-            var data = new WinJS.Binding.List([
-                new Command(null, { type: Helper._CommandingSurface.Constants.typeButton, icon: 'add', label: "button" }),
-                new Command(null, { type: Helper._CommandingSurface.Constants.typeSeparator }),
-                new Command(null, { type: Helper._CommandingSurface.Constants.typeButton, section: 'secondary', label: "secondary" })
-            ]);
-            var commandingSurface = new _CommandingSurface(this._element, { data: data, opened: false });
-            useSynchronousAnimations(commandingSurface);
-
-            Object.keys(_CommandingSurface.Orientation).forEach(function (direction) {
-                commandingSurface.orientation = direction;
-                LiveUnit.Assert.areEqual(direction, commandingSurface.orientation, "orientation property should be writeable.");
-                commandingSurface.open();
-
-                // Verify correct open direction.
-            });
         }
     }
 }
