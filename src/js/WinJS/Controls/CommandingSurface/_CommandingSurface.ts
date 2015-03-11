@@ -126,7 +126,7 @@ function diffElements(lhs: Array<HTMLElement>, rhs: Array<HTMLElement>): Array<H
 /// <part name="commandingSurface-overflowarea" class="win-commandingsurface-overflowarea" locid="WinJS.UI._CommandingSurface_part:CommandingSurface-overflowarea">The container for commands that overflow.</part>
 /// <resource type="javascript" src="//$(TARGET_DESTINATION)/js/WinJS.js" shared="true" />
 /// <resource type="css" src="//$(TARGET_DESTINATION)/css/ui-dark.css" shared="true" />
-export class _CommandingSurface {
+class _CommandingSurface {
 
     private _id: string;
     private _contentFlyout: _Flyout.Flyout;
@@ -1142,6 +1142,7 @@ export class _CommandingSurface {
         }
     }
 }
+export = _CommandingSurface;
 
 _Base.Class.mix(_CommandingSurface, _Events.createEventProperties(
     _Constants.EventNames.beforeShow,
