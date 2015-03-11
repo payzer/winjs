@@ -602,22 +602,6 @@ declare module WinJS {
             public dispatchEvent(type: string, eventProperties: any): boolean;
         }
 
-        class _Overlay {
-            static _keyboardInfo: {
-                _visible: boolean;
-                _extraOccluded: number;
-                _isResized: boolean;
-                _visibleDocBottom: number;
-                _visibleDocHeight: number;
-                _visibleDocTop: number;
-                _visibleDocBottomOffset: number;
-                _animationShowLength: number;
-                _visualViewportHeight: number;
-                _visualViewportWidth: number;
-                _visualViewportSpace: ClientRect;
-            }
-        }
-
         class ToolBar {
             public element: HTMLElement;
             public shownDisplayMode: string;
