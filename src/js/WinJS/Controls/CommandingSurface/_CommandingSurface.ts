@@ -55,7 +55,6 @@ interface IDataChangeInfo {
 }
 
 var strings = {
-    get ariaLabel() { return _Resources._getWinJSString("ui/commandingSurfaceAriaLabel").value; },
     get overflowButtonAriaLabel() { return _Resources._getWinJSString("ui/commandingSurfaceOverflowButtonAriaLabel").value; },
     get badData() { return "Invalid argument: The data property must an instance of a WinJS.Binding.List"; },
     get mustContainCommands() { return "The commandingSurface can only contain WinJS.UI.Command or WinJS.UI.AppBarCommand controls"; },
@@ -126,7 +125,7 @@ function diffElements(lhs: Array<HTMLElement>, rhs: Array<HTMLElement>): Array<H
 /// <part name="commandingSurface-overflowarea" class="win-commandingsurface-overflowarea" locid="WinJS.UI._CommandingSurface_part:CommandingSurface-overflowarea">The container for commands that overflow.</part>
 /// <resource type="javascript" src="//$(TARGET_DESTINATION)/js/WinJS.js" shared="true" />
 /// <resource type="css" src="//$(TARGET_DESTINATION)/css/ui-dark.css" shared="true" />
-class _CommandingSurface {
+export class _CommandingSurface {
 
     private _id: string;
     private _contentFlyout: _Flyout.Flyout;
@@ -441,17 +440,6 @@ class _CommandingSurface {
         _ElementUtilities.addClass(root, _Constants.ClassNames.controlCssClass);
         _ElementUtilities.addClass(root, "win-disposable");
 
-        // Make sure we have an ARIA role
-        var role = root.getAttribute("role");
-        if (!role) {
-            root.setAttribute("role", "menubar");
-        }
-
-        var label = root.getAttribute("aria-label");
-        if (!label) {
-            root.setAttribute("aria-label", strings.ariaLabel);
-        }
-
         var actionArea = _Global.document.createElement("div");
         _ElementUtilities.addClass(actionArea, _Constants.ClassNames.actionAreaCssClass);
         _ElementUtilities._reparentChildren(root, actionArea);
@@ -686,7 +674,7 @@ class _CommandingSurface {
     private _layoutDirty(): void {
         this._nextLayoutStage = Math.max(CommandLayoutPipeline.layoutStage, this._nextLayoutStage);
     }
-    private _updateDomImpl(): void {
+    _updateDomImpl(): void {
         this._updateDomImpl_renderDisplayMode();
         this._updateDomImpl_updateCommands();
     }
@@ -769,7 +757,7 @@ class _CommandingSurface {
         var newHidden: HTMLElement[] = [];
         var newElements: HTMLElement[] = [];
 
-        Array.prototype.forEach.call(this._dom.actionArea.querySelectorAll(".win-command"), (commandElement: HTMLElement) => {
+        Array.prototype.forEach.call(this._dom.actionArea.querySelectorAll(_Constants.commandSelector), (commandElement: HTMLElement) => {
             if (commandElement.style.display !== "none") {
                 currentShown.push(commandElement);
             }
@@ -1142,7 +1130,6 @@ class _CommandingSurface {
         }
     }
 }
-export = _CommandingSurface;
 
 _Base.Class.mix(_CommandingSurface, _Events.createEventProperties(
     _Constants.EventNames.beforeShow,

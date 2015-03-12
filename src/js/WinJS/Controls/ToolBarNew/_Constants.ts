@@ -1,28 +1,30 @@
 // Copyright (c) Microsoft Corporation.  All Rights Reserved. Licensed under the MIT License. See License.txt in the project root for license information.
+import _CommandingSurfaceConstants = require("../CommandingSurface/_Constants");
 
-// toolbarnew class names
+// toolbar class names
 export var ClassNames = {
-    controlCssClass: "win-toolbarnew",
-    actionAreaCssClass: "win-toolbarnew-actionarea",
-    overflowButtonCssClass: "win-toolbarnew-overflowbutton",
-    spacerCssClass: "win-toolbarnew-spacer",
-    ellipsisCssClass: "win-toolbarnew-ellipsis",
-    overflowAreaCssClass: "win-toolbarnew-overflowarea",
-    contentFlyoutCssClass: "win-toolbarnew-contentflyout",
-    emptytoolbarnewCssClass: "win-toolbarnew-empty",
+    controlCssClass: "win-toolbar",
+    disposableCssClass: "win-disposable",
+    actionAreaCssClass: "win-toolbar-actionarea",
+    overflowButtonCssClass: "win-toolbar-overflowbutton",
+    spacerCssClass: "win-toolbar-spacer",
+    ellipsisCssClass: "win-toolbar-ellipsis",
+    overflowAreaCssClass: "win-toolbar-overflowarea",
+    contentFlyoutCssClass: "win-toolbar-contentflyout",
+    emptytoolbarCssClass: "win-toolbar-empty",
     menuCssClass: "win-menu",
     menuContainsToggleCommandClass: "win-menu-containstogglecommand",
     menuContainsFlyoutCommandClass: "win-menu-containsflyoutcommand",
-    openingClass: "win-toolbarnew-opening",
-    openedClass: "win-toolbarnew-opened",
-    closingClass: "win-toolbarnew-closing",
-    closedClass: "win-toolbarnew-closed",
-    noneClass: "win-toolbarnew-closeddisplaynone",
-    minimalClass: "win-toolbarnew-closeddisplayminimal",
-    compactClass: "win-toolbarnew-closeddisplaycompact",
-    fullClass: "win-toolbarnew-closeddisplayfull",
-    topToBottomClass: "win-toolbarnew-toptobottom",
-    bottomToTopClass: "win-toolbarnew-bottomtotop",
+    openingClass: "win-toolbar-opening",
+    openedClass: "win-toolbar-opened",
+    closingClass: "win-toolbar-closing",
+    closedClass: "win-toolbar-closed",
+    noneClass: "win-toolbar-closeddisplaynone",
+    minimalClass: "win-toolbar-closeddisplayminimal",
+    compactClass: "win-toolbar-closeddisplaycompact",
+    fullClass: "win-toolbar-closeddisplayfull",
+    topToBottomClass: "win-toolbar-toptobottom",
+    bottomToTopClass: "win-toolbar-bottomtotop",
 };
 
 export var EventNames = {
@@ -32,6 +34,8 @@ export var EventNames = {
     beforeHide: "beforehide",
     afterHide: "afterhide"
 };
+
+export var controlMinWidth: number = _CommandingSurfaceConstants.controlMinWidth;
 
 export var defaultClosedDisplayMode = "compact";
 export var defaultOpened = false;

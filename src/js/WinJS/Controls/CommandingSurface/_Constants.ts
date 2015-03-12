@@ -3,6 +3,7 @@
 // CommandingSurface class names
 export var ClassNames = {
     controlCssClass: "win-commandingsurface",
+    disposableCssClass: "win-disposable",
     actionAreaCssClass: "win-commandingsurface-actionarea",
     overflowButtonCssClass: "win-commandingsurface-overflowbutton",
     spacerCssClass: "win-commandingsurface-spacer",
@@ -33,6 +34,16 @@ export var EventNames = {
     afterHide: "afterhide"
 };
 
+export var actionAreaCommandWidth = 68;
+export var actionAreaSeparatorWidth = 34;
+export var actionAreaOverflowButtonWidth = 32;
+export var overflowCommandHeight = 44;
+export var overflowSeparatorHeight = 12;
+
+export var controlMinWidth = actionAreaOverflowButtonWidth;
+export var heightOfMinimal = 24;
+export var heightOfCompact = 48;
+
 export var contentMenuCommandDefaultLabel = "Custom content";
 
 export var defaultClosedDisplayMode = "compact";
@@ -45,3 +56,8 @@ export var typeContent = "content";
 export var typeButton = "button";
 export var typeToggle = "toggle";
 export var typeFlyout = "flyout";
+
+export var commandSelector = ".win-command"; 
+
+export var primaryCommandSection = "primary";
+export var secondaryCommandSection = "secondary";

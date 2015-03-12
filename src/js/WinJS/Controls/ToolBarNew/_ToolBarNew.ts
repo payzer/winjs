@@ -8,7 +8,7 @@ import ControlProcessor = require("../../ControlProcessor");
 import _Constants = require("../ToolBarNew/_Constants");
 import _Command = require("../AppBar/_Command");
 import _CommandingSurface = require("../CommandingSurface");
-import _TCommandingSurface = require("../CommandingSurface/_CommandingSurface");
+import _ICommandingSurface = require("../CommandingSurface/_CommandingSurface");
 import _Control = require("../../Utilities/_Control");
 import _Dispose = require("../../Utilities/_Dispose");
 import _ElementUtilities = require("../../Utilities/_ElementUtilities");
@@ -36,20 +36,9 @@ var strings = {
     get ariaLabel() { return _Resources._getWinJSString("ui/toolbarnewAriaLabel").value; },
     get overflowButtonAriaLabel() { return _Resources._getWinJSString("ui/toolbarnewOverflowButtonAriaLabel").value; },
     get badData() { return "Invalid argument: The data property must an instance of a WinJS.Binding.List"; },
-    get mustContainCommands() { return "The toolbarnew can only contain WinJS.UI.Command or WinJS.UI.AppBarCommand controls"; }
+    get mustContainCommands() { return "The toolbarnew can only contain WinJS.UI.Command or WinJS.UI.AppBarCommand controls"; },
+    get duplicateConstruction() { return "Invalid argument: Controls may only be instantiated one time for each DOM element"; }
 };
-
-var CommandLayoutPipeline = {
-    newDataStage: 3,
-    measuringStage: 2,
-    layoutStage: 1,
-    idle: 0,
-};
-
-var Orientation = {
-    bottom: "bottom",
-    top: "top",
-}
 
 var ClosedDisplayMode = {
     /// <field locid="WinJS.UI.ToolBarNew.ClosedDisplayMode.compact" helpKeyword="WinJS.UI.ToolBarNew.ClosedDisplayMode.compact">
@@ -84,7 +73,14 @@ closedDisplayModeClassMap[ClosedDisplayMode.full] = _Constants.ClassNames.fullCl
 export class ToolBarNew {
     private _id: string;
     private _disposed: boolean;
-    //private _commandingSurface: _TCommandingSurface._CommandingSurface = new _CommandingSurface();
+    private _commandingSurface: _ICommandingSurface._CommandingSurface;
+    private _machine: _ShowHideMachine.ShowHideMachine;
+    private _isOpenedMode: boolean;
+
+    private _dom: {
+        root: HTMLElement;
+        commandingSurfaceEl: HTMLElement;
+    }
 
     // <field locid="WinJS.UI.ToolBarNew.ClosedDisplayMode" helpKeyword="WinJS.UI.ToolBarNew.ClosedDisplayMode">
     /// Display options for the actionarea when the ToolBarNew is closed.
@@ -98,14 +94,14 @@ export class ToolBarNew {
     /// Gets the DOM element that hosts the ToolBarNew.
     /// </field>
     get element() {
-        return this._element;
+        return this._dom.root;
     }
 
     /// <field type="WinJS.Binding.List" locid="WinJS.UI.ToolBarNew.data" helpKeyword="WinJS.UI.ToolBarNew.data">
     /// Gets or sets the Binding List of WinJS.UI.Command for the ToolBarNew.
     /// </field>
     get data() {
-        return this._data;
+        return this._commandingSurface.data;
     }
     set data(value: BindingList.List<_Command.ICommand>) {
         this._writeProfilerMark("set_data,info");
@@ -115,43 +111,24 @@ export class ToolBarNew {
                 throw new _ErrorFromName("WinJS.UI.ToolBarNew.BadData", strings.badData);
             }
 
-            if (this._data) {
-                this._removeDataListeners();
-            }
-            this._data = value;
-            this._addDataListeners();
-            this._dataUpdated();
+            this._commandingSurface.data = value;
         }
     }
 
     private _closedDisplayMode: string;
     /// <field type="String" locid="WinJS.UI.ToolBarNew.closedDisplayMode" helpKeyword="WinJS.UI.ToolBarNew.closedDisplayMode">
-    /// Gets or sets the closedDisplayMode for the ToolBarNew. Values are "none", "minimal", "compact", and "full".
+    /// Gets or sets the closedDisplayMode for the ToolBarNew. Values are "compact", and "full".
     /// </field>
     get closedDisplayMode() {
-        return this._closedDisplayMode;
+        return this._commandingSurface.closedDisplayMode
     }
     set closedDisplayMode(value: string) {
         this._writeProfilerMark("set_closedDisplayMode,info");
 
         var isChangingState = (value !== this._closedDisplayMode);
         if (ClosedDisplayMode[value] && isChangingState) {
-            this._closedDisplayMode = value;
+            this._commandingSurface.closedDisplayMode = value;
             this._machine.updateDom();
-        }
-    }
-
-    private _orientation: string;
-    /// <field type="String" hidden="true" locid="WinJS.UI.ToolBarNew.orientation" helpKeyword="WinJS.UI.ToolBarNew.orientation">
-    /// Gets or sets which direction the ToolBarNew opens. Values are "top" for top-to-bottom and "bottom" for bottom-to-top.
-    /// </field>
-    get orientation(): string {
-        return this._orientation;
-    }
-    set orientation(value: string) {
-        var isChangingState = (value !== this._orientation);
-        if (Orientation[value] && isChangingState) {
-            this._orientation = value;
         }
     }
 
@@ -165,10 +142,7 @@ export class ToolBarNew {
         this._machine.hidden = !value;
     }
 
-
     constructor(element?: HTMLElement, options: any = {}) {
-
-        this._commandingSurface = new _CommandingSurface();
         /// <signature helpKeyword="WinJS.UI.ToolBarNew.ToolBarNew">
         /// <summary locid="WinJS.UI.ToolBarNew.constructor">
         /// Creates a new ToolBarNew control.
@@ -184,8 +158,56 @@ export class ToolBarNew {
         /// </returns>
         /// </signature>
 
-        // TODO
+        this._writeProfilerMark("constructor,StartTM");
 
+        // Check to make sure we weren't duplicated
+        if (element && element["winControl"]) {
+            throw new _ErrorFromName("WinJS.UI.ToolBarNew.DuplicateConstruction", strings.duplicateConstruction);
+        }
+
+        this._initializeDom(element || _Global.document.createElement("div"));
+        this._machine = new _ShowHideMachine.ShowHideMachine({
+            eventElement: this.element,
+            onShow: () => {
+                //this._cachedHiddenPaneThickness = null;
+                //var hiddenPaneThickness = this._getHiddenPaneThickness();
+                this._isOpenedMode = true;
+                this._commandingSurface._updateDomImpl();
+                //return this._playShowAnimation(hiddenPaneThickness);
+                return Promise.wrap();
+            },
+            onHide: () => {
+                //return this._playHideAnimation(this._getHiddenPaneThickness()).then(() => {
+                this._isOpenedMode = false;
+                this._commandingSurface._updateDomImpl();
+                //});
+
+                return Promise.wrap();
+            },
+            onUpdateDom: () => {
+                this._commandingSurface._updateDomImpl();
+            },
+            onUpdateDomWithIsShown: (isShown: boolean) => {
+                this._isOpenedMode = isShown;
+                this._commandingSurface._updateDomImpl();
+            }
+        });
+
+        // Initialize private state.
+        this._disposed = false;
+        this._isOpenedMode = _Constants.defaultOpened;
+        this._commandingSurface = new _CommandingSurface._CommandingSurface(this._dom.commandingSurfaceEl);
+
+        // Initialize public properties.
+        this.closedDisplayMode = _Constants.defaultClosedDisplayMode;
+        this.opened = this._isOpenedMode;
+        _Control.setOptions(this, options);
+
+        // Exit the Init state.
+        _ElementUtilities._inDom(this.element).then(() => {
+            this._machine.initialized();
+            this._writeProfilerMark("constructor,StopTM");
+        });
     }
 
     dispose() {
@@ -219,27 +241,44 @@ export class ToolBarNew {
         _WriteProfilerMark("WinJS.UI.ToolBarNew:" + this._id + ":" + text);
     }
 
+    private _initializeDom(root: HTMLElement): void {
 
-    //private _getDataFromDOMElements(): BindingList.List<_Command.ICommand> {
-    //    this._writeProfilerMark("_getDataFromDOMElements,info");
+        this._writeProfilerMark("_intializeDom,info");
 
-    //    ControlProcessor.processAll(this._mainActionArea, /*skip root*/ true);
+        // Attaching JS control to DOM element
+        root["winControl"] = this;
 
-    //    var commands: _Command.ICommand[] = [];
-    //    var childrenLength = this._mainActionArea.children.length;
-    //    var child: Element;
-    //    for (var i = 0; i < childrenLength; i++) {
-    //        child = this._mainActionArea.children[i];
-    //        if (child["winControl"] && child["winControl"] instanceof _Command.AppBarCommand) {
-    //            commands.push(child["winControl"]);
-    //        } else if (!this._overflowButton) {
-    //            throw new _ErrorFromName("WinJS.UI.ToolBarNew.MustContainCommands", strings.mustContainCommands);
-    //        }
-    //    }
-    //    return new BindingList.List(commands);
-    //}
+        this._id = root.id || _ElementUtilities._uniqueID(root);
 
-    static supportedForProcessing: boolean = true;
+        if (!root.hasAttribute("tabIndex")) {
+            root.tabIndex = -1;
+        }
+
+        _ElementUtilities.addClass(root, _Constants.ClassNames.controlCssClass);
+        _ElementUtilities.addClass(root, "win-disposable");
+
+        // Make sure we have an ARIA role
+        var role = root.getAttribute("role");
+        if (!role) {
+            root.setAttribute("role", "menubar");
+        }
+
+        var label = root.getAttribute("aria-label");
+        if (!label) {
+            root.setAttribute("aria-label", strings.ariaLabel);
+        }
+ 
+        // Create element for commandingSurface. 
+        // Its constructor will parse child elements as AppBarCommands
+        var commandingSurfaceEl = document.createElement("DIV");
+        _ElementUtilities._reparentChildren(root, commandingSurfaceEl);
+        root.appendChild(commandingSurfaceEl);
+
+        this._dom = {
+            root: root,
+            commandingSurfaceEl: commandingSurfaceEl,
+        };
+    }
 }
 
 // addEventListener, removeEventListener, dispatchEvent

@@ -5,35 +5,14 @@
 module Helper._CommandingSurface {
     "use strict";
 
-    export var Constants = {
-        typeSeparator: "separator",
-        typeContent: "content",
-        typeButton: "button",
-        typeToggle: "toggle",
-        typeFlyout: "flyout",
-        controlCssClass: "win-commandingsurface",
-        disposableCssClass: "win-disposable",
-        overflowAreaCssClass: "win-commandingsurface-overflowarea",
-        emptyCommandingSurfaceCssClass: "win-commandingsurface-empty",
-        commandType: "WinJS.UI.AppBarCommand",
-        secondaryCommandSection: "secondary",
-        commandSelector: ".win-command",
-
-        actionAreaCommandWidth: 68,
-        actionAreaSeparatorWidth: 34,
-        actionAreaOverflowButtonWidth: 32,
-
-        overflowCommandHeight: 44,
-        overflowSeparatorHeight: 12,
-
-        commandingSurfaceMinWidth: 68,
-        heightOfMinimal: 24,
-        heightOfCompact: 48,
-    }
+    var _Constants;
+    WinJS.Utilities._require(["WinJS/Controls/CommandingSurface/_Constants"], function (constants) {
+        _Constants = constants;
+    })
 
     export function getVisibleCommandsInElement(element: HTMLElement) {
         var result = [];
-        var commands = element.querySelectorAll(Constants.commandSelector);
+        var commands = element.querySelectorAll(_Constants.commandSelector);
         for (var i = 0, len = commands.length; i < len; i++) {
             if (getComputedStyle(<Element>commands[i]).display !== "none") {
                 result.push(commands[i]);
@@ -45,8 +24,8 @@ module Helper._CommandingSurface {
     export function verifyOverflowMenuContent(visibleElements: HTMLElement[], expectedLabels: string[]): void {
         var labelIndex = 0;
         for (var i = 0, len = visibleElements.length; i < len; i++) {
-            if (visibleElements[i]["winControl"].type === Constants.typeSeparator) {
-                LiveUnit.Assert.areEqual(expectedLabels[labelIndex], Constants.typeSeparator);
+            if (visibleElements[i]["winControl"].type === _Constants.typeSeparator) {
+                LiveUnit.Assert.areEqual(expectedLabels[labelIndex], _Constants.typeSeparator);
             } else {
                 LiveUnit.Assert.areEqual(expectedLabels[labelIndex], visibleElements[i]["winControl"].label);
             }
@@ -151,7 +130,7 @@ module Helper._CommandingSurface {
 
             case 'minimal':
                 LiveUnit.Assert.areEqual(actionAreaTotalHeight, commandingSurfaceTotalHeight, "Height of CommandingSurface should size to its actionarea.");
-                LiveUnit.Assert.areEqual(Helper._CommandingSurface.Constants.heightOfMinimal, actionAreaContentBoxHeight, "invalid ActionArea content height for 'minimal' closedDisplayMode");
+                LiveUnit.Assert.areEqual(_Constants.heightOfMinimal, actionAreaContentBoxHeight, "invalid ActionArea content height for 'minimal' closedDisplayMode");
                 LiveUnit.Assert.areEqual(actionAreaContentBoxHeight, overflowButtonTotalHeight, "overflowButton should stretch to the height of the actionarea");
 
                 // Verify commands are not displayed.
@@ -164,7 +143,7 @@ module Helper._CommandingSurface {
 
             case 'compact':
                 LiveUnit.Assert.areEqual(actionAreaTotalHeight, commandingSurfaceTotalHeight, "Height of CommandingSurface should size to its actionarea.");
-                LiveUnit.Assert.areEqual(Helper._CommandingSurface.Constants.heightOfCompact, actionAreaContentBoxHeight, "invalid ActionArea content height for 'compact' closedDisplayMode");
+                LiveUnit.Assert.areEqual(_Constants.heightOfCompact, actionAreaContentBoxHeight, "invalid ActionArea content height for 'compact' closedDisplayMode");
                 LiveUnit.Assert.areEqual(actionAreaContentBoxHeight, overflowButtonTotalHeight, "overflowButton should stretch to the height of the actionarea");
 
                 // Verify commands are displayed.

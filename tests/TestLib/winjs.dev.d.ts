@@ -407,6 +407,26 @@ declare module WinJS {
             _machine: IShowHideMachine;
         }
 
+        class PrivateToolBarNew extends WinJS.UI.ToolBarNew {
+            _disposed: boolean;
+            _primaryCommands: ICommand[];
+            _secondaryCommands: ICommand[];
+            _getCommandWidth(command: ICommand): number;
+            _contentFlyout: WinJS.UI.Flyout;
+            _contentFlyoutInterior: HTMLElement;
+            _playShowAnimation(): Promise<any>;
+            _playHideAnimation(): Promise<any>;
+            _dom: {
+                root: HTMLElement;
+                actionArea: HTMLElement;
+                spacer: HTMLDivElement;
+                overflowButton: HTMLButtonElement;
+                overflowArea: HTMLElement;
+            };
+            _machine: IShowHideMachine;
+            _commandingSurface: WinJS.UI.PrivateCommandingSurface;
+        }
+
         class PrivateToolBar extends WinJS.UI.ToolBar {
             _disposed: boolean;
             _primaryCommands: ICommand[];
@@ -579,7 +599,6 @@ declare module WinJS {
                 full: string;
             };
             public static Orientation: {
-                auto: string;
                 bottom: string;
                 top: string;
             };
@@ -597,6 +616,29 @@ declare module WinJS {
             public onbeforehide: (ev: CustomEvent) => void;
             public onafterhide: (ev: CustomEvent) => void;
             public orientation: string;
+            public addEventListener(eventName: string, eventHandler: Function, useCapture?: boolean): void;
+            public removeEventListener(eventName: string, eventCallback: Function, useCapture?: boolean): void;
+            public dispatchEvent(type: string, eventProperties: any): boolean;
+        }
+
+        class ToolBarNew {
+            public static ClosedDisplayMode: {
+                compact: string;
+                full: string;
+            };
+            public element: HTMLElement;
+            public data: WinJS.Binding.List<ICommand>;
+            constructor(element?: HTMLElement, options?: any);
+            public dispose(): void;
+            public forceLayout(): void;
+            public closedDisplayMode: string;
+            public open(): void;
+            public close(): void;
+            public opened: boolean;
+            public onbeforeshow: (ev: CustomEvent) => void;
+            public onaftershow: (ev: CustomEvent) => void;
+            public onbeforehide: (ev: CustomEvent) => void;
+            public onafterhide: (ev: CustomEvent) => void;
             public addEventListener(eventName: string, eventHandler: Function, useCapture?: boolean): void;
             public removeEventListener(eventName: string, eventCallback: Function, useCapture?: boolean): void;
             public dispatchEvent(type: string, eventProperties: any): boolean;
