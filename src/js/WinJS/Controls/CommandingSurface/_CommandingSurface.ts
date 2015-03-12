@@ -636,7 +636,7 @@ export class _CommandingSurface {
             child = this._dom.actionArea.children[i];
             if (child["winControl"] && child["winControl"] instanceof _Command.AppBarCommand) {
                 commands.push(child["winControl"]);
-            } else if (!this._dom.overflowButton) {
+            } else if (child !== this._dom.overflowButton && child !== this._dom.spacer) {
                 throw new _ErrorFromName("WinJS.UI._CommandingSurface.MustContainCommands", strings.mustContainCommands);
             }
         }

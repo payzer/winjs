@@ -209,6 +209,40 @@ export class ToolBarNew {
             this._writeProfilerMark("constructor,StopTM");
         });
     }
+    /// <field type="Function" locid="WinJS.UI.ToolBarNew.onbeforeopen" helpKeyword="WinJS.UI.ToolBarNew.onbeforeopen">
+    /// Occurs immediately before the control is opened.
+    /// </field>
+    onbeforeshow: (ev: CustomEvent) => void;
+    /// <field type="Function" locid="WinJS.UI.ToolBarNew.onafteropen" helpKeyword="WinJS.UI.ToolBarNew.onafteropen">
+    /// Occurs immediately after the control is opened.
+    /// </field>
+    onaftershow: (ev: CustomEvent) => void;
+    /// <field type="Function" locid="WinJS.UI.ToolBarNew.onbeforeclose" helpKeyword="WinJS.UI.ToolBarNew.onbeforeclose">
+    /// Occurs immediately before the control is closed.
+    /// </field>
+    onbeforehide: (ev: CustomEvent) => void;
+    /// <field type="Function" locid="WinJS.UI.ToolBarNew.onafterclose" helpKeyword="WinJS.UI.ToolBarNew.onafterclose">
+    /// Occurs immediately after the control is closed.
+    /// </field>
+    onafterhide: (ev: CustomEvent) => void;
+
+    open(): void {
+        /// <signature helpKeyword="WinJS.UI.ToolBarNew.open">
+        /// <summary locid="WinJS.UI.ToolBarNew.open">
+        /// Opens the ToolBarNew
+        /// </summary>
+        /// </signature>
+        this._machine.show();
+    }
+
+    close(): void {
+        /// <signature helpKeyword="WinJS.UI.ToolBarNew.close">
+        /// <summary locid="WinJS.UI.ToolBarNew.close">
+        /// Closes the ToolBarNew
+        /// </summary>
+        /// </signature>
+        this._machine.hide();
+    }
 
     dispose() {
         /// <signature helpKeyword="WinJS.UI.ToolBarNew.dispose">

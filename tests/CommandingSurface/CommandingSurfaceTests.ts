@@ -147,7 +147,7 @@ module CorsicaTests {
         testDataProperty() {
             // Verify default (empty)
             var commandingSurface = new _CommandingSurface(this._element);
-            LiveUnit.Assert.areEqual(0, commandingSurface.data.length, "Empty list view should have data with length 0");
+            LiveUnit.Assert.areEqual(0, commandingSurface.data.length, "Empty CommandingSurface should have data with length 0");
             LiveUnit.Assert.isTrue(Util.hasClass(commandingSurface.element, _Constants.ClassNames.emptyCommandingSurfaceCssClass), "Empty commandingSurface css class that is not present");
 
             // Add some data
@@ -200,7 +200,28 @@ module CorsicaTests {
             LiveUnit.Assert.isFalse(Util.hasClass(commandingSurface.element, _Constants.ClassNames.emptyCommandingSurfaceCssClass), "Empty commandingSurface css class should not be present");
         }
 
-        testCommandingSurfaceDispose() {
+        testDispose() {
+
+            var commandingSurface = new _CommandingSurface(this._element);
+            useSynchronousAnimations(commandingSurface);
+            commandingSurface.open();
+
+            var msg = "Shouldn't have fired due to control being disposed";
+            commandingSurface.onbeforeshow = failEventHandler(_Constants.EventNames.beforeShow, msg);
+            commandingSurface.onbeforehide = failEventHandler(_Constants.EventNames.beforeHide, msg);
+            commandingSurface.onaftershow = failEventHandler(_Constants.EventNames.afterShow, msg);
+            commandingSurface.onafterhide = failEventHandler(_Constants.EventNames.afterHide, msg);
+
+            commandingSurface.dispose();
+            LiveUnit.Assert.isTrue(commandingSurface._disposed, "CommandingSurface didn't mark itself as disposed");
+            LiveUnit.Assert.areEqual("Disposed", commandingSurface._machine._state.name, "CommandingSurface didn't move into the disposed state");
+
+            // Events should not fire.
+            commandingSurface.close();
+            commandingSurface.open();
+        }
+
+        testDoubleDispose() {
             var commandingSurface = new _CommandingSurface();
             LiveUnit.Assert.isTrue(commandingSurface.dispose);
             LiveUnit.Assert.isFalse(commandingSurface._disposed);
@@ -246,27 +267,6 @@ module CorsicaTests {
         //    LiveUnit.Assert.areEqual("myList", commandingSurface.element.getAttribute("aria-label"), "CommandingSurface should have not set a default aria label");
         //}
 
-        testDispose() {
-
-            var commandingSurface = new _CommandingSurface(this._element);
-            useSynchronousAnimations(commandingSurface);
-            commandingSurface.open();
-
-            var msg = "Shouldn't have fired due to control being disposed";
-            commandingSurface.onbeforeshow = failEventHandler(_Constants.EventNames.beforeShow, msg);
-            commandingSurface.onbeforehide = failEventHandler(_Constants.EventNames.beforeHide, msg);
-            commandingSurface.onaftershow = failEventHandler(_Constants.EventNames.afterShow, msg);
-            commandingSurface.onafterhide = failEventHandler(_Constants.EventNames.afterHide, msg);
-
-            commandingSurface.dispose();
-            LiveUnit.Assert.isTrue(commandingSurface._disposed, "CommandingSurface didn't mark itself as disposed");
-            LiveUnit.Assert.areEqual("Disposed", commandingSurface._machine._state.name, "CommandingSurface didn't move into the disposed state");
-
-            commandingSurface.close();
-            commandingSurface.open();
-            commandingSurface.dispose();
-        }
-
         testOverflowButtonHiddenWithoutSecondaryCommands() {
             this._element.style.width = "1000px";
             var data = new WinJS.Binding.List([
@@ -299,7 +299,7 @@ module CorsicaTests {
             LiveUnit.Assert.areEqual(1, Helper._CommandingSurface.getVisibleCommandsInElement(commandingSurface._dom.overflowArea).length, "Menu commands list has an invalid length");
         }
 
-        testOverflowButtonVisibleForPrimaryCommand() {
+        testOverflowButtonVisibleForOverflowingPrimaryCommand() {
             this._element.style.width = "10px";
             var data = new WinJS.Binding.List([
                 new Command(null, { type: _Constants.typeButton, label: "opt 1" }),
