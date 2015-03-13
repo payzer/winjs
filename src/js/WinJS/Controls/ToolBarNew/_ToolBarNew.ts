@@ -33,8 +33,8 @@ require(["require-style!less/colors-toolbarnew"]);
 "use strict";
 
 var strings = {
-    get ariaLabel() { return _Resources._getWinJSString("ui/toolbarnewAriaLabel").value; },
-    get overflowButtonAriaLabel() { return _Resources._getWinJSString("ui/toolbarnewOverflowButtonAriaLabel").value; },
+    get ariaLabel() { return _Resources._getWinJSString("ui/toolbarAriaLabel").value; },
+    get overflowButtonAriaLabel() { return _Resources._getWinJSString("ui/toolbarOverflowButtonAriaLabel").value; },
     get badData() { return "Invalid argument: The data property must an instance of a WinJS.Binding.List"; },
     get mustContainCommands() { return "The toolbarnew can only contain WinJS.UI.Command or WinJS.UI.AppBarCommand controls"; },
     get duplicateConstruction() { return "Invalid argument: Controls may only be instantiated one time for each DOM element"; }
@@ -254,10 +254,11 @@ export class ToolBarNew {
             return;
         }
 
-        // TODO
-
-        _Dispose.disposeSubTree(this.element);
         this._disposed = true;
+        this._machine.dispose();
+        this._commandingSurface.dispose();
+        _Dispose.disposeSubTree(this.element);
+        
     }
 
     forceLayout() {
@@ -266,9 +267,7 @@ export class ToolBarNew {
         /// Forces the ToolBarNew to update its layout. Use this function when the window did not change size, but the container of the ToolBarNew changed size.
         /// </summary>
         /// </signature>
-
-        // TODO
-
+        this._commandingSurface.forceLayout();
     }
 
     private _writeProfilerMark(text: string) {

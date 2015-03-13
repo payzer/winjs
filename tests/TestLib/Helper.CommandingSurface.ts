@@ -10,6 +10,26 @@ module Helper._CommandingSurface {
         _Constants = constants;
     })
 
+    export interface ISizeForCommandsArgs { numStandardCommands?: number; numSeparators?: number; additionalWidth?: number; visibleOverflowButton?: boolean; };
+    export function sizeForCommands(element: HTMLElement, args: ISizeForCommandsArgs) {
+        var width =
+            (args.numStandardCommands || 0) * _Constants.actionAreaCommandWidth +
+            (args.numSeparators || 0) * _Constants.actionAreaSeparatorWidth +
+            (args.additionalWidth || 0) +
+            (args.visibleOverflowButton ? _Constants.actionAreaOverflowButtonWidth : 0);
+
+        element.style.width = width + "px";
+    }
+
+    export function useSynchronousAnimations(commandingSurface: WinJS.UI.PrivateCommandingSurface) {
+        commandingSurface._playShowAnimation = function () {
+            return WinJS.Promise.wrap();
+        };
+        commandingSurface._playHideAnimation = function () {
+            return WinJS.Promise.wrap();
+        };
+    }
+
     export function getVisibleCommandsInElement(element: HTMLElement) {
         var result = [];
         var commands = element.querySelectorAll(_Constants.commandSelector);

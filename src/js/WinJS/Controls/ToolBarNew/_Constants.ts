@@ -3,28 +3,28 @@ import _CommandingSurfaceConstants = require("../CommandingSurface/_Constants");
 
 // toolbar class names
 export var ClassNames = {
-    controlCssClass: "win-toolbar",
+    controlCssClass: "win-toolbarnew",
     disposableCssClass: "win-disposable",
-    actionAreaCssClass: "win-toolbar-actionarea",
-    overflowButtonCssClass: "win-toolbar-overflowbutton",
-    spacerCssClass: "win-toolbar-spacer",
-    ellipsisCssClass: "win-toolbar-ellipsis",
-    overflowAreaCssClass: "win-toolbar-overflowarea",
-    contentFlyoutCssClass: "win-toolbar-contentflyout",
-    emptytoolbarCssClass: "win-toolbar-empty",
+    actionAreaCssClass: "win-toolbarnew-actionarea",
+    overflowButtonCssClass: "win-toolbarnew-overflowbutton",
+    spacerCssClass: "win-toolbarnew-spacer",
+    ellipsisCssClass: "win-toolbarnew-ellipsis",
+    overflowAreaCssClass: "win-toolbarnew-overflowarea",
+    contentFlyoutCssClass: "win-toolbarnew-contentflyout",
+    emptytoolbarCssClass: "win-toolbarnew-empty",
     menuCssClass: "win-menu",
     menuContainsToggleCommandClass: "win-menu-containstogglecommand",
     menuContainsFlyoutCommandClass: "win-menu-containsflyoutcommand",
-    openingClass: "win-toolbar-opening",
-    openedClass: "win-toolbar-opened",
-    closingClass: "win-toolbar-closing",
-    closedClass: "win-toolbar-closed",
-    noneClass: "win-toolbar-closeddisplaynone",
-    minimalClass: "win-toolbar-closeddisplayminimal",
-    compactClass: "win-toolbar-closeddisplaycompact",
-    fullClass: "win-toolbar-closeddisplayfull",
-    topToBottomClass: "win-toolbar-toptobottom",
-    bottomToTopClass: "win-toolbar-bottomtotop",
+    openingClass: "win-toolbarnew-opening",
+    openedClass: "win-toolbarnew-opened",
+    closingClass: "win-toolbarnew-closing",
+    closedClass: "win-toolbarnew-closed",
+    noneClass: "win-toolbarnew-closeddisplaynone",
+    minimalClass: "win-toolbarnew-closeddisplayminimal",
+    compactClass: "win-toolbarnew-closeddisplaycompact",
+    fullClass: "win-toolbarnew-closeddisplayfull",
+    topToBottomClass: "win-toolbarnew-toptobottom",
+    bottomToTopClass: "win-toolbarnew-bottomtotop",
 };
 
 export var EventNames = {
@@ -46,3 +46,8 @@ export var typeContent = "content";
 export var typeButton = "button";
 export var typeToggle = "toggle";
 export var typeFlyout = "flyout";
+
+export var commandSelector = ".win-command";
+
+export var primaryCommandSection = "primary";
+export var secondaryCommandSection = "secondary";
