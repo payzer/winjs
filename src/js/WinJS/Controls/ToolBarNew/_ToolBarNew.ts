@@ -172,14 +172,16 @@ export class ToolBarNew {
                 //this._cachedHiddenPaneThickness = null;
                 //var hiddenPaneThickness = this._getHiddenPaneThickness();
                 this._isOpenedMode = true;
-                this._commandingSurface._updateDomImpl();
+                this._commandingSurface.open();
+                //this._commandingSurface._updateDomImpl();
                 //return this._playShowAnimation(hiddenPaneThickness);
                 return Promise.wrap();
             },
             onHide: () => {
                 //return this._playHideAnimation(this._getHiddenPaneThickness()).then(() => {
                 this._isOpenedMode = false;
-                this._commandingSurface._updateDomImpl();
+                this._commandingSurface.close();
+                //this._commandingSurface._updateDomImpl();
                 //});
 
                 return Promise.wrap();

@@ -770,10 +770,9 @@ module CorsicaTests {
             ]);
 
             var toolBarNew = new ToolBarNew(this._element, {
-                data: data
+                data: data,
+                opened: true
             });
-
-            toolBarNew._commandingSurface._dom.overflowButton.click(); // TODO: replace with show() once API exists
 
             // Click on the first menu item
             var menuCommand = (<HTMLElement> toolBarNew._commandingSurface._dom.overflowArea.children[0]);
@@ -946,7 +945,8 @@ module CorsicaTests {
             ]);
             this._element.style.width = "10px";
             var toolBarNew = new ToolBarNew(this._element, {
-                data: data
+                data: data,
+                opened: true
             });
 
             // Make sure primary commands fit exactly
@@ -955,10 +955,7 @@ module CorsicaTests {
                 visibleOverflowButton: true,
             };
             Helper._CommandingSurface.sizeForCommands(this._element, args);
-            //this._element.style.width = width + "px";
             toolBarNew.forceLayout();
-
-            toolBarNew._commandingSurface._dom.overflowButton.click(); // TODO: replace with show() once API exists
 
             LiveUnit.Assert.areEqual(2, Helper._CommandingSurface.getVisibleCommandsInElement(toolBarNew._commandingSurface._dom.overflowArea).length, "There should only be 2 commands in the overflowarea");
             LiveUnit.Assert.areEqual(2 * _Constants.overflowCommandHeight, WinJS.Utilities.getTotalHeight(toolBarNew._commandingSurface._dom.overflowArea), "Invalid height for the overflowarea container");
@@ -981,10 +978,9 @@ module CorsicaTests {
             ]);
             this._element.style.width = "1000px";
             var toolBarNew = new ToolBarNew(this._element, {
-                data: data
+                data: data,
+                opened: true
             });
-
-            toolBarNew._commandingSurface._dom.overflowButton.click(); // TODO: replace with show() once API exists
 
             LiveUnit.Assert.areEqual(4.5 * _Constants.overflowCommandHeight, WinJS.Utilities.getTotalHeight(toolBarNew._commandingSurface._dom.overflowArea), "Invalid height for the overflowarea container");
             LiveUnit.Assert.areEqual(9, Helper._CommandingSurface.getVisibleCommandsInElement(toolBarNew._commandingSurface._dom.overflowArea).length, "There should be 9 commands in the overflowarea");
@@ -1010,10 +1006,9 @@ module CorsicaTests {
             ]);
             this._element.style.width = "320px";
             var toolBarNew = new ToolBarNew(this._element, {
-                data: data
+                data: data,
+                opened: true
             });
-
-            toolBarNew._commandingSurface._dom.overflowButton.click(); // TODO: replace with show() once API exists
 
             LiveUnit.Assert.areEqual(4.5 * _Constants.overflowCommandHeight, WinJS.Utilities.getTotalHeight(toolBarNew._commandingSurface._dom.overflowArea), "Invalid height for the overflowarea container");
         }
@@ -1033,10 +1028,9 @@ module CorsicaTests {
             ]);
             this._element.style.width = "320px";
             var toolBarNew = new ToolBarNew(this._element, {
-                data: data
-            });
-
-            toolBarNew._commandingSurface._dom.overflowButton.click(); // TODO: replace with show() once API exists
+                data: data,
+                opened: true
+            })
 
             toolBarNew.element.focus();
             setTimeout(function () {
