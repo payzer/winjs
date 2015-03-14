@@ -23,6 +23,7 @@ import Promise = require('../../Promise');
 import _Resources = require("../../Core/_Resources");
 import Scheduler = require("../../Scheduler");
 import _ShowHideMachine = require('../../Utilities/_ShowHideMachine');
+import _Signal = require('../../_Signal');
 import _WriteProfilerMark = require("../../Core/_WriteProfilerMark");
 
 require(["require-style!less/styles-commandingsurface"]);
@@ -144,7 +145,7 @@ export class _CommandingSurface {
     private _rtl: boolean;
     private _disposed: boolean;
     private _nextLayoutStage: number;
-    private _isOpenedMode: boolean;
+    _isOpenedMode: boolean;
 
     // Measurements
     private _cachedMeasurements: {
@@ -271,7 +272,7 @@ export class _CommandingSurface {
         }
 
         this._initializeDom(element || _Global.document.createElement("div"));
-        this._machine = new _ShowHideMachine.ShowHideMachine({
+        this._machine = options._machine || new _ShowHideMachine.ShowHideMachine({
             eventElement: this._dom.root,
             onShow: () => {
                 //this._cachedHiddenPaneThickness = null;
@@ -298,7 +299,8 @@ export class _CommandingSurface {
                 this._updateDomImpl();
             }
         });
-
+        var signal = new _Signal();
+        this._machine.initializing(signal.promise);
         // Initialize private state.
         this._disposed = false;
         this._primaryCommands = [];
@@ -331,9 +333,10 @@ export class _CommandingSurface {
         // Exit the Init state.
         _ElementUtilities._inDom(this._dom.root).then(() => {
             this._rtl = _Global.getComputedStyle(this._dom.root).direction === 'rtl';
-            this._machine.initialized();
+            signal.complete();
             this._writeProfilerMark("constructor,StopTM");
         });
+
     }
     /// <field type="Function" locid="WinJS.UI._CommandingSurface.onbeforeopen" helpKeyword="WinJS.UI._CommandingSurface.onbeforeopen">
     /// Occurs immediately before the control is opened.

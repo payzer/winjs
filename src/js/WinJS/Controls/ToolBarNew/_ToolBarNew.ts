@@ -24,6 +24,7 @@ import Promise = require('../../Promise');
 import _Resources = require("../../Core/_Resources");
 import Scheduler = require("../../Scheduler");
 import _ShowHideMachine = require('../../Utilities/_ShowHideMachine');
+import _Signal = require('../../_Signal');
 import _WriteProfilerMark = require("../../Core/_WriteProfilerMark");
 
 
@@ -75,7 +76,6 @@ export class ToolBarNew {
     private _disposed: boolean;
     private _commandingSurface: _ICommandingSurface._CommandingSurface;
     private _machine: _ShowHideMachine.ShowHideMachine;
-    private _isOpenedMode: boolean;
 
     private _dom: {
         root: HTMLElement;
@@ -128,7 +128,6 @@ export class ToolBarNew {
         var isChangingState = (value !== this._closedDisplayMode);
         if (ClosedDisplayMode[value] && isChangingState) {
             this._commandingSurface.closedDisplayMode = value;
-            this._machine.updateDom();
         }
     }
 
@@ -170,15 +169,15 @@ export class ToolBarNew {
             eventElement: this.element,
             onShow: () => {
 
-                this._isOpenedMode = true;
-                this._commandingSurface.open();
+                this._commandingSurface._isOpenedMode = true;
+                this._commandingSurface._updateDomImpl();
 
                 return Promise.wrap();
             },
             onHide: () => {
 
-                this._isOpenedMode = false;
-                this._commandingSurface.close();
+                this._commandingSurface._isOpenedMode = false;
+                this._commandingSurface._updateDomImpl();
 
                 return Promise.wrap();
             },
@@ -186,26 +185,27 @@ export class ToolBarNew {
                 this._commandingSurface._updateDomImpl();
             },
             onUpdateDomWithIsShown: (isShown: boolean) => {
-                this._isOpenedMode = isShown;
+                this._commandingSurface._isOpenedMode = isShown;
                 this._commandingSurface._updateDomImpl();
             }
         });
 
-        // Initialize private state.
-        this._disposed = false;
-        this._isOpenedMode = _Constants.defaultOpened;
-        this._commandingSurface = new _CommandingSurface._CommandingSurface(this._dom.commandingSurfaceEl);
+        var signal = new _Signal();
+        this._machine.initializing(signal.promise);
+            // Initialize private state.
+            this._disposed = false;
+            this._commandingSurface = new _CommandingSurface._CommandingSurface(this._dom.commandingSurfaceEl, {_machine: this._machine} );
 
-        // Initialize public properties.
-        this.closedDisplayMode = _Constants.defaultClosedDisplayMode;
-        this.opened = this._isOpenedMode;
-        _Control.setOptions(this, options);
+            // Initialize public properties.
+            this.closedDisplayMode = _Constants.defaultClosedDisplayMode;
+            this.opened = _Constants.defaultOpened;
+            _Control.setOptions(this, options);
 
-        // Exit the Init state.
-        _ElementUtilities._inDom(this.element).then(() => {
-            this._machine.initialized();
-            this._writeProfilerMark("constructor,StopTM");
-        });
+            // Exit the Init state.
+            _ElementUtilities._inDom(this.element).then(() => {
+                signal.complete();
+                this._writeProfilerMark("constructor,StopTM");
+            });
     }
     /// <field type="Function" locid="WinJS.UI.ToolBarNew.onbeforeopen" helpKeyword="WinJS.UI.ToolBarNew.onbeforeopen">
     /// Occurs immediately before the control is opened.
@@ -230,7 +230,7 @@ export class ToolBarNew {
         /// Opens the ToolBarNew
         /// </summary>
         /// </signature>
-        this._machine.show();
+        this._commandingSurface.open();
     }
 
     close(): void {
@@ -239,7 +239,7 @@ export class ToolBarNew {
         /// Closes the ToolBarNew
         /// </summary>
         /// </signature>
-        this._machine.hide();
+        this._commandingSurface.close();
     }
 
     dispose() {
@@ -256,7 +256,7 @@ export class ToolBarNew {
         this._machine.dispose();
         this._commandingSurface.dispose();
         _Dispose.disposeSubTree(this.element);
-        
+
     }
 
     forceLayout() {
@@ -298,7 +298,7 @@ export class ToolBarNew {
         if (!label) {
             root.setAttribute("aria-label", strings.ariaLabel);
         }
- 
+
         // Create element for commandingSurface. 
         // Its constructor will parse child elements as AppBarCommands
         var commandingSurfaceEl = document.createElement("DIV");
@@ -311,6 +311,12 @@ export class ToolBarNew {
         };
     }
 }
+
+_Base.Class.mix(ToolBarNew, _Events.createEventProperties(
+    _Constants.EventNames.beforeShow,
+    _Constants.EventNames.afterShow,
+    _Constants.EventNames.beforeHide,
+    _Constants.EventNames.afterHide));
 
 // addEventListener, removeEventListener, dispatchEvent
 _Base.Class.mix(ToolBarNew, _Control.DOMEventMixin);

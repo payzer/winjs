@@ -244,7 +244,7 @@ export class SplitView {
             }
         });
 
-        this._machine.initializing(new Promise((c) => {
+        this._machine.initializing(new Promise((initialized) => {
             // Initialize private state.
             this._disposed = false;
             this._dismissable = new _LightDismissService.LightDismissableElement({
@@ -266,7 +266,7 @@ export class SplitView {
             // Exit the Init state.
             _ElementUtilities._inDom(this._dom.root).then(() => {
                 this._rtl = _Global.getComputedStyle(this._dom.root).direction === 'rtl';
-                c();
+                initialized();
             });
         }));
     }
