@@ -70,9 +70,18 @@ var CommandLayoutPipeline = {
 };
 
 var Orientation = {
+    /// <field locid="WinJS.UI._CommandingSurface.Orientation.bottom" helpKeyword="WinJS.UI._CommandingSurface.Orientation.bottom">
+    /// The _CommandingSurface opens from bottom to top and the overflowarea is rendered above the actionarea.
+    /// </field>
     bottom: "bottom",
+    /// <field locid="WinJS.UI._CommandingSurface.Orientation.top" helpKeyword="WinJS.UI._CommandingSurface.Orientation.top">
+    /// The _CommandingSurface opens from top to bottom and the overflowarea is rendered below the actionarea.
+    /// </field>
     top: "top",
 }
+var orientationClassMap = {};
+orientationClassMap[Orientation.top] = _Constants.ClassNames.topToBottomClass;
+orientationClassMap[Orientation.bottom] = _Constants.ClassNames.bottomToTopClass;
 
 var ClosedDisplayMode = {
     /// <field locid="WinJS.UI._CommandingSurface.ClosedDisplayMode.none" helpKeyword="WinJS.UI._CommandingSurface.ClosedDisplayMode.none">
@@ -92,7 +101,6 @@ var ClosedDisplayMode = {
     /// </field>
     full: "full",
 };
-
 var closedDisplayModeClassMap = {};
 closedDisplayModeClassMap[ClosedDisplayMode.none] = _Constants.ClassNames.noneClass;
 closedDisplayModeClassMap[ClosedDisplayMode.minimal] = _Constants.ClassNames.minimalClass;
@@ -130,7 +138,7 @@ export class _CommandingSurface {
 
     private _id: string;
     private _contentFlyout: _Flyout.Flyout;
-    private _contentFlyoutInterior: HTMLElement;
+    private _contentFlyoutInterior: HTMLElement; /* The reparented content node inside of _contentFlyout.element */
     private _hoverable = _Hoverable.isHoverable; /* force dependency on hoverable module */
     private _winKeyboard: _KeyboardBehavior._WinKeyboard;
     private _refreshBound: Function;
@@ -277,13 +285,13 @@ export class _CommandingSurface {
             onShow: () => {
                 //this._cachedHiddenPaneThickness = null;
                 //var hiddenPaneThickness = this._getHiddenPaneThickness();
-                this._onShow();
+                this._renderOpened();
                 //return this._playShowAnimation(hiddenPaneThickness);
                 return Promise.wrap();
             },
             onHide: () => {
                 //return this._playHideAnimation(this._getHiddenPaneThickness()).then(() => {
-                this._onHide();
+                this._renderClosed();
                 //});
 
                 return Promise.wrap();
@@ -407,23 +415,6 @@ export class _CommandingSurface {
         _WriteProfilerMark("WinJS.UI._CommandingSurface:" + this._id + ":" + text);
     }
 
-    private _applyOrientation(nextOrientation: string): string {
-
-        switch (nextOrientation) {
-            case Orientation.bottom:
-                removeClass(this._dom.root, _Constants.ClassNames.topToBottomClass);
-                addClass(this._dom.root, _Constants.ClassNames.bottomToTopClass);
-                break;
-
-            case Orientation.top:
-                removeClass(this._dom.root, _Constants.ClassNames.bottomToTopClass);
-                addClass(this._dom.root, _Constants.ClassNames.topToBottomClass);
-                break;
-        }
-
-        return "";
-    }
-
     private _initializeDom(root: HTMLElement): void {
 
         this._writeProfilerMark("_intializeDom,info");
@@ -438,7 +429,7 @@ export class _CommandingSurface {
         }
 
         _ElementUtilities.addClass(root, _Constants.ClassNames.controlCssClass);
-        _ElementUtilities.addClass(root, "win-disposable");
+        _ElementUtilities.addClass(root, _Constants.ClassNames.disposableCssClass);
 
         var actionArea = _Global.document.createElement("div");
         _ElementUtilities.addClass(actionArea, _Constants.ClassNames.actionAreaCssClass);
@@ -665,6 +656,13 @@ export class _CommandingSurface {
         return Promise.wrap();
     }
 
+    _getBoundingRects() {
+        return {
+            actionArea: this._dom.actionArea.getBoundingClientRect(),
+            overflowArea: this._dom.overflowArea.getBoundingClientRect(),
+        };
+    }
+
     private _dataDirty(): void {
         this._nextLayoutStage = Math.max(CommandLayoutPipeline.newDataStage, this._nextLayoutStage);
     }
@@ -675,13 +673,12 @@ export class _CommandingSurface {
         this._nextLayoutStage = Math.max(CommandLayoutPipeline.layoutStage, this._nextLayoutStage);
     }
 
-    _onShow(): void {
+    _renderOpened(): void {
         this._isOpenedMode = true;
         this._updateDomImpl();
-        this._applyOrientation(this.orientation);
     }
 
-    _onHide(): void {
+    _renderClosed(): void {
         this._isOpenedMode = false;
         this._updateDomImpl();
     }
@@ -699,6 +696,7 @@ export class _CommandingSurface {
     private _updateDomImpl_renderedState = {
         closedDisplayMode: <string>undefined,
         opened: <boolean>undefined,
+        orientation: <string>undefined,
     };
     private _updateDomImpl_renderDisplayMode(): void {
         var rendered = this._updateDomImpl_renderedState;
@@ -708,7 +706,6 @@ export class _CommandingSurface {
                 // Render opened
                 removeClass(this._dom.root, _Constants.ClassNames.closedClass);
                 addClass(this._dom.root, _Constants.ClassNames.openedClass);
-                this._applyOrientation(this.orientation);
             } else {
                 // Render closed
                 removeClass(this._dom.root, _Constants.ClassNames.openedClass);
@@ -721,6 +718,12 @@ export class _CommandingSurface {
             removeClass(this._dom.root, closedDisplayModeClassMap[rendered.closedDisplayMode]);
             addClass(this._dom.root, closedDisplayModeClassMap[this.closedDisplayMode]);
             rendered.closedDisplayMode = this.closedDisplayMode;
+        }
+
+        if (rendered.orientation !== this.orientation) {
+            removeClass(this._dom.root, orientationClassMap[rendered.orientation]);
+            addClass(this._dom.root, orientationClassMap[this.orientation]);
+            rendered.orientation = this.orientation;
         }
     }
 

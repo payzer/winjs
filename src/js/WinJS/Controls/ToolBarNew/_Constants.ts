@@ -25,6 +25,7 @@ export var ClassNames = {
     fullClass: "win-toolbarnew-closeddisplayfull",
     topToBottomClass: "win-toolbarnew-toptobottom",
     bottomToTopClass: "win-toolbarnew-bottomtotop",
+    ghostElementCssClass: "win-toolbar-ghostelement",
 };
 
 export var EventNames = {

@@ -1565,11 +1565,11 @@ module CorsicaTests {
                 switch (orientation) {
                     case _CommandingSurface.Orientation.top:
                         // Top of the overflowArea is drawn at the bottom of the actionArea
-                        LiveUnit.Assert.isTrue(overflowAreaRect.top >= actionAreaRect.bottom);
+                        LiveUnit.Assert.areEqual(overflowAreaRect.top,actionAreaRect.bottom);
                         break;
                     case _CommandingSurface.Orientation.bottom:
-                        // Bottom of the overflowArea  is drawn at the top of the actionArea
-                        LiveUnit.Assert.isTrue(overflowAreaRect.bottom <= actionAreaRect.top);
+                        // Bottom of the overflowArea is drawn at the top of the actionArea
+                        LiveUnit.Assert.areEqual(overflowAreaRect.bottom, actionAreaRect.top);
                         break;
                     default:
                         LiveUnit.Assert.fail("TEST ERROR: Encountered unknown Orientation enum value: " + orientation);
