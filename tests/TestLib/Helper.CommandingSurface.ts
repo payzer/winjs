@@ -133,7 +133,7 @@ module Helper._CommandingSurface {
     };
 
     function verifyRenderedClosed_actionArea(commandingSurface: WinJS.UI.PrivateCommandingSurface) {
-        var mode = commandingSurface.closedDisplayMode;
+        var closedDisplayMode = commandingSurface.closedDisplayMode;
 
         var commandElements = Helper._CommandingSurface.getVisibleCommandsInElement(commandingSurface._dom.actionArea),
             commandingSurfaceTotalHeight = WinJS.Utilities.getTotalHeight(commandingSurface.element),
@@ -141,14 +141,14 @@ module Helper._CommandingSurface {
             actionAreaContentBoxHeight = WinJS.Utilities.getContentHeight(commandingSurface._dom.actionArea),
             overflowButtonTotalHeight = WinJS.Utilities.getTotalHeight(commandingSurface._dom.overflowButton);
 
-        switch (mode) {
-            case 'none':
+        switch (closedDisplayMode) {
+            case WinJS.UI._CommandingSurface.ClosedDisplayMode.none:
                 LiveUnit.Assert.areEqual("none", getComputedStyle(commandingSurface.element).display);
                 LiveUnit.Assert.areEqual(0, actionAreaTotalHeight);
                 LiveUnit.Assert.areEqual(0, overflowButtonTotalHeight);
                 break;
 
-            case 'minimal':
+            case WinJS.UI._CommandingSurface.ClosedDisplayMode.minimal:
                 LiveUnit.Assert.areEqual(actionAreaTotalHeight, commandingSurfaceTotalHeight, "Height of CommandingSurface should size to its actionarea.");
                 LiveUnit.Assert.areEqual(_Constants.heightOfMinimal, actionAreaContentBoxHeight, "invalid ActionArea content height for 'minimal' closedDisplayMode");
                 LiveUnit.Assert.areEqual(actionAreaContentBoxHeight, overflowButtonTotalHeight, "overflowButton should stretch to the height of the actionarea");
@@ -161,7 +161,7 @@ module Helper._CommandingSurface {
                 }
                 break;
 
-            case 'compact':
+            case WinJS.UI._CommandingSurface.ClosedDisplayMode.compact:
                 LiveUnit.Assert.areEqual(actionAreaTotalHeight, commandingSurfaceTotalHeight, "Height of CommandingSurface should size to its actionarea.");
                 LiveUnit.Assert.areEqual(_Constants.heightOfCompact, actionAreaContentBoxHeight, "invalid ActionArea content height for 'compact' closedDisplayMode");
                 LiveUnit.Assert.areEqual(actionAreaContentBoxHeight, overflowButtonTotalHeight, "overflowButton should stretch to the height of the actionarea");
@@ -182,13 +182,13 @@ module Helper._CommandingSurface {
                 }
                 break;
 
-            case 'full':
+            case WinJS.UI._CommandingSurface.ClosedDisplayMode.full:
                 // closedDisplayMode "full" actionarea, and opened actionarea, render exactly the same.
                 verifyRenderedOpened_actionArea(commandingSurface);
                 break;
 
             default:
-                LiveUnit.Assert.fail("TEST ERROR: Encountered unknown enum value: " + mode);
+                LiveUnit.Assert.fail("TEST ERROR: Encountered unknown ClosedDisplayMode enum value: " + closedDisplayMode);
                 break;
         }
     }

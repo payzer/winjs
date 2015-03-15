@@ -1553,13 +1553,29 @@ module CorsicaTests {
             ]);
             var commandingSurface = new _CommandingSurface(this._element, { data: data, opened: false });
             Helper._CommandingSurface.useSynchronousAnimations(commandingSurface);
+            commandingSurface.element.style.top = "45%";
 
-            Object.keys(_CommandingSurface.Orientation).forEach(function (direction) {
-                commandingSurface.orientation = direction;
-                LiveUnit.Assert.areEqual(direction, commandingSurface.orientation, "orientation property should be writeable.");
+            Object.keys(_CommandingSurface.Orientation).forEach(function (orientation) {
+                commandingSurface.orientation = orientation;
+                LiveUnit.Assert.areEqual(orientation, commandingSurface.orientation, "orientation property should be writeable.");
                 commandingSurface.open();
+                var actionAreaRect = commandingSurface._dom.actionArea.getBoundingClientRect();
+                var overflowAreaRect = commandingSurface._dom.overflowArea.getBoundingClientRect();
 
-                // Verify correct rendered orientation.
+                switch (orientation) {
+                    case _CommandingSurface.Orientation.top:
+                        // Top of the overflowArea is drawn at the bottom of the actionArea
+                        LiveUnit.Assert.isTrue(overflowAreaRect.top >= actionAreaRect.bottom);
+                        break;
+                    case _CommandingSurface.Orientation.bottom:
+                        // Bottom of the overflowArea  is drawn at the top of the actionArea
+                        LiveUnit.Assert.isTrue(overflowAreaRect.bottom <= actionAreaRect.top);
+                        break;
+                    default:
+                        LiveUnit.Assert.fail("TEST ERROR: Encountered unknown Orientation enum value: " + orientation);
+                        break;
+                }
+                commandingSurface.close();
             });
         }
 

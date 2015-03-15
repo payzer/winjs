@@ -277,16 +277,13 @@ export class _CommandingSurface {
             onShow: () => {
                 //this._cachedHiddenPaneThickness = null;
                 //var hiddenPaneThickness = this._getHiddenPaneThickness();
-                this._isOpenedMode = true;
-                this._updateDomImpl();
-                this._applyOrientation(this.orientation);
+                this._onShow();
                 //return this._playShowAnimation(hiddenPaneThickness);
                 return Promise.wrap();
             },
             onHide: () => {
                 //return this._playHideAnimation(this._getHiddenPaneThickness()).then(() => {
-                this._isOpenedMode = false;
-                this._updateDomImpl();
+                this._onHide();
                 //});
 
                 return Promise.wrap();
@@ -677,6 +674,18 @@ export class _CommandingSurface {
     private _layoutDirty(): void {
         this._nextLayoutStage = Math.max(CommandLayoutPipeline.layoutStage, this._nextLayoutStage);
     }
+
+    _onShow(): void {
+        this._isOpenedMode = true;
+        this._updateDomImpl();
+        this._applyOrientation(this.orientation);
+    }
+
+    _onHide(): void {
+        this._isOpenedMode = false;
+        this._updateDomImpl();
+    }
+
     _updateDomImpl(): void {
         this._updateDomImpl_renderDisplayMode();
         this._updateDomImpl_updateCommands();
