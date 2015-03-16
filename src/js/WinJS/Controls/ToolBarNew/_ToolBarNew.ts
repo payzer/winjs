@@ -334,9 +334,12 @@ export class ToolBarNew {
         this._commandingSurface.dispose();
         _Dispose.disposeSubTree(this.element);
         if (this._placeHolder.parentElement) {
+
+            //TODO: render the toolbar closed and put it back in the DOM where the the placeHolder is
+
             this._placeHolder.parentElement.removeChild(this._placeHolder); 
-            //TODO: Intstead, does the placeHolder element need a dispose method on it that will be called if its parent subtree is disposed?
-            // If the placeholder is in the DOM at all it means the toolbar is temporarily open and absolutely positioned in the docuent.body.
+            //TODO: Also, does the placeHolder element need a dispose method on it as well, so that will be called if its parent subtree is disposed?
+            // If the placeholder is in the DOM at all, it means the toolbar is temporarily open and absolutely positioned in the docuent.body.
         }
     }
 
