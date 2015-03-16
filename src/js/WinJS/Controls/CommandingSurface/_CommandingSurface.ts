@@ -304,8 +304,10 @@ export class _CommandingSurface {
                 this._updateDomImpl();
             }
         });
+        // Enter the Init state
         var signal = new _Signal();
         this._machine.initializing(signal.promise);
+
         // Initialize private state.
         this._disposed = false;
         this._primaryCommands = [];

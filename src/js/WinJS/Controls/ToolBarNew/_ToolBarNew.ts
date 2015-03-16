@@ -27,7 +27,6 @@ import _ShowHideMachine = require('../../Utilities/_ShowHideMachine');
 import _Signal = require('../../_Signal');
 import _WriteProfilerMark = require("../../Core/_WriteProfilerMark");
 
-
 require(["require-style!less/styles-toolbarnew"]);
 require(["require-style!less/colors-toolbarnew"]);
 
@@ -56,6 +55,14 @@ var closedDisplayModeClassMap = {};
 closedDisplayModeClassMap[ClosedDisplayMode.compact] = _Constants.ClassNames.compactClass;
 closedDisplayModeClassMap[ClosedDisplayMode.full] = _Constants.ClassNames.fullClass;
 
+function getVisibleDocTop(): number {
+    return _Global.pageYOffset - _Global.document.documentElement.scrollTop;
+}
+
+function getVisibleDocBottom(): number {
+    return getVisibleDocTop() + _Global.innerHeight;
+}
+
 /// <field>
 /// <summary locid="WinJS.UI.ToolBarNew">
 /// Represents a toolbar for displaying commands.
@@ -76,7 +83,9 @@ export class ToolBarNew {
     private _disposed: boolean;
     private _commandingSurface: _ICommandingSurface._CommandingSurface;
     private _machine: _ShowHideMachine.ShowHideMachine;
-    private _ghostElement: HTMLElement;
+    private _placeHolder: HTMLElement;
+    private _prevInlineWidth: string; 
+    //private _isOpenedMode: boolean;
 
     private _dom: {
         root: HTMLElement;
@@ -121,7 +130,7 @@ export class ToolBarNew {
     /// Gets or sets the closedDisplayMode for the ToolBarNew. Values are "compact", and "full".
     /// </field>
     get closedDisplayMode() {
-        return this._commandingSurface.closedDisplayMode
+        return this._commandingSurface.closedDisplayMode;
     }
     set closedDisplayMode(value: string) {
         this._writeProfilerMark("set_closedDisplayMode,info");
@@ -171,39 +180,79 @@ export class ToolBarNew {
             onShow: () => {
                 // Measure closed state.
                 var closedBoundingRect = this._commandingSurface._getBoundingRects().actionArea;
+                this._prevInlineWidth = this._dom.root.style.width;
 
                 // Get replacement element
-                if (!this._ghostElement) {
-                    this._ghostElement = _Global.document.createElement("DIV");
-                    _ElementUtilities.addClass(this._ghostElement, _Constants.ClassNames.ghostElementCssClass);
-                }
-                var _ghostElement = this._ghostElement;
-                _ghostElement.style.display = "";
-                _ghostElement.style.top = closedBoundingRect.top + "px";
-                _ghostElement.style.right = closedBoundingRect.right + "px";
-                _ghostElement.style.bottom = closedBoundingRect.bottom + "px";
-                _ghostElement.style.left = closedBoundingRect.left + "px";
+                var placeHolder = this._placeHolder;
+                placeHolder.style.width = closedBoundingRect.width + "px";
+                placeHolder.style.height = closedBoundingRect.height + "px";
 
                 // Move ToolBar element to the body and leave ghost element in our place.
-                this._dom.root.parentElement.insertBefore(_ghostElement, this._dom.root);
+                this._dom.root.parentElement.insertBefore(placeHolder, this._dom.root);
                 _Global.document.body.appendChild(this._dom.root);
 
                 // Render opened state
+                _ElementUtilities.addClass(this._dom.root, _Constants.ClassNames.openedClass);
+                _ElementUtilities.removeClass(this._dom.root, _Constants.ClassNames.closedClass);
+                this._dom.root.style.width = closedBoundingRect.width + "px";
+                this._dom.root.style.left = closedBoundingRect.left + "px";
+
                 this._commandingSurface._renderOpened();
 
                 // Measure opened state
                 var openedRects = this._commandingSurface._getBoundingRects();
 
+                //
                 // Determine orientation
+                //
 
-                // Prefer bottom
-                if (closedBoundingRect.top + openedRects.actionArea.height + openedRects.overflowArea.height - _Global.innerHeight) { }
+                function alignTop() {
+                    this._commandingSurface.orientation = "top" // TODO: Is it safe to use the static commandingSurface "Orientation" enum for this value? (lazy loading... et al) 
+                    this._dom.root.style.top = closedBoundingRect.top + "px";
+                    this._dom.root.style.bottom = "auto";
+                }
+                function alignBottom() {
+                    this._commandingSurface.orientation = "bottom" // TODO: Is it safe to use the static commandingSurface "Orientation" enum for this value? (lazy loading... et al) 
+                    this._dom.root.style.top = "auto";
+                    this._dom.root.style.bottom = (visibleDocBottom - closedBoundingRect.bottom) + "px";
+                }
+
+                var visibleDocTop = getVisibleDocTop(),
+                    visibleDocBottom = getVisibleDocBottom();
+
+                if (closedBoundingRect.top + openedRects.actionArea.height + openedRects.overflowArea.height <= visibleDocBottom ||
+                    Math.abs(closedBoundingRect.top + openedRects.actionArea.height + openedRects.overflowArea.height - visibleDocBottom) < 1) {
+                    alignTop.call(this);
+                } else if (closedBoundingRect.bottom - openedRects.actionArea.height - openedRects.overflowArea.height >= visibleDocTop ||
+                    Math.abs(closedBoundingRect.bottom - openedRects.actionArea.height - openedRects.overflowArea.height - visibleDocTop) < 1) {
+                    alignBottom.call(this);
+                } else {
+                    // TODO, orient ourselves top to bottom and shrink the height of the overflowarea to make us fit within the available space.
+                    alignTop.call(this);
+                }
 
                 // Animate
                 return Promise.wrap();
             },
+
             onHide: () => {
+                // Restore our placement in tbe DOM
+                if (this._placeHolder.parentElement) {
+                    var placeHolder = this._placeHolder;
+                    placeHolder.parentElement.insertBefore(this._dom.root, placeHolder);
+                    placeHolder.parentElement.removeChild(placeHolder);
+                }
+
+                // Render Closed
+                this._dom.root.style.top = "";
+                this._dom.root.style.right = "";
+                this._dom.root.style.bottom = "";
+                this._dom.root.style.left = "";
+                this._dom.root.style.width = this._prevInlineWidth;
+                _ElementUtilities.addClass(this._dom.root, _Constants.ClassNames.closedClass);
+                _ElementUtilities.removeClass(this._dom.root, _Constants.ClassNames.openedClass);
                 this._commandingSurface._renderClosed();
+
                 return Promise.wrap();
             },
             onUpdateDom: () => {
@@ -214,24 +263,25 @@ export class ToolBarNew {
                 this._commandingSurface._updateDomImpl();
             }
         });
-
+        // Enter the Init state.
         var signal = new _Signal();
         this._machine.initializing(signal.promise);
-            // Initialize private state.
-            this._disposed = false;
-
-            this._commandingSurface = new _CommandingSurface._CommandingSurface(this._dom.commandingSurfaceEl, {_machine: this._machine} );
-
-            // Initialize public properties.
-            this.closedDisplayMode = _Constants.defaultClosedDisplayMode;
-            this.opened = _Constants.defaultOpened;
-            _Control.setOptions(this, options);
-
-            // Exit the Init state.
-            _ElementUtilities._inDom(this.element).then(() => {
-                signal.complete();
-                this._writeProfilerMark("constructor,StopTM");
-            });
+        
+        // Initialize private state.
+        this._disposed = false;
+        this._commandingSurface = new _CommandingSurface._CommandingSurface(this._dom.commandingSurfaceEl, { _machine: this._machine });
+        this._prevInlineWidth = "";
+        
+        // Initialize public properties.
+        this.closedDisplayMode = _Constants.defaultClosedDisplayMode;
+        this.opened = _Constants.defaultOpened;
+        _Control.setOptions(this, options);
+        
+        // Exit the Init state.
+        _ElementUtilities._inDom(this.element).then(() => {
+            signal.complete();
+            this._writeProfilerMark("constructor,StopTM");
+        });
     }
 
     /// <field type="Function" locid="WinJS.UI.ToolBarNew.onbeforeopen" helpKeyword="WinJS.UI.ToolBarNew.onbeforeopen">
@@ -283,7 +333,11 @@ export class ToolBarNew {
         this._machine.dispose();
         this._commandingSurface.dispose();
         _Dispose.disposeSubTree(this.element);
-
+        if (this._placeHolder.parentElement) {
+            this._placeHolder.parentElement.removeChild(this._placeHolder); 
+            //TODO: Intstead, does the placeHolder element need a dispose method on it that will be called if its parent subtree is disposed?
+            // If the placeholder is in the DOM at all it means the toolbar is temporarily open and absolutely positioned in the docuent.body.
+        }
     }
 
     forceLayout() {
@@ -336,46 +390,10 @@ export class ToolBarNew {
             root: root,
             commandingSurfaceEl: commandingSurfaceEl,
         };
-    }
 
-    _renderOpened() {
-        // Measure closed state.
-        var closedBoundingRect = this._commandingSurface._getBoundingRects().actionArea;
-
-        // Get replacement element
-        if (!this._ghostElement) {
-            this._ghostElement = new HTMLDivElement();
-            _ElementUtilities.addClass(this._ghostElement, _Constants.ClassNames.ghostElementCssClass);
-        }
-        var _ghostElement = this._ghostElement;
-        _ghostElement.style.display = "";
-        _ghostElement.style.top = closedBoundingRect.top + "px";
-        _ghostElement.style.right = closedBoundingRect.right + "px";
-        _ghostElement.style.bottom = closedBoundingRect.bottom + "px";
-        _ghostElement.style.left = closedBoundingRect.left + "px";
-
-        // Move ToolBar element to the body and leave ghost element in our place.
-        this._dom.root.parentElement.insertBefore(_ghostElement, this._dom.root);
-        _Global.document.body.appendChild(this._dom.root);
-
-        // Render opened state
-        this._commandingSurface._renderOpened();
-
-        // Measure opened state
-        var openedRects = this._commandingSurface._getBoundingRects();
-
-        // Determine orientation
-
-        // Prefer bottom
-        if (closedBoundingRect.top + openedRects.actionArea.height + openedRects.overflowArea.height - _Global.innerHeight) { }
-
-        // Animate
-        return Promise.wrap();
-    }
-
-    _renderClosed() {
-        this._commandingSurface._renderClosed();
-        return Promise.wrap();
+        var placeHolder = _Global.document.createElement("DIV");
+        _ElementUtilities.addClass(placeHolder, _Constants.ClassNames.placeHolderCssClass);
+        this._placeHolder = placeHolder;
     }
 }
 
