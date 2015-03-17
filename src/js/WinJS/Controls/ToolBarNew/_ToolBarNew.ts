@@ -81,8 +81,7 @@ export class ToolBarNew {
     private _id: string;
     private _disposed: boolean;
     private _commandingSurface: _ICommandingSurface._CommandingSurface;
-    private _prevInlineWidth: string;
-    //private _isOpenedMode: boolean;
+    private _isOpenedMode: boolean;
 
     private _dom: {
         root: HTMLElement;
@@ -165,90 +164,18 @@ export class ToolBarNew {
         var stateMachine = new _ShowHideMachine.ShowHideMachine({
             eventElement: this.element,
             onShow: () => {
-                // Measure closed state.
-                var closedActionAreaRect = this._commandingSurface.getBoundingRects().actionArea;
-                this._prevInlineWidth = this._dom.root.style.width;
 
-                // Get replacement element
-                var placeHolder = this._dom.placeHolder;
-                placeHolder.style.width = closedActionAreaRect.width + "px";
-                placeHolder.style.height = closedActionAreaRect.height + "px";
-
-                // Move ToolBar element to the body and leave placeHolder element in our place to avoid reflowing surrounding app content.
-                this._dom.root.parentElement.insertBefore(placeHolder, this._dom.root);
-                _Global.document.body.appendChild(this._dom.root);
-
-                // Render opened state
-                _ElementUtilities.addClass(this._dom.root, _Constants.ClassNames.openedClass);
-                _ElementUtilities.removeClass(this._dom.root, _Constants.ClassNames.closedClass);
-                this._dom.root.style.width = closedActionAreaRect.width + "px";
-                this._dom.root.style.left = closedActionAreaRect.left + "px";
-
-                this._commandingSurface.renderOpened();
-
-                // Measure opened state
-                var openedRects = this._commandingSurface.getBoundingRects();
-
-                //
-                // Determine orientation
-                //
-
-                function alignTop() {
-                    this._commandingSurface.orientation = "top" // TODO: Is it safe to use the static commandingSurface "Orientation" enum for this value? (lazy loading... et al) 
-                    this._dom.root.style.top = closedActionAreaRect.top + "px";
-                    this._dom.root.style.bottom = "auto";
-                }
-                function alignBottom() {
-                    this._commandingSurface.orientation = "bottom" // TODO: Is it safe to use the static commandingSurface "Orientation" enum for this value? (lazy loading... et al) 
-                    this._dom.root.style.top = "auto";
-                    this._dom.root.style.bottom = (visibleDocBottom - closedActionAreaRect.bottom) + "px";
-                }
-                function fitsBelow(): boolean {
-                    // If we orient the commandingSurface from top to bottom, would the bottom of the overflow area fit above the bottom edge of the window?
-                    var bottomOfOverFlowArea = closedActionAreaRect.top + openedRects.actionArea.height + openedRects.overflowArea.height;
-                    return bottomOfOverFlowArea < visibleDocBottom + tolerance;
-                }
-                function fitsAbove(): boolean {
-                    // If we orient the commandingSurface from bottom to top, would the top of the overflow area fit below the top edge of the window?
-                    var topOfOverFlowArea = closedActionAreaRect.bottom - openedRects.actionArea.height - openedRects.overflowArea.height
-                    return topOfOverFlowArea > visibleDocTop - tolerance;
-                }
-
-                var visibleDocTop = getVisibleDocTop(),
-                    visibleDocBottom = getVisibleDocBottom(),
-                    tolerance = 1;
-
-                if (fitsBelow()) {
-                    alignTop.call(this);
-                } else if (fitsAbove()) {
-                    alignBottom.call(this);
-                } else {
-                    // TODO, orient ourselves top to bottom and shrink the height of the overflowarea to make us fit within the available space.
-                    alignTop.call(this);
-                }
+                this._onOpen();
 
                 // Animate
                 return Promise.wrap();
             },
 
             onHide: () => {
-                // Restore our placement in the DOM
-                if (this._dom.placeHolder.parentElement) {
-                    var placeHolder = this._dom.placeHolder;
-                    placeHolder.parentElement.insertBefore(this._dom.root, placeHolder);
-                    placeHolder.parentElement.removeChild(placeHolder);
-                }
 
-                // Render Closed
-                this._dom.root.style.top = "";
-                this._dom.root.style.right = "";
-                this._dom.root.style.bottom = "";
-                this._dom.root.style.left = "";
-                this._dom.root.style.width = this._prevInlineWidth;
-                _ElementUtilities.addClass(this._dom.root, _Constants.ClassNames.closedClass);
-                _ElementUtilities.removeClass(this._dom.root, _Constants.ClassNames.openedClass);
-                this._commandingSurface.renderClosed();
+                this._onClose()
 
+                // Animate
                 return Promise.wrap();
             },
             onUpdateDom: () => {
@@ -266,11 +193,11 @@ export class ToolBarNew {
         // Initialize private state.
         this._disposed = false;
         this._commandingSurface = new _CommandingSurface._CommandingSurface(this._dom.commandingSurfaceEl, { showHideMachine: stateMachine });
-        this._prevInlineWidth = "";
+        _Constants.defaultOpened;
 
         // Initialize public properties.
         this.closedDisplayMode = _Constants.defaultClosedDisplayMode;
-        this.opened = _Constants.defaultOpened;
+        this.opened = this._isOpenedMode
         _Control.setOptions(this, options);
 
         // Exit the Init state.
@@ -392,6 +319,121 @@ export class ToolBarNew {
             commandingSurfaceEl: commandingSurfaceEl,
             placeHolder: placeHolder,
         };
+    }
+
+    private _onOpen(): void {
+        this._isOpenedMode = true;
+        this._updateDomImpl();
+    }
+
+    private _onClose(): void {
+        this._isOpenedMode = false;
+        this._updateDomImpl();
+    }
+
+    // State private to _updateDomImpl_renderDisplayMode. No other method should make use of it.
+    //
+    // Nothing has been rendered yet so these are all initialized to undefined. Because
+    // they are undefined, the first time _updateDomImpl is called, they will all be
+    // rendered.
+    private _updateDomImpl_renderedState = {
+        opened: <boolean>undefined,
+        prevInlineWidth: <string>undefined,
+    };
+    private _updateDomImpl(): void {
+        var rendered = this._updateDomImpl_renderedState;
+
+        if (rendered.opened !== this._isOpenedMode) {
+            if (this._isOpenedMode) {
+                this._updateDomImpl_renderOpened();
+            } else {
+                this._updateDomImpl_renderClosed();
+            }
+        }
+    }
+
+    private _updateDomImpl_renderOpened(): void {
+
+        // Measure closed state.
+        var closedActionAreaRect = this._commandingSurface.getBoundingRects().actionArea;
+        this._updateDomImpl_renderedState.prevInlineWidth = this._dom.root.style.width;
+
+        // Get replacement element
+        var placeHolder = this._dom.placeHolder;
+        placeHolder.style.width = closedActionAreaRect.width + "px";
+        placeHolder.style.height = closedActionAreaRect.height + "px";
+
+        // Move ToolBar element to the body and leave placeHolder element in our place to avoid reflowing surrounding app content.
+        this._dom.root.parentElement.insertBefore(placeHolder, this._dom.root);
+        _Global.document.body.appendChild(this._dom.root);
+
+        // Render opened state
+        _ElementUtilities.addClass(this._dom.root, _Constants.ClassNames.openedClass);
+        _ElementUtilities.removeClass(this._dom.root, _Constants.ClassNames.closedClass);
+        this._dom.root.style.width = closedActionAreaRect.width + "px";
+        this._dom.root.style.left = closedActionAreaRect.left + "px";
+
+        this._commandingSurface.onOpen();
+
+        // Measure opened state
+        var openedRects = this._commandingSurface.getBoundingRects();
+
+        //
+        // Determine orientation
+        //
+
+        function alignTop() {
+            this._commandingSurface.orientation = "top" // TODO: Is it safe to use the static commandingSurface "Orientation" enum for this value? (lazy loading... et al) 
+                    this._dom.root.style.top = closedActionAreaRect.top + "px";
+            this._dom.root.style.bottom = "auto";
+        }
+        function alignBottom() {
+            this._commandingSurface.orientation = "bottom" // TODO: Is it safe to use the static commandingSurface "Orientation" enum for this value? (lazy loading... et al) 
+                    this._dom.root.style.top = "auto";
+            this._dom.root.style.bottom = (visibleDocBottom - closedActionAreaRect.bottom) + "px";
+        }
+        function fitsBelow(): boolean {
+            // If we orient the commandingSurface from top to bottom, would the bottom of the overflow area fit above the bottom edge of the window?
+            var bottomOfOverFlowArea = closedActionAreaRect.top + openedRects.actionArea.height + openedRects.overflowArea.height;
+            return bottomOfOverFlowArea < visibleDocBottom + tolerance;
+        }
+        function fitsAbove(): boolean {
+            // If we orient the commandingSurface from bottom to top, would the top of the overflow area fit below the top edge of the window?
+            var topOfOverFlowArea = closedActionAreaRect.bottom - openedRects.actionArea.height - openedRects.overflowArea.height
+                    return topOfOverFlowArea > visibleDocTop - tolerance;
+        }
+
+        var visibleDocTop = getVisibleDocTop(),
+            visibleDocBottom = getVisibleDocBottom(),
+            tolerance = 1;
+
+        if (fitsBelow()) {
+            alignTop.call(this);
+        } else if (fitsAbove()) {
+            alignBottom.call(this);
+        } else {
+            // TODO, orient ourselves top to bottom and shrink the height of the overflowarea to make us fit within the available space.
+            alignTop.call(this);
+        }
+    }
+    private _updateDomImpl_renderClosed(): void {
+
+        // Restore our placement in the DOM
+        if (this._dom.placeHolder.parentElement) {
+            var placeHolder = this._dom.placeHolder;
+            placeHolder.parentElement.insertBefore(this._dom.root, placeHolder);
+            placeHolder.parentElement.removeChild(placeHolder);
+        }
+
+        // Render Closed
+        this._dom.root.style.top = "";
+        this._dom.root.style.right = "";
+        this._dom.root.style.bottom = "";
+        this._dom.root.style.left = "";
+        this._dom.root.style.width = this._updateDomImpl_renderedState.prevInlineWidth;
+        _ElementUtilities.addClass(this._dom.root, _Constants.ClassNames.closedClass);
+        _ElementUtilities.removeClass(this._dom.root, _Constants.ClassNames.openedClass);
+        this._commandingSurface.onClose();
     }
 }
 
