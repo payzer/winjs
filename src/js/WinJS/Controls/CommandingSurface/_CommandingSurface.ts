@@ -280,28 +280,28 @@ export class _CommandingSurface {
         }
 
         this._initializeDom(element || _Global.document.createElement("div"));
-        this._machine = options._machine || new _ShowHideMachine.ShowHideMachine({
+        this._machine = options.showHideMachine || new _ShowHideMachine.ShowHideMachine({
             eventElement: this._dom.root,
             onShow: () => {
                 //this._cachedHiddenPaneThickness = null;
                 //var hiddenPaneThickness = this._getHiddenPaneThickness();
-                this._renderOpened();
+                this.renderOpened();
                 //return this._playShowAnimation(hiddenPaneThickness);
                 return Promise.wrap();
             },
             onHide: () => {
                 //return this._playHideAnimation(this._getHiddenPaneThickness()).then(() => {
-                this._renderClosed();
+                this.renderClosed();
                 //});
 
                 return Promise.wrap();
             },
             onUpdateDom: () => {
-                this._updateDomImpl();
+                this.updateDomImpl();
             },
             onUpdateDomWithIsShown: (isShown: boolean) => {
                 this._isOpenedMode = isShown;
-                this._updateDomImpl();
+                this.updateDomImpl();
             }
         });
         // Enter the Init state
@@ -411,6 +411,13 @@ export class _CommandingSurface {
         /// </signature>
         this._meaurementsDirty();
         this._machine.updateDom();
+    }
+
+    getBoundingRects(): { actionArea: ClientRect; overflowArea: ClientRect; } {
+        return {
+            actionArea: this._dom.actionArea.getBoundingClientRect(),
+            overflowArea: this._dom.overflowArea.getBoundingClientRect(),
+        };
     }
 
     private _writeProfilerMark(text: string) {
@@ -657,14 +664,6 @@ export class _CommandingSurface {
     private _playHideAnimation(): Promise<any> {
         return Promise.wrap();
     }
-
-    _getBoundingRects() {
-        return {
-            actionArea: this._dom.actionArea.getBoundingClientRect(),
-            overflowArea: this._dom.overflowArea.getBoundingClientRect(),
-        };
-    }
-
     private _dataDirty(): void {
         this._nextLayoutStage = Math.max(CommandLayoutPipeline.newDataStage, this._nextLayoutStage);
     }
@@ -675,17 +674,17 @@ export class _CommandingSurface {
         this._nextLayoutStage = Math.max(CommandLayoutPipeline.layoutStage, this._nextLayoutStage);
     }
 
-    _renderOpened(): void {
+    renderOpened(): void {
         this._isOpenedMode = true;
-        this._updateDomImpl();
+        this.updateDomImpl();
     }
 
-    _renderClosed(): void {
+    renderClosed(): void {
         this._isOpenedMode = false;
-        this._updateDomImpl();
+        this.updateDomImpl();
     }
 
-    _updateDomImpl(): void {
+    updateDomImpl(): void {
         this._updateDomImpl_renderDisplayMode();
         this._updateDomImpl_updateCommands();
     }

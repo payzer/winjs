@@ -147,8 +147,7 @@ module CorsicaTests {
         testDataProperty() {
             // Verify default (empty)
             var commandingSurface = new _CommandingSurface(this._element);
-            LiveUnit.Assert.areEqual(0, commandingSurface.data.length, "Empty CommandingSurface should have data with length 0");
-            LiveUnit.Assert.isTrue(Util.hasClass(commandingSurface.element, _Constants.ClassNames.emptyCommandingSurfaceCssClass), "Empty commandingSurface css class that is not present");
+            LiveUnit.Assert.areEqual(0, commandingSurface.data.length, "Empty CommandingSurface should have length 0");
 
             // Add some data
             var data = new WinJS.Binding.List([
@@ -157,19 +156,25 @@ module CorsicaTests {
             ]);
             commandingSurface.data = data;
             LiveUnit.Assert.areEqual(2, commandingSurface.data.length, "CommandingSurface data has an invalid length");
-            LiveUnit.Assert.isFalse(Util.hasClass(commandingSurface.element, _Constants.ClassNames.emptyCommandingSurfaceCssClass), "Empty commandingSurface css class should not be present");
+        }
 
-            // set to invalid value
+        testBadData() { 
+            var data = new WinJS.Binding.List([
+                new Command(null, { type: _Constants.typeButton, label: "opt 1" }),
+                new Command(null, { type: _Constants.typeButton, label: "opt 2" })
+            ]);
+
+            var commandingSurface = new _CommandingSurface(this._element, { data: data });
+
+            // set data to invalid value
             var property = "data";
             try {
-
                 commandingSurface[property] = { invalid: 1 };
             } catch (e) {
                 LiveUnit.Assert.areEqual("WinJS.UI._CommandingSurface.BadData", e.name);
 
                 // Ensure the value of data did not change
                 LiveUnit.Assert.areEqual(2, commandingSurface.data.length, "CommandingSurface data has an invalid length");
-                LiveUnit.Assert.isFalse(Util.hasClass(commandingSurface.element, _Constants.ClassNames.emptyCommandingSurfaceCssClass), "Empty commandingSurface css class should not be present");
             }
         }
 
@@ -201,7 +206,6 @@ module CorsicaTests {
         }
 
         testDispose() {
-
             var commandingSurface = new _CommandingSurface(this._element);
             Helper._CommandingSurface.useSynchronousAnimations(commandingSurface);
             commandingSurface.open();
