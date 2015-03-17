@@ -255,14 +255,11 @@ export class ToolBarNew {
         this._disposed = true;
         this._commandingSurface.dispose();
         _Dispose.disposeSubTree(this.element);
-        if (this._dom.placeHolder.parentElement) {
-
-            //TODO: render the toolbar closed and put it back in the DOM where the the placeHolder is
-
-            this._dom.placeHolder.parentElement.removeChild(this._dom.placeHolder);
-            //TODO: Also, does the placeHolder element need a dispose method on it as well, so that will be called if its parent subtree is disposed?
-            // If the placeholder is in the DOM at all, it means the toolbar is temporarily open and absolutely positioned in the docuent.body.
-        }
+        // Close the ToolBar to force it back into its parent element.
+        this._onClose();
+        //TODO: Does the placeHolder element need a dispose method on it as well, so that will be called if its parent subtree is disposed?
+        // If the placeholder is in the DOM at all, it means the toolbar is temporarily open and absolutely positioned in the docuent.body.
+        // Also, can we accomplish this just by hanging this._winControl off of the placeHolder element as well?
     }
 
     forceLayout() {
@@ -399,8 +396,8 @@ export class ToolBarNew {
         }
         function fitsAbove(): boolean {
             // If we orient the commandingSurface from bottom to top, would the top of the overflow area fit below the top edge of the window?
-            var topOfOverFlowArea = closedActionAreaRect.bottom - openedRects.actionArea.height - openedRects.overflowArea.height
-                    return topOfOverFlowArea > visibleDocTop - tolerance;
+            var topOfOverFlowArea = closedActionAreaRect.bottom - openedRects.actionArea.height - openedRects.overflowArea.height;
+            return topOfOverFlowArea > visibleDocTop - tolerance;
         }
 
         var visibleDocTop = getVisibleDocTop(),

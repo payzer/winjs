@@ -198,7 +198,6 @@ module CorsicaTests {
             LiveUnit.Assert.isTrue(toolBarNew._disposed, "ToolBarNew didn't mark itself as disposed");
             LiveUnit.Assert.isTrue(toolBarNew._commandingSurface, "ToolBarNew's commandingSurface was not disposed");
 
-
             // Events should not fire
             toolBarNew.close();
             toolBarNew.open();
@@ -225,6 +224,18 @@ module CorsicaTests {
             LiveUnit.Assert.isTrue(sentinel.disposed);
             LiveUnit.Assert.isTrue(toolBarNew._disposed);
             toolBarNew.dispose();
+        }
+
+        testDisposeClosesToolBar() {
+            var toolBarNew = new ToolBarNew(this._element, { opened: true });
+            Helper._CommandingSurface.useSynchronousAnimations(toolBarNew._commandingSurface);
+
+            toolBarNew.dispose();
+            //TODO VERIFY CLOSED
+
+            // Events should not fire
+            toolBarNew.close();
+            toolBarNew.open();
         }
 
         testVerifyDefaultTabIndex() {

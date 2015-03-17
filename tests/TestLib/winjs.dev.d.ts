@@ -411,9 +411,9 @@ declare module WinJS {
             _disposed: boolean;
             _dom: {
                 root: HTMLElement;
-                commandingSurfaceEl: HTMLElement
+                commandingSurfaceEl: HTMLElement;
+                placeHolder: HTMLElement;
             };
-            _machine: IShowHideMachine;
             _commandingSurface: WinJS.UI.PrivateCommandingSurface;
         }
 
