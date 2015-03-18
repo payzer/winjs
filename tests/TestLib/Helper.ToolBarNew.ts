@@ -2,7 +2,7 @@
 ///<reference path="Helper.ts" />
 ///<reference path="../TestLib/winjs.dev.d.ts" />
 
-module Helper.ToolBar {
+module Helper.ToolBarNew {
     "use strict";
 
     export function verifyRenderedOpened(toolBar: WinJS.UI.PrivateToolBarNew): void {
