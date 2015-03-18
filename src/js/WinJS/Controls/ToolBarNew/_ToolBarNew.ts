@@ -380,13 +380,11 @@ export class ToolBarNew {
         //
 
         function alignTop() {
-            this._commandingSurface.orientation = "top" // TODO: Is it safe to use the static commandingSurface "Orientation" enum for this value? (lazy loading... et al) 
-                    this._dom.root.style.top = closedActionAreaRect.top + "px";
-            this._dom.root.style.bottom = "auto";
+            this._commandingSurface.orientation = "top"; // TODO: Is it safe to use the static commandingSurface "Orientation" enum for this value? (lazy loading... et al) 
+            this._dom.root.style.top = closedActionAreaRect.top + "px";
         }
         function alignBottom() {
-            this._commandingSurface.orientation = "bottom" // TODO: Is it safe to use the static commandingSurface "Orientation" enum for this value? (lazy loading... et al) 
-                    this._dom.root.style.top = "auto";
+            this._commandingSurface.orientation = "bottom"; // TODO: Is it safe to use the static commandingSurface "Orientation" enum for this value? (lazy loading... et al) 
             this._dom.root.style.bottom = (visibleDocBottom - closedActionAreaRect.bottom) + "px";
         }
         function fitsBelow(): boolean {
