@@ -1,42 +1,28 @@
 // Copyright (c) Microsoft Corporation.  All Rights Reserved. Licensed under the MIT License. See License.txt in the project root for license information.
 
 .win-commandingsurface {
-    width: 100%;
     outline: none;
     min-width: 32px; /* enough to fit the overflowbutton */
     position: relative;
 
     &.win-commandingsurface-toptobottom {
-        .win-commandingsurface-actionarea {
-            top: 0;
-            bottom: auto;
-        }
-
         .win-commandingsurface-overflowarea {
             top: 100%;
-            bottom: auto;
         }
     }
 
     &.win-commandingsurface-bottomtotop {
-        .win-commandingsurface-actionarea {
-            top: auto;
-            bottom: 0;
-        }
-
         .win-commandingsurface-overflowarea {
-            top: auto;
             bottom: 100%;
         }
     }
-
 
     .win-commandingsurface-actionarea {
         width: 100%;
         min-height: 24px;
         vertical-align: top;
         overflow: hidden;
-        #flex > .display-inline-flex();
+        #flex > .display-flex();
         #flex > .justify-content(flex-end;);
         #flex > .align-items(flex-start);
 
@@ -135,6 +121,7 @@
         overflow-x: hidden;
         padding: 0;
         position: absolute;
+        right: 0;
 
         &.win-menu {
             max-width: inherit; /* Turn off max-width styles from .win-menu */
