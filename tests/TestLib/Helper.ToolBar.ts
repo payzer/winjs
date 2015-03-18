@@ -5,24 +5,67 @@
 module Helper.ToolBar {
     "use strict";
 
-    export function verifyRenderedOpened(toolBar: WinJS.UI.PrivateToolBarNew): void {
-
-        //TODO Verify Auto Orientation?
-
-        //TODO Verify that we are in the Body, absolutely positioned. and that based on our orientation, we are correctly positioned over the proper edge of our placeholder.
-        
-        //TODO Verify that we are just as wide as our placeholder.
-
-        //TODO Verify that the placeHolder has a parent element
-
-        Helper._CommandingSurface.verifyRenderedOpened(toolBar._commandingSurface);
+    export var Constants = {
+        typeSeparator: "separator",
+        typeContent: "content",
+        typeButton: "button",
+        typeToggle: "toggle",
+        typeFlyout: "flyout",
+        controlCssClass: "win-toolbar",
+        disposableCssClass: "win-disposable",
+        overflowAreaCssClass: "win-toolbar-overflowarea",
+        shownDisplayReducedCssClass: "win-toolbar-showndisplayreduced",
+        shownDisplayFullCssClass: "win-toolbar-showndisplayfull",
+        emptyToolBarCssClass: "win-toolbar-empty",
+        commandType: "WinJS.UI.AppBarCommand",
+        secondaryCommandSection: "secondary",
+        commandSelector: ".win-command",
+        inlineOverflowCommandHeight: 44,
+        inlineOverflowSeparatorHeight: 12,
+        controlWithFlyoutMenuMinWidth: 68,
+        shownDisplayModes: {
+            full: "full",
+            reduced: "reduced",
+        }
     }
 
-    export function verifyRenderedClosed(toolBar: WinJS.UI.PrivateToolBarNew): void {
-        //TODO Verify we have a parent element and our parentElement does not.
-
-
-        Helper._CommandingSurface.verifyRenderedOpened(toolBar._commandingSurface);
+    export function getVisibleCommandsInElement(element: HTMLElement) {
+        var result = [];
+        var commands = element.querySelectorAll(Constants.commandSelector);
+        for (var i = 0, len = commands.length; i < len; i++) {
+            if (getComputedStyle(<Element>commands[i]).display !== "none") {
+                result.push(commands[i]);
+            }
+        }
+        return result;
     }
 
+    export function verifyOverflowMenuContent(visibleElements: HTMLElement[], expectedLabels: string[]): void {
+        var labelIndex = 0;
+        for (var i = 0, len = visibleElements.length; i < len; i++) {
+            if (visibleElements[i]["winControl"].type === Constants.typeSeparator) {
+                LiveUnit.Assert.areEqual(expectedLabels[labelIndex], Constants.typeSeparator);
+            } else {
+                LiveUnit.Assert.areEqual(expectedLabels[labelIndex], visibleElements[i]["winControl"].label);
+            }
+            labelIndex++;
+        }
+    }
+
+    export function verifyMainActionVisibleCommandsLabels(toolbar: WinJS.UI.ToolBar, labels: string[]) {
+        var commands = getVisibleCommandsInElement((<WinJS.UI.PrivateToolBar>toolbar.element.winControl)._mainActionArea);
+        LiveUnit.Assert.areEqual(labels.length, commands.length);
+        labels.forEach((label, index) => {
+            LiveUnit.Assert.areEqual(label, commands[index].winControl.label);
+        });
+    }
+
+    export function verifyOverflowAreaCommandsLabels(toolbar: WinJS.UI.ToolBar, labels: string[]) {
+        var control = <WinJS.UI.PrivateToolBar>toolbar.element.winControl;
+        var commands = getVisibleCommandsInElement(control.shownDisplayMode === Constants.shownDisplayModes.full ? control._inlineOverflowArea : control._menu.element);
+        LiveUnit.Assert.areEqual(labels.length, commands.length);
+        labels.forEach((label, index) => {
+            LiveUnit.Assert.areEqual(label, commands[index].winControl.label);
+        });
+    }
 }
