@@ -696,13 +696,13 @@ export class _CommandingSurface {
     // rendered.
     private _updateDomImpl_renderedState = {
         closedDisplayMode: <string>undefined,
-        opened: <boolean>undefined,
+        isOpenedMode: <boolean>undefined,
         orientation: <string>undefined,
     };
     private _updateDomImpl_renderDisplayMode(): void {
         var rendered = this._updateDomImpl_renderedState;
 
-        if (rendered.opened !== this._isOpenedMode) {
+        if (rendered.isOpenedMode !== this._isOpenedMode) {
             if (this._isOpenedMode) {
                 // Render opened
                 removeClass(this._dom.root, _Constants.ClassNames.closedClass);
@@ -712,7 +712,7 @@ export class _CommandingSurface {
                 removeClass(this._dom.root, _Constants.ClassNames.openedClass);
                 addClass(this._dom.root, _Constants.ClassNames.closedClass);
             }
-            rendered.opened = this._isOpenedMode;
+            rendered.isOpenedMode = this._isOpenedMode;
         }
 
         if (rendered.closedDisplayMode !== this.closedDisplayMode) {

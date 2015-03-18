@@ -167,8 +167,6 @@ module CorsicaTests {
                 new ToolBarNew(el);
             } catch (e) {
                 LiveUnit.Assert.areEqual("WinJS.UI._CommandingSurface.MustContainCommands", e.name, "Toolbar should have thrown MustContainCommands exception");
-            } finally {
-
             }
 
             el = document.createElement("div");
@@ -196,7 +194,7 @@ module CorsicaTests {
 
             toolBarNew.dispose();
             LiveUnit.Assert.isTrue(toolBarNew._disposed, "ToolBarNew didn't mark itself as disposed");
-            LiveUnit.Assert.isTrue(toolBarNew._commandingSurface, "ToolBarNew's commandingSurface was not disposed");
+            LiveUnit.Assert.isTrue(toolBarNew._commandingSurface._disposed, "ToolBarNew's commandingSurface was not disposed");
 
             // Events should not fire
             toolBarNew.close();
@@ -231,7 +229,7 @@ module CorsicaTests {
             Helper._CommandingSurface.useSynchronousAnimations(toolBarNew._commandingSurface);
 
             toolBarNew.dispose();
-            //TODO VERIFY CLOSED
+            Helper.ToolBarNew.verifyRenderedClosed(toolBarNew);
 
             // Events should not fire
             toolBarNew.close();

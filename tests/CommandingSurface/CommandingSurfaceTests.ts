@@ -18,26 +18,6 @@ module CorsicaTests {
         _Constants = constants;
     })
 
-    //interface ISizeForCommandsArgs { numStandardCommands?: number; numSeparators?: number; additionalWidth?: number; visibleOverflowButton?: boolean; };
-    //function sizeForCommands(element: HTMLElement, args: ISizeForCommandsArgs) {
-    //    var width =
-    //        (args.numStandardCommands || 0) * _Constants.actionAreaCommandWidth +
-    //        (args.numSeparators || 0) * _Constants.actionAreaSeparatorWidth +
-    //        (args.additionalWidth || 0) +
-    //        (args.visibleOverflowButton ? _Constants.actionAreaOverflowButtonWidth : 0);
-
-    //    element.style.width = width + "px";
-    //}
-
-    //function Helper._CommandingSurface.useSynchronousAnimations(commandingSurface: WinJS.UI.PrivateCommandingSurface) {
-    //    commandingSurface._playShowAnimation = function () {
-    //        return WinJS.Promise.wrap();
-    //    };
-    //    commandingSurface._playHideAnimation = function () {
-    //        return WinJS.Promise.wrap();
-    //    };
-    //}
-
     // Taking the registration mechanism as a parameter allows us to use this code to test both
     // DOM level 0 (e.g. onbeforeopen) and DOM level 2 (e.g. addEventListener) events.
     function testEvents(testElement, registerForEvent: (commandingSurface: WinJS.UI.PrivateCommandingSurface, eventName: string, handler: Function) => void) {

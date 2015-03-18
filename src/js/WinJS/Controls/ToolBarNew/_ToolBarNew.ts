@@ -54,14 +54,6 @@ var closedDisplayModeClassMap = {};
 closedDisplayModeClassMap[ClosedDisplayMode.compact] = _Constants.ClassNames.compactClass;
 closedDisplayModeClassMap[ClosedDisplayMode.full] = _Constants.ClassNames.fullClass;
 
-function getVisibleDocTop(): number {
-    return _Global.pageYOffset - _Global.document.documentElement.scrollTop;
-}
-
-function getVisibleDocBottom(): number {
-    return getVisibleDocTop() + _Global.innerHeight;
-}
-
 /// <field>
 /// <summary locid="WinJS.UI.ToolBarNew">
 /// Represents a toolbar for displaying commands.
@@ -96,7 +88,6 @@ export class ToolBarNew {
 
     static supportedForProcessing: boolean = true;
 
-    private _element: HTMLElement;
     /// <field type="HTMLElement" domElement="true" hidden="true" locid="WinJS.UI.ToolBarNew.element" helpKeyword="WinJS.UI.ToolBarNew.element">
     /// Gets the DOM element that hosts the ToolBarNew.
     /// </field>
@@ -116,7 +107,7 @@ export class ToolBarNew {
 
     private _closedDisplayMode: string;
     /// <field type="String" locid="WinJS.UI.ToolBarNew.closedDisplayMode" helpKeyword="WinJS.UI.ToolBarNew.closedDisplayMode">
-    /// Gets or sets the closedDisplayMode for the ToolBarNew. Values are "compact", and "full".
+    /// Gets or sets the closedDisplayMode for the ToolBarNew. Values are "compact" and "full".
     /// </field>
     get closedDisplayMode() {
         return this._commandingSurface.closedDisplayMode;
@@ -193,11 +184,11 @@ export class ToolBarNew {
         // Initialize private state.
         this._disposed = false;
         this._commandingSurface = new _CommandingSurface._CommandingSurface(this._dom.commandingSurfaceEl, { showHideMachine: stateMachine });
-        _Constants.defaultOpened;
+        this._isOpenedMode = _Constants.defaultOpened;
 
         // Initialize public properties.
         this.closedDisplayMode = _Constants.defaultClosedDisplayMode;
-        this.opened = this._isOpenedMode
+        this.opened = this._isOpenedMode;
         _Control.setOptions(this, options);
 
         // Exit the Init state.
@@ -253,10 +244,13 @@ export class ToolBarNew {
         }
 
         this._disposed = true;
+        // Disposing the _commandingSurface will trigger dispose on its ShowHideMachine and synchronously complete any animations that might have been running.
         this._commandingSurface.dispose();
-        _Dispose.disposeSubTree(this.element);
-        // Close the ToolBar to force it back into its parent element.
+        // If page navigation is happening, we don't want to ToolBar left behind in the body.
+        // Synchronoulsy close the ToolBar to force it out of the body and back into its parent element.
         this._onClose();
+
+        _Dispose.disposeSubTree(this.element);
         //TODO: Does the placeHolder element need a dispose method on it as well, so that will be called if its parent subtree is disposed?
         // If the placeholder is in the DOM at all, it means the toolbar is temporarily open and absolutely positioned in the docuent.body.
         // Also, can we accomplish this just by hanging this._winControl off of the placeHolder element as well?
@@ -328,25 +322,26 @@ export class ToolBarNew {
         this._updateDomImpl();
     }
 
-    // State private to _updateDomImpl_renderDisplayMode. No other method should make use of it.
+    // State private to the _updateDomImpl family of method. No other methods should make use of it.
     //
     // Nothing has been rendered yet so these are all initialized to undefined. Because
     // they are undefined, the first time _updateDomImpl is called, they will all be
     // rendered.
     private _updateDomImpl_renderedState = {
-        opened: <boolean>undefined,
+        isOpenedMode: <boolean>undefined,
         prevInlineWidth: <string>undefined,
     };
     private _updateDomImpl(): void {
         var rendered = this._updateDomImpl_renderedState;
 
-        if (rendered.opened !== this._isOpenedMode) {
+        if (rendered.isOpenedMode !== this._isOpenedMode) {
             if (this._isOpenedMode) {
                 this._updateDomImpl_renderOpened();
             } else {
                 this._updateDomImpl_renderClosed();
             }
         }
+        rendered.isOpenedMode = this._isOpenedMode;
     }
 
     private _updateDomImpl_renderOpened(): void {
@@ -378,12 +373,15 @@ export class ToolBarNew {
         //
         // Determine orientation
         //
+        var visibleDocTop = _Global.pageYOffset - _Global.document.documentElement.scrollTop,
+            visibleDocBottom = visibleDocTop + _Global.innerHeight,
+            tolerance = 1;
 
-        function alignTop() {
+        var alignTop = () => {
             this._commandingSurface.orientation = "top"; // TODO: Is it safe to use the static commandingSurface "Orientation" enum for this value? (lazy loading... et al) 
             this._dom.root.style.top = closedActionAreaRect.top + "px";
         }
-        function alignBottom() {
+        var alignBottom = () => {
             this._commandingSurface.orientation = "bottom"; // TODO: Is it safe to use the static commandingSurface "Orientation" enum for this value? (lazy loading... et al) 
             this._dom.root.style.bottom = (visibleDocBottom - closedActionAreaRect.bottom) + "px";
         }
@@ -397,10 +395,6 @@ export class ToolBarNew {
             var topOfOverFlowArea = closedActionAreaRect.bottom - openedRects.actionArea.height - openedRects.overflowArea.height;
             return topOfOverFlowArea > visibleDocTop - tolerance;
         }
-
-        var visibleDocTop = getVisibleDocTop(),
-            visibleDocBottom = getVisibleDocBottom(),
-            tolerance = 1;
 
         if (fitsBelow()) {
             alignTop.call(this);
