@@ -19,10 +19,9 @@ module Helper.ToolBarNew {
     }
 
     export function verifyRenderedClosed(toolBar: WinJS.UI.PrivateToolBarNew): void {
-        //TODO Verify we have a parent element and our parentElement does not.
+        //TODO Verify we have a parent element and our placeHolder element does not.
 
-
-        Helper._CommandingSurface.verifyRenderedOpened(toolBar._commandingSurface);
+        Helper._CommandingSurface.verifyRenderedClosed(toolBar._commandingSurface);
     }
 
 }

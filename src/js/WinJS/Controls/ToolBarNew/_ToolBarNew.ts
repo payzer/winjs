@@ -373,8 +373,8 @@ export class ToolBarNew {
         //
         // Determine orientation
         //
-        var visibleDocTop = _Global.pageYOffset - _Global.document.documentElement.scrollTop,
-            visibleDocBottom = visibleDocTop + _Global.innerHeight,
+        var topOfViewport = 0,
+            bottomOfViewport = topOfViewport + _Global.innerHeight,
             tolerance = 1;
 
         var alignTop = () => {
@@ -383,17 +383,17 @@ export class ToolBarNew {
         }
         var alignBottom = () => {
             this._commandingSurface.orientation = "bottom"; // TODO: Is it safe to use the static commandingSurface "Orientation" enum for this value? (lazy loading... et al) 
-            this._dom.root.style.bottom = (visibleDocBottom - closedActionAreaRect.bottom) + "px";
+            this._dom.root.style.bottom = (bottomOfViewport - closedActionAreaRect.bottom) + "px";
         }
         function fitsBelow(): boolean {
             // If we orient the commandingSurface from top to bottom, would the bottom of the overflow area fit above the bottom edge of the window?
             var bottomOfOverFlowArea = closedActionAreaRect.top + openedRects.actionArea.height + openedRects.overflowArea.height;
-            return bottomOfOverFlowArea < visibleDocBottom + tolerance;
+            return bottomOfOverFlowArea < bottomOfViewport + tolerance;
         }
         function fitsAbove(): boolean {
             // If we orient the commandingSurface from bottom to top, would the top of the overflow area fit below the top edge of the window?
             var topOfOverFlowArea = closedActionAreaRect.bottom - openedRects.actionArea.height - openedRects.overflowArea.height;
-            return topOfOverFlowArea > visibleDocTop - tolerance;
+            return topOfOverFlowArea > topOfViewport - tolerance;
         }
 
         if (fitsBelow()) {

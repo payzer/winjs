@@ -1,3 +1,4 @@
+
 // Copyright (c) Microsoft Corporation.  All Rights Reserved. Licensed under the MIT License. See License.txt in the project root for license information.
 ///<reference path="Helper.ts" />
 ///<reference path="../TestLib/winjs.dev.d.ts" />

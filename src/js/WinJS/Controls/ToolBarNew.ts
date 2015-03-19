@@ -3,6 +3,7 @@
 
 import _Base = require('../Core/_Base');
 import _ToolBarNew = require('./ToolBarNew/_ToolBarNew');
+export import _CommandingSurface = require("./CommandingSurface");
 
 var module: typeof _ToolBarNew = null;
 

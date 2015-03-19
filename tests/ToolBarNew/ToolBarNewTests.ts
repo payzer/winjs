@@ -3,6 +3,7 @@
 // <reference path="ms-appx://$(TargetFramework)/css/ui-dark.css" />
 /// <reference path="../TestLib/Helper.ts"/>
 /// <reference path="../TestLib/Helper.CommandingSurface.ts"/>
+/// <reference path="../TestLib/Helper.ToolBarNew.ts"/>
 /// <reference path="../../typings/typings.d.ts" />
 /// <reference path="../TestLib/liveToQ/liveToQ.d.ts" />
 /// <reference path="../TestLib/winjs.dev.d.ts" />
@@ -225,7 +226,11 @@ module CorsicaTests {
         }
 
         testDisposeClosesToolBar() {
-            var toolBarNew = new ToolBarNew(this._element, { opened: true });
+            var data = new WinJS.Binding.List([
+                new Command(null, { type: _Constants.typeButton, label: "opt 1" }),
+                new Command(null, { type: _Constants.typeButton, label: "opt 2", section: _Constants.secondaryCommandSection })
+            ]);
+            var toolBarNew = new ToolBarNew(this._element, { opened: true, data: data });
             Helper._CommandingSurface.useSynchronousAnimations(toolBarNew._commandingSurface);
 
             toolBarNew.dispose();
