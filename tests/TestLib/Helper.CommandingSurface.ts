@@ -5,10 +5,7 @@
 module Helper._CommandingSurface {
     "use strict";
 
-    var _Constants;
-    WinJS.Utilities._require(["WinJS/Controls/CommandingSurface/_Constants"], function (constants) {
-        _Constants = constants;
-    })
+    var _Constants = Helper.require("WinJS/Controls/CommandingSurface/_Constants");
 
     export interface ISizeForCommandsArgs { numStandardCommands?: number; numSeparators?: number; additionalWidth?: number; visibleOverflowButton?: boolean; };
     export function sizeForCommands(element: HTMLElement, args: ISizeForCommandsArgs) {

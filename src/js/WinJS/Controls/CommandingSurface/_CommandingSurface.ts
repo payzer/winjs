@@ -69,19 +69,19 @@ var CommandLayoutPipeline = {
     idle: 0,
 };
 
-var Orientation = {
-    /// <field locid="WinJS.UI._CommandingSurface.Orientation.bottom" helpKeyword="WinJS.UI._CommandingSurface.Orientation.bottom">
+var OverflowDirection = {
+    /// <field locid="WinJS.UI._CommandingSurface.overflowDirection.bottom" helpKeyword="WinJS.UI._CommandingSurface.overflowDirection.bottom">
     /// The _CommandingSurface opens from bottom to top and the overflowarea is rendered above the actionarea.
     /// </field>
     bottom: "bottom",
-    /// <field locid="WinJS.UI._CommandingSurface.Orientation.top" helpKeyword="WinJS.UI._CommandingSurface.Orientation.top">
+    /// <field locid="WinJS.UI._CommandingSurface.OrienoverflowDirectiontation.top" helpKeyword="WinJS.UI._CommandingSurface.overflowDirection.top">
     /// The _CommandingSurface opens from top to bottom and the overflowarea is rendered below the actionarea.
     /// </field>
     top: "top",
 }
-var orientationClassMap = {};
-orientationClassMap[Orientation.top] = _Constants.ClassNames.topToBottomClass;
-orientationClassMap[Orientation.bottom] = _Constants.ClassNames.bottomToTopClass;
+var overflowDirectionClassMap = {};
+overflowDirectionClassMap[OverflowDirection.top] = _Constants.ClassNames.overflowTopClass;
+overflowDirectionClassMap[OverflowDirection.bottom] = _Constants.ClassNames.overflowBottomClass;
 
 var ClosedDisplayMode = {
     /// <field locid="WinJS.UI._CommandingSurface.ClosedDisplayMode.none" helpKeyword="WinJS.UI._CommandingSurface.ClosedDisplayMode.none">
@@ -178,10 +178,10 @@ export class _CommandingSurface {
     /// </field>
     static ClosedDisplayMode = ClosedDisplayMode;
 
-    /// <field locid="WinJS.UI._CommandingSurface.Orientation" helpKeyword="WinJS.UI._CommandingSurface.Orientation">
+    /// <field locid="WinJS.UI._CommandingSurface.overflowDirection" helpKeyword="WinJS.UI._CommandingSurface.overflowDirection">
     /// Display options used by the _Commandingsurface to determine which direction it should expand when opening.
     /// </field>
-    static Orientation = Orientation;
+    static OverflowDirection = OverflowDirection;
 
     static supportedForProcessing: boolean = true;
 
@@ -232,17 +232,17 @@ export class _CommandingSurface {
         }
     }
 
-    private _orientation: string;
-    /// <field type="String" hidden="true" locid="WinJS.UI._CommandingSurface.orientation" helpKeyword="WinJS.UI._CommandingSurface.orientation">
-    /// Gets or sets which direction the commandingSurface opens. Values are "top" for top-to-bottom and "bottom" for bottom-to-top.
+    private _overflowDirection: string;
+    /// <field type="String" hidden="true" locid="WinJS.UI._CommandingSurface.overflowDirection" helpKeyword="WinJS.UI._CommandingSurface.overflowDirection">
+    /// Gets or sets which direction the commandingSurface overflows when opened. Values are "top" and "bottom" for.
     /// </field>
-    get orientation(): string {
-        return this._orientation;
+    get overflowDirection(): string {
+        return this._overflowDirection;
     }
-    set orientation(value: string) {
-        var isChangingState = (value !== this._orientation);
-        if (Orientation[value] && isChangingState) {
-            this._orientation = value;
+    set overflowDirection(value: string) {
+        var isChangingState = (value !== this._overflowDirection);
+        if (OverflowDirection[value] && isChangingState) {
+            this._overflowDirection = value;
         }
     }
 
@@ -285,13 +285,13 @@ export class _CommandingSurface {
             onShow: () => {
                 //this._cachedHiddenPaneThickness = null;
                 //var hiddenPaneThickness = this._getHiddenPaneThickness();
-                this.onOpen();
+                this.synchronousOpen();
                 //return this._playShowAnimation(hiddenPaneThickness);
                 return Promise.wrap();
             },
             onHide: () => {
                 //return this._playHideAnimation(this._getHiddenPaneThickness()).then(() => {
-                this.onClose();
+                this.synchronousClose();
                 //});
 
                 return Promise.wrap();
@@ -321,7 +321,7 @@ export class _CommandingSurface {
         this._isOpenedMode = _Constants.defaultOpened;
 
         // Initialize public properties.
-        this.orientation = _Constants.defaultOrientation;
+        this.overflowDirection = _Constants.defaultOverflowDirection;
         this.closedDisplayMode = _Constants.defaultClosedDisplayMode;
         this.opened = this._isOpenedMode;
         if (!options.data) {
@@ -674,12 +674,12 @@ export class _CommandingSurface {
         this._nextLayoutStage = Math.max(CommandLayoutPipeline.layoutStage, this._nextLayoutStage);
     }
 
-    onOpen(): void {
+    synchronousOpen(): void {
         this._isOpenedMode = true;
         this.updateDomImpl();
     }
 
-    onClose(): void {
+    synchronousClose(): void {
         this._isOpenedMode = false;
         this.updateDomImpl();
     }
@@ -697,7 +697,7 @@ export class _CommandingSurface {
     private _updateDomImpl_renderedState = {
         closedDisplayMode: <string>undefined,
         isOpenedMode: <boolean>undefined,
-        orientation: <string>undefined,
+        overflowDirection: <string>undefined,
     };
     private _updateDomImpl_renderDisplayMode(): void {
         var rendered = this._updateDomImpl_renderedState;
@@ -721,10 +721,10 @@ export class _CommandingSurface {
             rendered.closedDisplayMode = this.closedDisplayMode;
         }
 
-        if (rendered.orientation !== this.orientation) {
-            removeClass(this._dom.root, orientationClassMap[rendered.orientation]);
-            addClass(this._dom.root, orientationClassMap[this.orientation]);
-            rendered.orientation = this.orientation;
+        if (rendered.overflowDirection !== this.overflowDirection) {
+            removeClass(this._dom.root, overflowDirectionClassMap[rendered.overflowDirection]);
+            addClass(this._dom.root, overflowDirectionClassMap[this.overflowDirection]);
+            rendered.overflowDirection = this.overflowDirection;
         }
     }
 

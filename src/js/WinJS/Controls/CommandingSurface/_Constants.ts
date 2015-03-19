@@ -22,8 +22,8 @@ export var ClassNames = {
     minimalClass: "win-commandingsurface-closeddisplayminimal",
     compactClass: "win-commandingsurface-closeddisplaycompact",
     fullClass: "win-commandingsurface-closeddisplayfull",
-    topToBottomClass: "win-commandingsurface-toptobottom",
-    bottomToTopClass: "win-commandingsurface-bottomtotop",
+    overflowTopClass: "win-commandingsurface-overflowtop",
+    overflowBottomClass: "win-commandingsurface-overflowbottom",
 };
 
 export var EventNames = {
@@ -48,7 +48,7 @@ export var contentMenuCommandDefaultLabel = "Custom content";
 
 export var defaultClosedDisplayMode = "compact";
 export var defaultOpened = false;
-export var defaultOrientation = "top";
+export var defaultOverflowDirection = "bottom";
 
 // Constants for commands
 export var typeSeparator = "separator";

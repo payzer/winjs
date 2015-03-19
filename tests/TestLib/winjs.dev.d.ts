@@ -588,7 +588,7 @@ declare module WinJS {
                 compact: string;
                 full: string;
             };
-            public static Orientation: {
+            public static OverflowDirection: {
                 bottom: string;
                 top: string;
             };
@@ -605,7 +605,7 @@ declare module WinJS {
             public onaftershow: (ev: CustomEvent) => void;
             public onbeforehide: (ev: CustomEvent) => void;
             public onafterhide: (ev: CustomEvent) => void;
-            public orientation: string;
+            public overflowDirection: string;
             public addEventListener(eventName: string, eventHandler: Function, useCapture?: boolean): void;
             public removeEventListener(eventName: string, eventCallback: Function, useCapture?: boolean): void;
             public dispatchEvent(type: string, eventProperties: any): boolean;

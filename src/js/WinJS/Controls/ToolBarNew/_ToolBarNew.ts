@@ -156,7 +156,7 @@ export class ToolBarNew {
             eventElement: this.element,
             onShow: () => {
 
-                this._onOpen();
+                this._synchronousOpen();
 
                 // Animate
                 return Promise.wrap();
@@ -164,7 +164,7 @@ export class ToolBarNew {
 
             onHide: () => {
 
-                this._onClose()
+                this._synchronousClose()
 
                 // Animate
                 return Promise.wrap();
@@ -248,7 +248,7 @@ export class ToolBarNew {
         this._commandingSurface.dispose();
         // If page navigation is happening, we don't want to ToolBar left behind in the body.
         // Synchronoulsy close the ToolBar to force it out of the body and back into its parent element.
-        this._onClose();
+        this._synchronousClose();
 
         _Dispose.disposeSubTree(this.element);
         //TODO: Does the placeHolder element need a dispose method on it as well, so that will be called if its parent subtree is disposed?
@@ -312,12 +312,12 @@ export class ToolBarNew {
         };
     }
 
-    private _onOpen(): void {
+    private _synchronousOpen(): void {
         this._isOpenedMode = true;
         this._updateDomImpl();
     }
 
-    private _onClose(): void {
+    private _synchronousClose(): void {
         this._isOpenedMode = false;
         this._updateDomImpl();
     }
@@ -365,24 +365,24 @@ export class ToolBarNew {
         this._dom.root.style.width = closedActionAreaRect.width + "px";
         this._dom.root.style.left = closedActionAreaRect.left + "px";
 
-        this._commandingSurface.onOpen();
+        this._commandingSurface.synchronousOpen();
 
         // Measure opened state
         var openedRects = this._commandingSurface.getBoundingRects();
 
         //
-        // Determine orientation
+        // Determine _commandingSurface overflowDirection
         //
         var topOfViewport = 0,
             bottomOfViewport = topOfViewport + _Global.innerHeight,
             tolerance = 1;
 
         var alignTop = () => {
-            this._commandingSurface.orientation = "top"; // TODO: Is it safe to use the static commandingSurface "Orientation" enum for this value? (lazy loading... et al) 
+            this._commandingSurface.overflowDirection = "bottom"; // TODO: Is it safe to use the static commandingSurface "OverflowDirection" enum for this value? (lazy loading... et al) 
             this._dom.root.style.top = closedActionAreaRect.top + "px";
         }
         var alignBottom = () => {
-            this._commandingSurface.orientation = "bottom"; // TODO: Is it safe to use the static commandingSurface "Orientation" enum for this value? (lazy loading... et al) 
+            this._commandingSurface.overflowDirection = "top"; // TODO: Is it safe to use the static commandingSurface "OverflowDirection" enum for this value? (lazy loading... et al) 
             this._dom.root.style.bottom = (bottomOfViewport - closedActionAreaRect.bottom) + "px";
         }
         function fitsBelow(): boolean {
@@ -397,12 +397,12 @@ export class ToolBarNew {
         }
 
         if (fitsBelow()) {
-            alignTop.call(this);
+            alignTop();
         } else if (fitsAbove()) {
-            alignBottom.call(this);
+            alignBottom();
         } else {
             // TODO, orient ourselves top to bottom and shrink the height of the overflowarea to make us fit within the available space.
-            alignTop.call(this);
+            alignTop();
         }
     }
     private _updateDomImpl_renderClosed(): void {
@@ -422,7 +422,7 @@ export class ToolBarNew {
         this._dom.root.style.width = this._updateDomImpl_renderedState.prevInlineWidth;
         _ElementUtilities.addClass(this._dom.root, _Constants.ClassNames.closedClass);
         _ElementUtilities.removeClass(this._dom.root, _Constants.ClassNames.openedClass);
-        this._commandingSurface.onClose();
+        this._commandingSurface.synchronousClose();
     }
 }
 

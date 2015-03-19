@@ -1517,19 +1517,19 @@ module CorsicaTests {
             LiveUnit.Assert.isTrue(commandingSurface.opened, "CommandingSurface should still be open");
         }
 
-        testOrientationConstructorOptions() {
+        testOverflowDirectionConstructorOptions() {
             var commandingSurface = new _CommandingSurface();
-            LiveUnit.Assert.areEqual(_Constants.defaultOrientation, commandingSurface.orientation, "orientation property has incorrect default value");
+            LiveUnit.Assert.areEqual(_Constants.defaultOverflowDirection, commandingSurface.overflowDirection, "overflowDirection property has incorrect default value");
             commandingSurface.dispose();
 
-            Object.keys(_CommandingSurface.Orientation).forEach(function (direction) {
-                commandingSurface = new _CommandingSurface(null, { orientation: direction });
-                LiveUnit.Assert.areEqual(direction, commandingSurface.orientation, "orientation does not match the value passed to the constructor.");
+            Object.keys(_CommandingSurface.OverflowDirection).forEach(function (direction) {
+                commandingSurface = new _CommandingSurface(null, { overflowDirection: direction });
+                LiveUnit.Assert.areEqual(direction, commandingSurface.overflowDirection, "overflowDirection does not match the value passed to the constructor.");
                 commandingSurface.dispose();
             });
         }
 
-        testOrientationProperty() {
+        testOverflowDirectionProperty() {
             var data = new WinJS.Binding.List([
                 new Command(null, { type: _Constants.typeButton, icon: 'add', label: "button" }),
                 new Command(null, { type: _Constants.typeSeparator }),
@@ -1539,24 +1539,24 @@ module CorsicaTests {
             Helper._CommandingSurface.useSynchronousAnimations(commandingSurface);
             commandingSurface.element.style.top = "45%";
 
-            Object.keys(_CommandingSurface.Orientation).forEach(function (orientation) {
-                commandingSurface.orientation = orientation;
-                LiveUnit.Assert.areEqual(orientation, commandingSurface.orientation, "orientation property should be writeable.");
+            Object.keys(_CommandingSurface.OverflowDirection).forEach(function (overflowDirection) {
+                commandingSurface.overflowDirection = overflowDirection;
+                LiveUnit.Assert.areEqual(overflowDirection, commandingSurface.overflowDirection, "overflowDirection property should be writeable.");
                 commandingSurface.open();
                 var actionAreaRect = commandingSurface._dom.actionArea.getBoundingClientRect();
                 var overflowAreaRect = commandingSurface._dom.overflowArea.getBoundingClientRect();
 
-                switch (orientation) {
-                    case _CommandingSurface.Orientation.top:
-                        // Top of the overflowArea is drawn at the bottom of the actionArea
-                        LiveUnit.Assert.areEqual(overflowAreaRect.top,actionAreaRect.bottom);
-                        break;
-                    case _CommandingSurface.Orientation.bottom:
+                switch (overflowDirection) {
+                    case _CommandingSurface.OverflowDirection.top:
                         // Bottom of the overflowArea is drawn at the top of the actionArea
                         LiveUnit.Assert.areEqual(overflowAreaRect.bottom, actionAreaRect.top);
                         break;
+                    case _CommandingSurface.OverflowDirection.bottom:
+                        // Top of the overflowArea is drawn at the bottom of the actionArea
+                        LiveUnit.Assert.areEqual(overflowAreaRect.top, actionAreaRect.bottom);
+                        break;
                     default:
-                        LiveUnit.Assert.fail("TEST ERROR: Encountered unknown Orientation enum value: " + orientation);
+                        LiveUnit.Assert.fail("TEST ERROR: Encountered unknown OverflowDirection enum value: " + overflowDirection);
                         break;
                 }
                 commandingSurface.close();

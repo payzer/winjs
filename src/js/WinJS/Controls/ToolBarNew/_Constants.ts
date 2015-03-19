@@ -23,8 +23,8 @@ export var ClassNames = {
     minimalClass: "win-toolbarnew-closeddisplayminimal",
     compactClass: "win-toolbarnew-closeddisplaycompact",
     fullClass: "win-toolbarnew-closeddisplayfull",
-    topToBottomClass: "win-toolbarnew-toptobottom",
-    bottomToTopClass: "win-toolbarnew-bottomtotop",
+    overflowTopClass: "win-toolbarnew-overflowtop",
+    overflowBottomClass: "win-toolbarnew-overflowbottom",
     placeHolderCssClass: "win-toolbar-placeholder",
 };
 

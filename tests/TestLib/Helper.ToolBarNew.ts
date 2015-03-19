@@ -7,9 +7,9 @@ module Helper.ToolBarNew {
 
     export function verifyRenderedOpened(toolBar: WinJS.UI.PrivateToolBarNew): void {
 
-        //TODO Verify Auto Orientation?
+        //TODO Verify Auto overflowdirection?
 
-        //TODO Verify that we are in the Body, absolutely positioned. and that based on our orientation, we are correctly positioned over the proper edge of our placeholder.
+        //TODO Verify that we are in the Body, absolutely positioned. and that based on our overflowdirection, we are correctly positioned over the proper edge of our placeholder.
         
         //TODO Verify that we are just as wide as our placeholder.
 
