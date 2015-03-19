@@ -70,12 +70,12 @@ var CommandLayoutPipeline = {
 };
 
 var OverflowDirection = {
-    /// <field locid="WinJS.UI._CommandingSurface.overflowDirection.bottom" helpKeyword="WinJS.UI._CommandingSurface.overflowDirection.bottom">
-    /// The _CommandingSurface opens from bottom to top and the overflowarea is rendered above the actionarea.
+    /// <field locid="WinJS.UI._CommandingSurface.OverflowDirection.bottom" helpKeyword="WinJS.UI._CommandingSurface.OverflowDirection.bottom">
+    /// The _CommandingSurface expands towards the bottom of the screen when opened and the overflow area renders below the actionarea.
     /// </field>
     bottom: "bottom",
-    /// <field locid="WinJS.UI._CommandingSurface.OrienoverflowDirectiontation.top" helpKeyword="WinJS.UI._CommandingSurface.overflowDirection.top">
-    /// The _CommandingSurface opens from top to bottom and the overflowarea is rendered below the actionarea.
+    /// <field locid="WinJS.UI._CommandingSurface.OverflowDirection.top" helpKeyword="WinJS.UI._CommandingSurface.OverflowDirection.top">
+    /// The _CommandingSurface expands towards the top of the screen when opened and the overflow area renders above the actionarea.
     /// </field>
     top: "top",
 }
@@ -178,7 +178,7 @@ export class _CommandingSurface {
     /// </field>
     static ClosedDisplayMode = ClosedDisplayMode;
 
-    /// <field locid="WinJS.UI._CommandingSurface.overflowDirection" helpKeyword="WinJS.UI._CommandingSurface.overflowDirection">
+    /// <field locid="WinJS.UI._CommandingSurface.OverflowDirection" helpKeyword="WinJS.UI._CommandingSurface.OverflowDirection">
     /// Display options used by the _Commandingsurface to determine which direction it should expand when opening.
     /// </field>
     static OverflowDirection = OverflowDirection;
