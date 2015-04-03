@@ -15,7 +15,7 @@ var _Constants = {
 // Other enviornments outside of WWA should be fine to use fixed positioning if device-fixed is not supported.
 
 // WWA Soft Keyboard offsets
-export var _KeyboardInfo = {
+export var _KeyboardInfo: any = {
     // Determine if the keyboard is visible or not.
     get _visible(): boolean {
 
