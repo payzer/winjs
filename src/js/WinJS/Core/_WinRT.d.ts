@@ -188,6 +188,8 @@ export declare module Windows {
                 occludedRect: Windows.Foundation.Rect;
                 onshowing: any/* TODO */;
                 onhiding: any/* TODO */;
+                addEventListener(type: string, listener: Function, capture?: boolean): void;
+                removeEventListener(type: string, listener: Function, capture?: boolean): void;
                 static getForCurrentView(): Windows.UI.ViewManagement.InputPane;
             }
         }

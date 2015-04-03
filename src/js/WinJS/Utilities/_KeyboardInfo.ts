@@ -10,12 +10,28 @@ var _Constants = {
     visualViewportClass: "win-visualviewport-space",
 }
 
-// This module provides metrics for the Visual Viewport and WWA's Soft Keyboard offsets when -ms-device-fixed CSS positioning is supported, or for general _Overlay positioning whenever we are in a web browser outside of WWA.
-// If we are in an instance of Win10 WWA, we concern ourselves with the IHM and the metrics this module provides assume consuming elements are using -ms-device-fixed positioning, which fixes them to the visual viewport directly.
-// Other enviornments outside of WWA should be fine to use fixed positioning if device-fixed is not supported.
+// This private module provides metrics accurate for the Visual Viewport and WWA's Soft Keyboard offsets in Win10 
+// WWA where -ms-device-fixed CSS positioning is supported. WinJS controls continue to use this module for
+// positoning themselves relative to the viewport in a web browser outside of WWA, and prefer to use -ms-device-fixed 
+// positioning, but will fallback to fixed positioning when -ms-device-fixed is not supported.
+// This module is not comatible for positining WinJS controls around the IHM in Win8 WWA because the IE10 
+// enviornment does not support -ms-device-fixed positioning.
+export interface IKeyboardInfo {
+    _visible: boolean;
+    _extraOccluded: number;
+    _isResized: boolean;
+    _visibleDocBottom: number;
+    _visibleDocHeight: number;
+    _visibleDocTop: number ;
+    _visibleDocBottomOffset: number;
+    _visualViewportHeight: number;
+    _visualViewportWidth: number;
+    _visualViewportSpace: ClientRect;
+    _animationShowLength: number;
+}
 
 // WWA Soft Keyboard offsets
-export var _KeyboardInfo: any = {
+export var _KeyboardInfo: IKeyboardInfo = {
     // Determine if the keyboard is visible or not.
     get _visible(): boolean {
 
@@ -73,23 +89,6 @@ export var _KeyboardInfo: any = {
         return _KeyboardInfo._visualViewportHeight - _KeyboardInfo._extraOccluded;
     },
 
-    // Get total length of the IHM showPanel animation
-    get _animationShowLength(): number {
-        if (_WinRT.Windows.UI.Core.AnimationMetrics) {
-            var a = _WinRT.Windows.UI.Core.AnimationMetrics,
-                animationDescription = new a.AnimationDescription(a.AnimationEffect.showPanel, a.AnimationEffectTarget.primary);
-            var animations = animationDescription.animations;
-            var max = 0;
-            for (var i = 0; i < animations.size; i++) {
-                var animation = animations[i];
-                max = Math.max(max, animation.delay + animation.duration);
-            }
-            return max;
-        } else {
-            return 0;
-        }
-    },
-
     // Get the top offset of our visible area, aka the top of the visual viewport.
     // This is always 0 when _Overlay elements use -ms-device-fixed positioning.
     get _visibleDocTop(): number {
@@ -126,5 +125,22 @@ export var _KeyboardInfo: any = {
             _Global.document.body.appendChild(visualViewportSpace);
         }
         return visualViewportSpace.getBoundingClientRect();
+    },
+
+    // Get total length of the IHM showPanel animation
+    get _animationShowLength(): number {
+        if (_WinRT.Windows.UI.Core.AnimationMetrics) {
+            var a = _WinRT.Windows.UI.Core.AnimationMetrics,
+                animationDescription = new a.AnimationDescription(a.AnimationEffect.showPanel, a.AnimationEffectTarget.primary);
+            var animations = animationDescription.animations;
+            var max = 0;
+            for (var i = 0; i < animations.size; i++) {
+                var animation = animations[i];
+                max = Math.max(max, animation.delay + animation.duration);
+            }
+            return max;
+        } else {
+            return 0;
+        }
     },
 };
