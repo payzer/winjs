@@ -36,7 +36,6 @@ export interface IKeyboardInfo {
 export var _KeyboardInfo: IKeyboardInfo = {
     // Determine if the keyboard is visible or not.
     get _visible(): boolean {
-
         try {
             return (
                 _WinRT.Windows.UI.ViewManagement.InputPane &&
@@ -50,22 +49,12 @@ export var _KeyboardInfo: IKeyboardInfo = {
     // See if we have to reserve extra space for the IHM
     get _extraOccluded(): number {
         var occluded = 0;
-        if (_WinRT.Windows.UI.ViewManagement.InputPane) {
-            try {
-                occluded = _WinRT.Windows.UI.ViewManagement.InputPane.getForCurrentView().occludedRect.height;
-            } catch (e) {
-            }
+        // If the IHM has resized the viewport, we use -ms-device-fixed positioning to stick to its edges 
+        // and and therefore do not need to adjust our offsets to remain visible.
+        if (!_KeyboardInfo._isResized && _WinRT.Windows.UI.ViewManagement.InputPane) {
+            occluded = _WinRT.Windows.UI.ViewManagement.InputPane.getForCurrentView().occludedRect.height;
         }
-
-        // Nothing occluded if not visible.
-        if (occluded && !_KeyboardInfo._isResized) {
-            // View hasn't been resized, need to return occluded height.
-            return occluded;
-        }
-
-        // View already has space for keyboard or there's no keyboard
-        return 0;
-
+        return occluded;
     },
 
     // See if the view has been resized to fit a keyboard
@@ -77,16 +66,15 @@ export var _KeyboardInfo: IKeyboardInfo = {
         // If they're nearly identical, then the view hasn't been resized for the IHM
         // Only check one bound because we know the IHM will make it shorter, not skinnier.
         return (widthRatio / heightRatio < 0.99);
-
     },
 
-    // Get the bottom of our visible area.
+    // Get the bottom of the visible area, relative to the top edge of the visible area.
     get _visibleDocBottom(): number {
         return _KeyboardInfo._visibleDocTop + _KeyboardInfo._visibleDocHeight;
 
     },
 
-    // Get the height of the visible document, e.g. the height of the visual viewport minus any IHM occlusion.
+    // Get the height of the visible area, e.g. the height of the visual viewport minus any IHM occlusion.
     get _visibleDocHeight(): number {
         return _KeyboardInfo._visualViewportHeight - _KeyboardInfo._extraOccluded;
     },
@@ -97,14 +85,14 @@ export var _KeyboardInfo: IKeyboardInfo = {
         return 0;
     },
 
-    // Get the bottom offset of the visual viewport, plus any IHM occlusion.
+    // Get the offset for, and relative to, the bottom edge of the visual viewport plus any IHM occlusion.
     get _visibleDocBottomOffset(): number {
         // For -ms-device-fixed positioned elements, the bottom is just 0 when there's no IHM.
         // When the IHM appears, the text input that invoked it may be in a position on the page that is occluded by the IHM.
         // In that instance, the default browser behavior is to resize the visual viewport and scroll the input back into view.
         // However, if the viewport resize is prevented by an IHM event listener, the keyboard will still occlude
         // -ms-device-fixed elements, so we adjust the bottom offset of the appbar by the height of the occluded rect of the IHM.
-        return (_KeyboardInfo._isResized) ? 0 : _KeyboardInfo._extraOccluded;
+        return _KeyboardInfo._extraOccluded;
     },
 
     // Get the visual viewport height. window.innerHeight doesn't return floating point values which are present with high DPI.

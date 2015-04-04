@@ -34,6 +34,8 @@ require(["require-style!less/colors-appbar"]);
 
 "use strict";
 
+var keyboardInfo = _KeyboardInfo._KeyboardInfo;
+
 var strings = {
     get ariaLabel() { return _Resources._getWinJSString("ui/appBarAriaLabel").value; },
     get overflowButtonAriaLabel() { return _Resources._getWinJSString("ui/appBarOverflowButtonAriaLabel").value; },
@@ -108,6 +110,7 @@ export class AppBar {
     private _disposed: boolean;
     private _commandingSurface: _ICommandingSurface._CommandingSurface;
     private _isOpenedMode: boolean;
+    private _adjustedOffsets: { top: string; bottom: string };
 
     private _dom: {
         root: HTMLElement;
@@ -173,6 +176,9 @@ export class AppBar {
                     this._commandingSurface.overflowDirection = "top";
                     break;
             }
+
+            this._adjustedOffsets = this._computeAdjustedOffsets();
+
             this._commandingSurface.deferredDomUpate();
         }
     }
@@ -214,7 +220,6 @@ export class AppBar {
         var stateMachine = new _OpenCloseMachine.OpenCloseMachine({
             eventElement: this.element,
             onOpen: () => {
-
                 this._synchronousOpen();
 
                 // Animate
@@ -234,6 +239,9 @@ export class AppBar {
                 this._updateDomImpl();
             }
         });
+        // Wire up event handlers
+        this._handleIHM();
+
         // Initialize private state.
         this._disposed = false;
         this._commandingSurface = new _CommandingSurface._CommandingSurface(this._dom.commandingSurfaceEl, { openCloseMachine: stateMachine });
@@ -248,9 +256,6 @@ export class AppBar {
         this.placement = _Constants.defaultPlacement;
         this.opened = this._isOpenedMode;
         _Control.setOptions(this, options);
-
-        // Wire up event handlers
-        this._handleIHM();
 
         // Exit the Init state.
         _ElementUtilities._inDom(this.element).then(() => {
@@ -365,6 +370,20 @@ export class AppBar {
         };
     }
 
+    private _computeAdjustedOffsets() {
+        // Position the AppBar element relative to the top or bottom edge of the visible
+        // document.
+        var offsets = { top: "", bottom: "" };
+
+        if (this._placement === Placement.bottom) {
+            // If the IHM is open, the bottom of the visual viewport may or may not be occluded
+            offsets.bottom = keyboardInfo._visibleDocBottomOffset + "px";
+        } else if (this._placement === Placement.top) {
+            offsets.top = keyboardInfo._visibleDocTop + "px";
+        }
+        return offsets;
+    }
+
     private _synchronousOpen(): void {
         this._isOpenedMode = true;
         this._updateDomImpl();
@@ -384,6 +403,7 @@ export class AppBar {
         isOpenedMode: <boolean>undefined,
         placement: <string>undefined,
         closedDisplayMode: <string>undefined,
+        adjustedOffsets: { top: <string>undefined, bottom: <string>undefined },
     };
     private _updateDomImpl(): void {
         var rendered = this._updateDomImpl_renderedState;
@@ -409,6 +429,15 @@ export class AppBar {
             rendered.closedDisplayMode = this.closedDisplayMode;
         }
 
+        if (rendered.adjustedOffsets.top !== this._adjustedOffsets.top) {
+            this._dom.root.style.top = this._adjustedOffsets.top;
+            rendered.adjustedOffsets.top = this._adjustedOffsets.top;
+        }
+        if (rendered.adjustedOffsets.bottom !== this._adjustedOffsets.bottom) {
+            this._dom.root.style.bottom = this._adjustedOffsets.bottom;
+            rendered.adjustedOffsets.bottom = this._adjustedOffsets.bottom;
+        }
+
         this._commandingSurface.updateDomImpl();
     }
     private _updateDomImpl_renderOpened(): void {
@@ -425,213 +454,42 @@ export class AppBar {
     private _handleIHM() {
         if (_WinRT.Windows.UI.ViewManagement.InputPane) {
 
-            var keyboardInfo = _KeyboardInfo._KeyboardInfo;
-
-            // Get the top offset for top appbars.
-            var _getTopOfVisualViewport = (): number => {
-                return keyboardInfo._visibleDocTop;
-            };
-
-            // Get the bottom offset for bottom appbars.
-            var _getAdjustedBottom = (): number => {
-                // Need the distance the IHM moved as well.
-                return keyboardInfo._visibleDocBottomOffset;
-            };
-
             var _showingKeyboard = () => {
-                var _showingKeyboard = function () {
-                    _Global.setTimeout(_ensurePosition,
-                        keyboardInfo._animationShowLength + keyboardInfo._scrollTimeout);
-                };
+                // If the IHM resized the window, we can rely on -ms-device-fixed positioning to remain visible.
+                // If the IHM does not resize the window we will need to adjust our offsets to avoid being occluded
+                // The IHM does not cause a window resize to happen right away, set a timeout to check if the viewport
+                // has been resized once enough time has passed for both the IHM animation, and scroll-into-view, to
+                // complete.
+                var duration = keyboardInfo._animationShowLength + keyboardInfo._scrollTimeout;
+                _Global.setTimeout(
+                    () => {
+                        if (keyboardInfo._visible && !keyboardInfo._isResized && !this._disposed) {
+                            this._adjustedOffsets = this._computeAdjustedOffsets();
+                            this._commandingSurface.deferredDomUpate();
+                        }
+                    },
+                    duration);
             };
 
             var _hidingKeyboard = () => {
-                _ensurePosition();
-            };
-
-            //var _showingKeyboard = function _LegacyAppBar_showingKeyboard(event: _WinRT.Windows.UI.ViewManagement.InputPaneVisibilityEventArgs) {
-            //    // Remember keyboard showing state.
-            //    this._keyboardObscured = false;
-            //    this._needToHandleHidingKeyboard = false;
-
-            //    // If we're already moved, then ignore the whole thing
-            //    if (keyboardInfo._visible && this._alreadyInPlace()) {
-            //        return;
-            //    }
-
-            //    this._needToHandleShowingKeyboard = true;
-            //    // If focus is in the appbar, don't cause scrolling.
-            //    if (this.opened && this._element.contains(_Global.document.activeElement)) {
-            //        event.ensuredFocusedElementInView = true;
-            //    }
-
-            //    // Check if appbar moves or if we're ok leaving it obscured instead.
-            //    if (this._placement === Placement.bottom) {
-            //        // Remember that we're obscured
-            //        this._keyboardObscured = true;
-            //    } else {
-            //        // Don't be obscured, clear _scrollHappened flag to give us inference later on when to re-show ourselves.
-            //        this._scrollHappened = false;
-            //    }
-
-            //    // Also set timeout regardless, so we can clean up our _keyboardShowing flag.
-            //    var that = this;
-            //    _Global.setTimeout(function () { _checkKeyboardTimer(); },
-            //        keyboardInfo._animationShowLength + keyboardInfo._scrollTimeout);
-            //};
-
-            //var _hidingKeyboard = function _LegacyAppBar_hidingKeyboard() {
-            //    // We'll either just reveal the current space under the IHM or restore the window height.
-
-            //    // We won't be obscured
-            //    this._keyboardObscured = false;
-            //    this._needToHandleShowingKeyboard = false;
-            //    this._needToHandleHidingKeyboard = true;
-
-            //    // We'll either just reveal the current space or resize the window
-            //    if (!keyboardInfo._isResized) {
-            //        // If we're not completely hidden, only fake hiding under keyboard, or already animating,
-            //        // then snap us to our final position.
-            //        if (this._visible || this._animating) {
-            //            // Not resized, update our final position immediately
-            //            this._checkScrollPosition();
-            //            this._element.style.display = "";
-            //        }
-            //        this._needToHandleHidingKeyboard = false;
-            //    }
-            //    // Else resize should clear keyboardHiding.
-            //};
-
-
-            //var _resize = function _LegacyAppBar_resize(event: any) {
-            //    // If we're hidden by the keyboard, then hide bottom appbar so it doesn't pop up twice when it scrolls
-            //    if (this._needToHandleShowingKeyboard) {
-            //        // Top is allowed to scroll off the top, but we don't want bottom to peek up when
-            //        // scrolled into view since we'll show it ourselves and don't want a stutter effect.
-            //        if (this._visible) {
-            //            if (this._placement !== Placement.top && !this._keyboardObscured) {
-            //                // If viewport doesn't match window, need to vanish momentarily so it doesn't scroll into view,
-            //                // however we don't want to toggle the visibility="hidden" hidden flag.
-            //                this._element.style.display = "none";
-            //            }
-            //        }
-            //        // else if we're top we stay, and if there's a flyout, stay obscured by the keyboard.
-            //    } else if (this._needToHandleHidingKeyboard) {
-            //        this._needToHandleHidingKeyboard = false;
-            //        if (this._visible || this._animating) {
-            //            // Snap to final position
-            //            this._checkScrollPosition();
-            //            this._element.style.display = "";
-            //        }
-            //    }
-
-            //    //// Make sure everything still fits.
-            //    //if (!this._initializing) {
-            //    //    this._layoutImpl.resize(event);
-            //    //}
-            //};
-
-            var _checkKeyboardTimer = () => {
-                //if (!this._scrollHappened) {
-                //    resume();
-                //}
-            };
-
-            var _manipulationChanged = (event: any) => {
-                //// See if we're at the manipulation stopped state, and we had a scroll happen,
-                //// which is implicitly after the keyboard animated.
-                //if (event.currentState === 0 && this._scrollHappened) {
-                //    resume();
-                //}
-            };
-
-            var resume = (): void => {
-                // Formerly titled, mayEdgeBackIn this function is where the AppBar should do any work that was
-                // put on hold or reset because of the IHM showing/hiding events.
-            }
-
-            //var _mayEdgeBackIn = function _LegacyAppBar_mayEdgeBackIn() {
-            //    // May need to react to IHM being resized event
-            //    if (this._needToHandleShowingKeyboard) {
-            //        // If not top appbar or viewport isn't still at top, then need to show again
-            //        this._needToHandleShowingKeyboard = false;
-            //        // If obscured (IHM + flyout showing), it's ok to stay obscured.
-            //        // If bottom we have to move, or if top scrolled off screen.
-            //        if (!this._keyboardObscured &&
-            //            (this._placement !== Placement.top || keyboardInfo._visibleDocTop !== 0)) {
-            //            var toPosition = this._visiblePosition;
-            //            this._lastPositionVisited = displayModeVisiblePositions.hidden;
-            //            this._changeVisiblePosition(toPosition, false);
-            //        } else {
-            //            // Ensure any animations dropped during the showing keyboard are caught up.
-            //            this._checkDoNext();
-            //        }
-            //    }
-            //    this._scrollHappened = false;
-            //};
-
-            var _ensurePosition = () => {
-                // Position the _LegacyAppBar element relative to the top or bottom edge of the visible
-                // document, based on the the visible position we think we need to be in.
-                var offSet = _computePositionOffset();
-                this.element.style.bottom = offSet.bottom;
-                this.element.style.top = offSet.top;
-
-            };
-
-            var _computePositionOffset = (): { top: string; bottom: string } => {
-                // Calculates and returns top and bottom offsets for the _LegacyAppBar element, relative to the top or bottom edge of the visible
-                // document.
-                var positionOffSet = { top: "", bottom: "" };
-
-                if (this._placement === Placement.bottom) {
-                    // If the IHM is open, the bottom of the visual viewport may or may not be obscured
-                    // Use _getAdjustedBottom to account for the IHM if it is covering the bottom edge.
-                    positionOffSet.bottom = _getAdjustedBottom() + "px";
-                } else if (this._placement === Placement.top) {
-                    positionOffSet.top = _getTopOfVisualViewport() + "px";
-                }
-
-                return positionOffSet;
-            };
-
-            //var _checkScrollPosition = () => {
-            //    // If IHM has appeared, then remember we may come in
-            //    if (this._needToHandleShowingKeyboard) {
-            //        // Tag that it's OK to edge back in.
-            //        this._scrollHappened = true;
-            //        return;
-            //    }
-
-            //    // We only need to update if we're not completely hidden.
-            //    if (this._visible || this._animating) {
-            //        this._ensurePosition();
-            //        // Ensure any animations dropped during the showing keyboard are caught up.
-            //        this._checkDoNext();
-            //    }
-            //};
-
-            var _alreadyInPlace = () => {
-                // See if we're already where we're supposed to be.
-                var offSet = _computePositionOffset();
-                return (offSet.top === this.element.style.top && offSet.bottom === this.element.style.bottom);
+                // Make sure we have the correct offsets
+                this._adjustedOffsets = this._computeAdjustedOffsets();
+                this._commandingSurface.deferredDomUpate();
             };
 
             // React to Soft Keyboard events
             var inputPane = _WinRT.Windows.UI.ViewManagement.InputPane.getForCurrentView();
             inputPane.addEventListener("showing", _showingKeyboard, false);
-            inputPane.removeEventListener("hiding", _hidingKeyboard, false);
-            //_Global.document.addEventListener("scroll", _checkScrollPosition, false);
-            //_Global.document.addEventListener("MSManipulationStateChanged", _manipulationChanged, false);
+            inputPane.addEventListener("hiding", _hidingKeyboard, false);
         }
     }
 }
 
 _Base.Class.mix(AppBar, _Events.createEventProperties(
-        _Constants.EventNames.beforeOpen,
-        _Constants.EventNames.afterOpen,
-        _Constants.EventNames.beforeClose,
-        _Constants.EventNames.afterClose));
+    _Constants.EventNames.beforeOpen,
+    _Constants.EventNames.afterOpen,
+    _Constants.EventNames.beforeClose,
+    _Constants.EventNames.afterClose));
 
 // addEventListener, removeEventListener, dispatchEvent
 _Base.Class.mix(AppBar, _Control.DOMEventMixin);
