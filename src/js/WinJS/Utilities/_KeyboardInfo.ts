@@ -8,6 +8,7 @@ import _WinRT = require('../Core/_WinRT');
 
 var _Constants = {
     visualViewportClass: "win-visualviewport-space",
+    scrollTimeout: 150,
 }
 
 // This private module provides metrics accurate for the Visual Viewport and WWA's Soft Keyboard offsets in Win10 
@@ -22,12 +23,13 @@ export interface IKeyboardInfo {
     _isResized: boolean;
     _visibleDocBottom: number;
     _visibleDocHeight: number;
-    _visibleDocTop: number ;
+    _visibleDocTop: number;
     _visibleDocBottomOffset: number;
     _visualViewportHeight: number;
     _visualViewportWidth: number;
     _visualViewportSpace: ClientRect;
     _animationShowLength: number;
+    _scrollTimeout: number;
 }
 
 // WWA Soft Keyboard offsets
@@ -79,13 +81,13 @@ export var _KeyboardInfo: IKeyboardInfo = {
     },
 
     // Get the bottom of our visible area.
-    get _visibleDocBottom():number {
+    get _visibleDocBottom(): number {
         return _KeyboardInfo._visibleDocTop + _KeyboardInfo._visibleDocHeight;
 
     },
 
     // Get the height of the visible document, e.g. the height of the visual viewport minus any IHM occlusion.
-    get _visibleDocHeight():number {
+    get _visibleDocHeight(): number {
         return _KeyboardInfo._visualViewportHeight - _KeyboardInfo._extraOccluded;
     },
 
@@ -143,4 +145,9 @@ export var _KeyboardInfo: IKeyboardInfo = {
             return 0;
         }
     },
+
+    // Padding for IHM timer to allow for first scroll event
+    get _scrollTimeout(): number {
+        return _Constants.scrollTimeout;
+    }
 };

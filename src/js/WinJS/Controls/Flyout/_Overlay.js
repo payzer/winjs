@@ -1479,7 +1479,7 @@ define([
                 _clickEatingFlyoutClass: _Constants._clickEatingFlyoutClass,
 
                 // Padding for IHM timer to allow for first scroll event
-                _scrollTimeout: 150,
+                _scrollTimeout: _KeyboardInfo._KeyboardInfo._scrollTimeout,
 
                 // Events
                 beforeShow: "beforeshow",
