@@ -1630,7 +1630,7 @@ module CorsicaTests {
             appBar.element.style.top = badOffset;
             appBar.element.style.bottom = badOffset;
             appBar._updateDomImpl_renderedState.adjustedOffsets = { top: badOffset, bottom: badOffset };
-            appBar._handleShowingKeyboard().then(() => {
+            appBar._handleShowingKeyboardBound().then(() => {
                 LiveUnit.Assert.areNotEqual(badOffset, this._element.style.top, "AppBar should update style.top after IHM has finished showing");
                 LiveUnit.Assert.areNotEqual(badOffset, this._element.style.bottom, "AppBar should update style.bottom after IHM has finished showing");
                 AppBar.prototype._shouldAdjustForShowingKeyboard = origFunc;
@@ -1640,7 +1640,7 @@ module CorsicaTests {
                 appBar.element.style.top = badOffset;
                 appBar.element.style.bottom = badOffset;
                 appBar._updateDomImpl_renderedState.adjustedOffsets = { top: badOffset, bottom: badOffset };
-                appBar._handleHidingKeyboard();
+                appBar._handleHidingKeyboardBound();
                 LiveUnit.Assert.areNotEqual(badOffset, this._element.style.top, "AppBar should update style.top when the IHM starts to hide");
                 LiveUnit.Assert.areNotEqual(badOffset, this._element.style.bottom, "AppBar should update style.bottom when the IHM starts to hide");
 

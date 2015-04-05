@@ -423,8 +423,8 @@ declare module WinJS {
             };
             _commandingSurface: WinJS.UI.PrivateCommandingSurface;
             _shouldAdjustForShowingKeyboard: () => boolean;
-            _handleShowingKeyboard: () => Promise<any>;
-            _handleHidingKeyboard: () => void;
+            _handleShowingKeyboardBound: () => Promise<any>;
+            _handleHidingKeyboardBound: () => void;
             _updateDomImpl_renderedState: {
                 adjustedOffsets: { top: string; bottom: string; }; 
             }
