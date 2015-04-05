@@ -454,33 +454,43 @@ export class AppBar {
     private _handleIHM() {
         if (_WinRT.Windows.UI.ViewManagement.InputPane) {
 
-            var _showingKeyboard = () => {
-                // If the IHM resized the window, we can rely on -ms-device-fixed positioning to remain visible.
-                // If the IHM does not resize the window we will need to adjust our offsets to avoid being occluded
-                // The IHM does not cause a window resize to happen right away, set a timeout to check if the viewport
-                // has been resized once enough time has passed for both the IHM animation, and scroll-into-view, to
-                // complete.
-                var duration = keyboardInfo._animationShowLength + keyboardInfo._scrollTimeout;
-                _Global.setTimeout(
-                    () => {
-                        if (keyboardInfo._visible && !keyboardInfo._isResized && !this._disposed) {
-                            this._adjustedOffsets = this._computeAdjustedOffsets();
-                            this._commandingSurface.deferredDomUpate();
-                        }
-                    },
-                    duration);
-            };
-
-            var _hidingKeyboard = () => {
-                // Make sure we have the correct offsets
-                this._adjustedOffsets = this._computeAdjustedOffsets();
-                this._commandingSurface.deferredDomUpate();
-            };
-
             // React to Soft Keyboard events
             var inputPane = _WinRT.Windows.UI.ViewManagement.InputPane.getForCurrentView();
-            inputPane.addEventListener("showing", _showingKeyboard, false);
-            inputPane.addEventListener("hiding", _hidingKeyboard, false);
+            inputPane.addEventListener("showing", this._handleShowingKeyboard, false);
+            inputPane.addEventListener("hiding", this._handleHidingKeyboard, false);
+        }
+    }
+
+    private _handleShowingKeyboard(): Promise<any> {
+        // If the IHM resized the window, we can rely on -ms-device-fixed positioning to remain visible.
+        // If the IHM does not resize the window we will need to adjust our offsets to avoid being occluded
+        // The IHM does not cause a window resize to happen right away, set a timeout to check if the viewport
+        // has been resized once enough time has passed for both the IHM animation, and scroll-into-view, to
+        // complete.
+        var duration = keyboardInfo._animationShowLength + keyboardInfo._scrollTimeout;
+        // Return a promise for unit tests
+        return Promise.timeout(duration).then(
+            () => {
+                if (this._shouldAdjustForShowingKeyboard() && !this._disposed) {
+                    this._adjustedOffsets = this._computeAdjustedOffsets();
+                    this._commandingSurface.deferredDomUpate();
+                }
+            });
+    }
+
+    private _shouldAdjustForShowingKeyboard(): boolean {
+        // Overwriteable for unit tests
+
+        // Determine if the a Bottom AppBar needs to adjust its position to move itself above the shown IHM, or if it can just ride the 
+        // bottom of the visual viewport to remain visible. The latter requires that the IHM has caused the viewport to resize.
+        return this.placement === Placement.bottom && keyboardInfo._visible && !keyboardInfo._isResized;
+    }
+
+    private _handleHidingKeyboard() {
+        // Make sure bottom AppBar has the correct offsets since it could be displaced by the IHM.
+        if (this.placement === Placement.bottom) {
+            this._adjustedOffsets = this._computeAdjustedOffsets();
+            this._commandingSurface.deferredDomUpate();
         }
     }
 }
