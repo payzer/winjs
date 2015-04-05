@@ -1627,7 +1627,6 @@ module CorsicaTests {
             LiveUnit.Assert.areEqual(AppBar.Placement.bottom, appBar.placement, "TEST ERROR: scenario requires AppBar with placement 'bottom'");
             var origFunc = AppBar.prototype._shouldAdjustForShowingKeyboard;
             AppBar.prototype._shouldAdjustForShowingKeyboard = () => { return true; };
-
             appBar.element.style.top = badOffset;
             appBar.element.style.bottom = badOffset;
             appBar._updateDomImpl_renderedState.adjustedOffsets = { top: badOffset, bottom: badOffset };
