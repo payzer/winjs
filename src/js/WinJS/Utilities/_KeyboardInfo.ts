@@ -11,12 +11,13 @@ var _Constants = {
     scrollTimeout: 150,
 }
 
-// This private module provides metrics accurate for the Visual Viewport and WWA's Soft Keyboard offsets in Win10 
-// WWA where -ms-device-fixed CSS positioning is supported. WinJS controls continue to use this module for
-// positoning themselves relative to the viewport in a web browser outside of WWA, and prefer to use -ms-device-fixed 
-// positioning, but will fallback to fixed positioning when -ms-device-fixed is not supported.
-// This module is not comatible for positining WinJS controls around the IHM in Win8 WWA because the IE10 
-// enviornment does not support -ms-device-fixed positioning.
+// This private module provides accurate metrics for the Visual Viewport and WWA's IHM offsets in Win10 WWA 
+// where "-ms-device-fixed" CSS positioning is supported. WinJS controls will also use this module for
+// positoning themselves relative to the viewport in a web browser outside of WWA. There preference is still 
+// to rely on "-ms-device-fixed" positioning, but currently fallback to "fixed" positioning in enviornments where
+// "-ms-device-fixed" is not supported.
+// This module is not comatible for positioning WinJS controls in response to the IHM in Win8 WWA because the IE10 
+// enviornment does not support -ms-device-fixed positioning. 
 export interface IKeyboardInfo {
     _visible: boolean;
     _extraOccluded: number;
@@ -107,6 +108,8 @@ export var _KeyboardInfo: IKeyboardInfo = {
         return boundingRect.width;
     },
 
+    // The visual viewport space element is hidden given -ms-device-fixed positioning and used to calculate
+    // the 4 edges of the visual viewport with floating point precision. 
     get _visualViewportSpace(): ClientRect {
         var visualViewportSpace: HTMLElement = <HTMLElement>_Global.document.body.querySelector("." + _Constants.visualViewportClass);
         if (!visualViewportSpace) {
@@ -134,7 +137,9 @@ export var _KeyboardInfo: IKeyboardInfo = {
         }
     },
 
-    // Padding for IHM timer to allow for first scroll event
+    // Padding for IHM timer to allow for first scroll event. Tpyically used in conjunction with the
+    // _animationShowLength to determine the length of time in which a showing IHM would have triggered
+    // a window resize to occur.
     get _scrollTimeout(): number {
         return _Constants.scrollTimeout;
     }
