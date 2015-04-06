@@ -1,5 +1,7 @@
 // Copyright (c) Microsoft Corporation.  All Rights Reserved. Licensed under the MIT License. See License.txt in the project root for license information.
 
+// Additional WinRT type definitions can be found at 
+// https://github.com/borisyankov/DefinitelyTyped/blob/master/winrt/winrt.d.ts
 export declare module Windows {
 
     export module Foundation {
