@@ -387,14 +387,20 @@ export class AppBar {
         };
     }
 
-    private _handleShowingKeyboard(): Promise<any> {
+    private _handleShowingKeyboard(event: _WinRT.Windows.UI.ViewManagement.InputPaneVisibilityEventArgs): Promise<any> {
         // If the IHM resized the window, we can rely on -ms-device-fixed positioning to remain visible.
         // If the IHM does not resize the window we will need to adjust our offsets to avoid being occluded
         // The IHM does not cause a window resize to happen right away, set a timeout to check if the viewport
         // has been resized once enough time has passed for both the IHM animation, and scroll-into-view, to
         // complete.
+
+        // If focus is in the AppBar, tell the platform we will move ourselves.
+        if (this._dom.root.contains(<HTMLElement>_Global.document.activeElement)) {
+            event.ensuredFocusedElementInView = true;
+        }
+
         var duration = keyboardInfo._animationShowLength + keyboardInfo._scrollTimeout;
-        // Return a promise for unit tests
+        // Returns a promise for unit tests to verify the correct behavior after the timeout.
         return Promise.timeout(duration).then(
             () => {
                 if (this._shouldAdjustForShowingKeyboard() && !this._disposed) {
