@@ -1607,18 +1607,20 @@ module CorsicaTests {
             var badOffset = "-1px";
             var appBar = new AppBar(this._element, { placement: AppBar.Placement.bottom });
 
+            function resetOffsets() {
+                appBar.element.style.top = badOffset;
+                appBar.element.style.bottom = badOffset;
+                appBar._updateDomImpl_renderedState.adjustedOffsets = { top: badOffset, bottom: badOffset };
+            }
+
             // Verify that updating AppBar's placement property will update the inline style offsets. Particularly important in scenarios
             // Where placement is set while the IHM is already shown. AppBar's changing to top will have to clear IHM offsets and AppBars 
             // changing to bottom will have to add them.
-            appBar.element.style.top = badOffset;
-            appBar.element.style.bottom = badOffset;
-            appBar._updateDomImpl_renderedState.adjustedOffsets = { top: badOffset, bottom: badOffset };
+            resetOffsets();
             appBar.placement = AppBar.Placement.top;
             LiveUnit.Assert.areNotEqual(badOffset, this._element.style.top, "Setting placement property should update AppBar style.top");
             LiveUnit.Assert.areNotEqual(badOffset, this._element.style.bottom, "Setting placement property should update AppBar style.bottom");
-            appBar.element.style.top = badOffset;
-            appBar.element.style.bottom = badOffset;
-            appBar._updateDomImpl_renderedState.adjustedOffsets = { top: badOffset, bottom: badOffset };
+            resetOffsets();
             appBar.placement = AppBar.Placement.bottom;
             LiveUnit.Assert.areNotEqual(badOffset, this._element.style.top, "Setting placement should update AppBar style.top");
             LiveUnit.Assert.areNotEqual(badOffset, this._element.style.bottom, "Setting placement should update AppBar style.bottom");
@@ -1627,20 +1629,16 @@ module CorsicaTests {
             LiveUnit.Assert.areEqual(AppBar.Placement.bottom, appBar.placement, "TEST ERROR: scenario requires AppBar with placement 'bottom'");
             var origFunc = AppBar.prototype._shouldAdjustForShowingKeyboard;
             AppBar.prototype._shouldAdjustForShowingKeyboard = () => { return true; };
-            appBar.element.style.top = badOffset;
-            appBar.element.style.bottom = badOffset;
-            appBar._updateDomImpl_renderedState.adjustedOffsets = { top: badOffset, bottom: badOffset };
-            appBar._handleShowingKeyboardBound().then(() => {
+            resetOffsets();
+            appBar._handleShowingKeyboard().then(() => {
                 LiveUnit.Assert.areNotEqual(badOffset, this._element.style.top, "AppBar should update style.top after IHM has finished showing");
                 LiveUnit.Assert.areNotEqual(badOffset, this._element.style.bottom, "AppBar should update style.bottom after IHM has finished showing");
                 AppBar.prototype._shouldAdjustForShowingKeyboard = origFunc;
 
                 // Call the AppBar's IHM "hiding" event handler to verify that the bottom AppBar offsets are updated in response to the IHM hiding.
                 LiveUnit.Assert.areEqual(AppBar.Placement.bottom, appBar.placement, "TEST ERROR: scenario requires AppBar with placement 'bottom'");
-                appBar.element.style.top = badOffset;
-                appBar.element.style.bottom = badOffset;
-                appBar._updateDomImpl_renderedState.adjustedOffsets = { top: badOffset, bottom: badOffset };
-                appBar._handleHidingKeyboardBound();
+                resetOffsets();
+                appBar._handleHidingKeyboard();
                 LiveUnit.Assert.areNotEqual(badOffset, this._element.style.top, "AppBar should update style.top when the IHM starts to hide");
                 LiveUnit.Assert.areNotEqual(badOffset, this._element.style.bottom, "AppBar should update style.bottom when the IHM starts to hide");
 

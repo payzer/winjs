@@ -13,7 +13,7 @@ var _Constants = {
 
 // This private module provides accurate metrics for the Visual Viewport and WWA's IHM offsets in Win10 WWA 
 // where "-ms-device-fixed" CSS positioning is supported. WinJS controls will also use this module for
-// positoning themselves relative to the viewport in a web browser outside of WWA. There preference is still 
+// positoning themselves relative to the viewport in a web browser outside of WWA. Their preference is still 
 // to rely on "-ms-device-fixed" positioning, but currently fallback to "fixed" positioning in enviornments where
 // "-ms-device-fixed" is not supported.
 export interface IKeyboardInfo {
@@ -39,7 +39,7 @@ export var _KeyboardInfo: IKeyboardInfo = {
             return (
                 _WinRT.Windows.UI.ViewManagement.InputPane &&
                 _WinRT.Windows.UI.ViewManagement.InputPane.getForCurrentView().occludedRect.height > 0
-                );
+            );
         } catch (e) {
             return false;
         }
@@ -48,8 +48,8 @@ export var _KeyboardInfo: IKeyboardInfo = {
     // See if we have to reserve extra space for the IHM
     get _extraOccluded(): number {
         var occluded = 0;
-        // If the IHM has resized the viewport, we use -ms-device-fixed positioning to stick to its edges 
-        // and and therefore do not need to adjust our offsets to remain visible.
+        // Controls using -ms-device-fixed positioning only need to reposition themselves to remain visible
+        // If the IHM has not resized the viewport.  
         if (!_KeyboardInfo._isResized && _WinRT.Windows.UI.ViewManagement.InputPane) {
             occluded = _WinRT.Windows.UI.ViewManagement.InputPane.getForCurrentView().occludedRect.height;
         }
@@ -79,7 +79,7 @@ export var _KeyboardInfo: IKeyboardInfo = {
     },
 
     // Get the top offset of our visible area, aka the top of the visual viewport.
-    // This is always 0 when _Overlay elements use -ms-device-fixed positioning.
+    // This is always 0 when elements use -ms-device-fixed positioning.
     get _visibleDocTop(): number {
         return 0;
     },

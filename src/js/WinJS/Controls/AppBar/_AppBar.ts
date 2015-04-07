@@ -245,12 +245,8 @@ export class AppBar {
         // Events
         this._handleShowingKeyboardBound = this._handleShowingKeyboard.bind(this);
         this._handleHidingKeyboardBound = this._handleHidingKeyboard.bind(this);
-        if (_WinRT.Windows.UI.ViewManagement.InputPane) {
-            // React to Soft Keyboard
-            var inputPane = _WinRT.Windows.UI.ViewManagement.InputPane.getForCurrentView();
-            inputPane.addEventListener("showing", this._handleShowingKeyboardBound, false);
-            inputPane.addEventListener("hiding", this._handleHidingKeyboardBound, false);
-        }
+        _ElementUtilities._inputPaneListener.addEventListener(this._dom.root, "showing", this._handleShowingKeyboardBound); 
+        _ElementUtilities._inputPaneListener.addEventListener(this._dom.root, "hiding", this._handleHidingKeyboardBound);  
 
         // Initialize private state.
         this._disposed = false;
@@ -326,11 +322,8 @@ export class AppBar {
         // and synchronously complete any animations that might have been running.
         this._commandingSurface.dispose();
 
-        if (_WinRT.Windows.UI.ViewManagement.InputPane) {
-            var inputPane = _WinRT.Windows.UI.ViewManagement.InputPane.getForCurrentView();
-            inputPane.removeEventListener("showing", this._handleShowingKeyboardBound, false);
-            inputPane.removeEventListener("hiding", this._handleHidingKeyboardBound, false);
-        }
+        _ElementUtilities._inputPaneListener.removeEventListener(this._dom.root, "showing", this._handleShowingKeyboardBound);
+        _ElementUtilities._inputPaneListener.removeEventListener(this._dom.root, "hiding", this._handleHidingKeyboardBound);  
 
         _Dispose.disposeSubTree(this.element);
     }
