@@ -16,7 +16,7 @@ var _Constants = {
 // positoning themselves relative to the viewport in a web browser outside of WWA. There preference is still 
 // to rely on "-ms-device-fixed" positioning, but currently fallback to "fixed" positioning in enviornments where
 // "-ms-device-fixed" is not supported.
-// This module is not comatible for positioning WinJS controls in response to the IHM in Win8 WWA because the IE10 
+// This module is not compatible for positioning WinJS controls in response to the IHM in Win8 WWA because the IE10 
 // enviornment does not support -ms-device-fixed positioning. 
 export interface IKeyboardInfo {
     _visible: boolean;
