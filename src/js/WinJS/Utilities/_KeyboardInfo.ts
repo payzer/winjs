@@ -16,7 +16,7 @@ var _Constants = {
 // positoning themselves relative to the viewport in a web browser outside of WWA. Their preference is still 
 // to rely on "-ms-device-fixed" positioning, but currently fallback to "fixed" positioning in enviornments where
 // "-ms-device-fixed" is not supported.
-export interface IKeyboardInfo {
+export var _KeyboardInfo: {
     _visible: boolean;
     _extraOccluded: number;
     _isResized: boolean;
@@ -32,7 +32,7 @@ export interface IKeyboardInfo {
 }
 
 // WWA Soft Keyboard offsets
-export var _KeyboardInfo: IKeyboardInfo = {
+_KeyboardInfo = {
     // Determine if the keyboard is visible or not.
     get _visible(): boolean {
         try {

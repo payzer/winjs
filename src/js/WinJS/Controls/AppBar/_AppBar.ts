@@ -245,8 +245,8 @@ export class AppBar {
         // Events
         this._handleShowingKeyboardBound = this._handleShowingKeyboard.bind(this);
         this._handleHidingKeyboardBound = this._handleHidingKeyboard.bind(this);
-        _ElementUtilities._inputPaneListener.addEventListener(this._dom.root, "showing", this._handleShowingKeyboardBound); 
-        _ElementUtilities._inputPaneListener.addEventListener(this._dom.root, "hiding", this._handleHidingKeyboardBound);  
+        _ElementUtilities._inputPaneListener.addEventListener(this._dom.root, "showing", this._handleShowingKeyboardBound);
+        _ElementUtilities._inputPaneListener.addEventListener(this._dom.root, "hiding", this._handleHidingKeyboardBound);
 
         // Initialize private state.
         this._disposed = false;
@@ -323,7 +323,7 @@ export class AppBar {
         this._commandingSurface.dispose();
 
         _ElementUtilities._inputPaneListener.removeEventListener(this._dom.root, "showing", this._handleShowingKeyboardBound);
-        _ElementUtilities._inputPaneListener.removeEventListener(this._dom.root, "hiding", this._handleHidingKeyboardBound);  
+        _ElementUtilities._inputPaneListener.removeEventListener(this._dom.root, "hiding", this._handleHidingKeyboardBound);
 
         _Dispose.disposeSubTree(this.element);
     }
@@ -380,16 +380,17 @@ export class AppBar {
         };
     }
 
-    private _handleShowingKeyboard(event: _WinRT.Windows.UI.ViewManagement.InputPaneVisibilityEventArgs): Promise<any> {
+    private _handleShowingKeyboard(event: { detail: { originalEvent: _WinRT.Windows.UI.ViewManagement.InputPaneVisibilityEventArgs } }): Promise<any> {
         // If the IHM resized the window, we can rely on -ms-device-fixed positioning to remain visible.
         // If the IHM does not resize the window we will need to adjust our offsets to avoid being occluded
         // The IHM does not cause a window resize to happen right away, set a timeout to check if the viewport
-        // has been resized once enough time has passed for both the IHM animation, and scroll-into-view, to
+        // has been resized after enough time has passed for both the IHM animation, and scroll-into-view, to
         // complete.
 
         // If focus is in the AppBar, tell the platform we will move ourselves.
         if (this._dom.root.contains(<HTMLElement>_Global.document.activeElement)) {
-            event.ensuredFocusedElementInView = true;
+            var inputPaneEvent = event.detail.originalEvent;
+            inputPaneEvent.ensuredFocusedElementInView = true;
         }
 
         var duration = keyboardInfo._animationShowLength + keyboardInfo._scrollTimeout;
@@ -406,17 +407,16 @@ export class AppBar {
     private _shouldAdjustForShowingKeyboard(): boolean {
         // Overwriteable for unit tests
 
-        // Determines if a bottom AppBar needs to adjust its position to move itself above the shown IHM, or if it can just ride the 
-        // bottom of the visual viewport to remain visible. The latter requires that the IHM has caused the viewport to resize.
-        return this.placement === Placement.bottom && keyboardInfo._visible && !keyboardInfo._isResized;
+        // Determines if an AppBar needs to adjust its position to move in response to a shown IHM, or if it can
+        // just ride the bottom of the visual viewport to remain visible. The latter requires that the IHM has
+        // caused the viewport to resize.
+        return keyboardInfo._visible && !keyboardInfo._isResized;
     }
 
     private _handleHidingKeyboard() {
-        // Make sure bottom AppBar has the correct offsets since it could be displaced by the IHM.
-        if (this.placement === Placement.bottom) {
-            this._adjustedOffsets = this._computeAdjustedOffsets();
-            this._commandingSurface.deferredDomUpate();
-        }
+        // Make sure AppBar has the correct offsets since it could have been displaced by the IHM.
+        this._adjustedOffsets = this._computeAdjustedOffsets();
+        this._commandingSurface.deferredDomUpate();
     }
 
     private _computeAdjustedOffsets() {
