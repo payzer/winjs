@@ -461,15 +461,15 @@ define([
                         return;
                     }
 
-                    // Shift the flyout down or to the left depending on IME aspect ratio
-                    // When width > height, then we have a constant height horizontal IME,
-                    // otherwise we have a constant width vertical IME.
+                    // Shift the flyout down or to the left depending on IME/ASB width ratio.
+                    // When the IME width is less than 45% of the ASB's width, the flyout gets
+                    // shifted right, otherwise shifted down.
                     var rect = context.getCandidateWindowClientRect();
                     var animation = Animations.createRepositionAnimation(this._flyoutElement);
-                    if (rect.width > rect.height) {
-                        this._flyoutElement.style.marginTop = (rect.bottom - rect.top + 4) + "px";
-                    } else {
+                    if (rect.width * 0.45 < inputRect.width) {
                         this._flyoutElement.style.marginLeft = rect.width + "px";
+                    } else {
+                        this._flyoutElement.style.marginTop = (rect.bottom - rect.top + 4) + "px";
                     }
                     animation.execute();
                 },
