@@ -99,7 +99,9 @@ define([
                 this._requestingFocusOnKeyboardInputHandlerBind = this._requestingFocusOnKeyboardInputHandler.bind(this);
 
                 // Elements
-                this._buttonElement = null;
+                // ButtonElement needs to be created before super constructor is called, because
+                // that is where setOptions is called.
+                this._buttonElement = _Global.document.createElement("div");
 
                 // Variables
                 this._focusOnKeyboardInput = false;
@@ -158,7 +160,6 @@ define([
                     this._inputElement.addEventListener("blur", this._searchboxInputBlurHandler.bind(this));
                     this._inputElement.addEventListener("focus", this._searchboxInputFocusHandler.bind(this));
 
-                    this._buttonElement = _Global.document.createElement("div");
                     this._buttonElement.tabIndex = -1;
                     this._buttonElement.classList.add(ClassName.searchBoxButton);
                     this._buttonElement.addEventListener("click", this._buttonClickHandler.bind(this));
