@@ -26,6 +26,7 @@ import _Resources = require("../../Core/_Resources");
 import Scheduler = require("../../Scheduler");
 import _OpenCloseMachine = require('../../Utilities/_OpenCloseMachine');
 import _Signal = require('../../_Signal');
+import _WinRT = require('../../Core/_WinRT');
 import _WriteProfilerMark = require("../../Core/_WriteProfilerMark");
 
 require(["require-style!less/styles-toolbar"]);
@@ -83,6 +84,8 @@ export class ToolBar {
     private _disposed: boolean;
     private _commandingSurface: _ICommandingSurface._CommandingSurface;
     private _isOpenedMode: boolean;
+    private _handleShowingKeyboardBound: (ev: any) => Promise<any>;
+    private _handleHidingKeyboardBound: (ev: any) => any;
     private _dismissable: _LightDismissService.ILightDismissable;
 
     private _dom: {
@@ -184,6 +187,11 @@ export class ToolBar {
                 this._updateDomImpl();
             }
         });
+
+        // Events
+        this._handleShowingKeyboardBound = this._handleShowingKeyboard.bind(this);
+        this._handleHidingKeyboardBound = this._handleHidingKeyboard.bind(this);
+
         // Initialize private state.
         this._disposed = false;
         this._commandingSurface = new _CommandingSurface._CommandingSurface(this._dom.commandingSurfaceEl, { openCloseMachine: stateMachine });
@@ -263,9 +271,12 @@ export class ToolBar {
         _LightDismissService.hidden(this._dismissable);
         // Disposing the _commandingSurface will trigger dispose on its OpenCloseMachine and synchronously complete any animations that might have been running.
         this._commandingSurface.dispose();
-        // If page navigation is happening, we don't want to ToolBar left behind in the body.
+        // If page navigation is happening, we don't want the ToolBar left behind in the body.
         // Synchronoulsy close the ToolBar to force it out of the body and back into its parent element.
         this._synchronousClose();
+
+        _ElementUtilities._inputPaneListener.removeEventListener(this._dom.root, "showing", this._handleShowingKeyboardBound);
+        _ElementUtilities._inputPaneListener.removeEventListener(this._dom.root, "hiding", this._handleHidingKeyboardBound);
 
         _Dispose.disposeSubTree(this.element);
     }
@@ -328,6 +339,35 @@ export class ToolBar {
             commandingSurfaceEl: commandingSurfaceEl,
             placeHolder: placeHolder,
         };
+    }
+
+    private _handleShowingKeyboard(event: { detail: { originalEvent: _WinRT.Windows.UI.ViewManagement.InputPaneVisibilityEventArgs } }) {
+        this.close();
+
+        //var duration = keyboardInfo._animationShowLength + keyboardInfo._scrollTimeout;
+        //// Returns a promise for unit tests to verify the correct behavior after the timeout.
+        //return Promise.timeout(duration).then(
+        //    () => {
+        //        if (this._shouldAdjustForShowingKeyboard() && !this._disposed) {
+        //            this._adjustedOffsets = this._computeAdjustedOffsets();
+        //            this._commandingSurface.deferredDomUpate();
+        //        }
+        //    });
+    }
+
+    //private _shouldAdjustForShowingKeyboard(): boolean {
+    //    // Overwriteable for unit tests
+
+    //    // Determines if an AppBar needs to adjust its position to move in response to a shown IHM, or if it can
+    //    // just ride the bottom of the visual viewport to remain visible. The latter requires that the IHM has
+    //    // caused the viewport to resize.
+    //    return keyboardInfo._visible && !keyboardInfo._isResized;
+    //}
+
+    private _handleHidingKeyboard() {
+        //// Make sure AppBar has the correct offsets since it could have been displaced by the IHM.
+        //this._adjustedOffsets = this._computeAdjustedOffsets();
+        //this._commandingSurface.deferredDomUpate();
     }
 
     private _synchronousOpen(): void {
