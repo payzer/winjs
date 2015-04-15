@@ -345,6 +345,7 @@ export class ToolBar {
         // of a showing IHM. Instesad we just close the ToolBar to avoid scenarios where the ToolBar is occluded, but the click-eating-div is still present
         // since it is may seem strange to end users that an occluded ToolBar is eating their first click.
         this.close();
+
     }
 
 
