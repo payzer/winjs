@@ -84,8 +84,7 @@ export class ToolBar {
     private _disposed: boolean;
     private _commandingSurface: _ICommandingSurface._CommandingSurface;
     private _isOpenedMode: boolean;
-    private _handleShowingKeyboardBound: (ev: any) => Promise<any>;
-    private _handleHidingKeyboardBound: (ev: any) => any;
+    private _handleShowingKeyboardBound: (ev: any) => void
     private _dismissable: _LightDismissService.ILightDismissable;
 
     private _dom: {
@@ -345,9 +344,7 @@ export class ToolBar {
         // of a showing IHM. Instesad we just close the ToolBar to avoid scenarios where the ToolBar is occluded, but the click-eating-div is still present
         // since it is may seem strange to end users that an occluded ToolBar is eating their first click.
         this.close();
-
     }
-
 
     private _synchronousOpen(): void {
         this._isOpenedMode = true;
