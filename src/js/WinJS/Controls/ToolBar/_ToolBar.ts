@@ -190,7 +190,7 @@ export class ToolBar {
 
         // Events
         this._handleShowingKeyboardBound = this._handleShowingKeyboard.bind(this);
-        this._handleHidingKeyboardBound = this._handleHidingKeyboard.bind(this);
+        _ElementUtilities._inputPaneListener.addEventListener(this._dom.root, "showing", this._handleShowingKeyboardBound);
 
         // Initialize private state.
         this._disposed = false;
@@ -276,7 +276,6 @@ export class ToolBar {
         this._synchronousClose();
 
         _ElementUtilities._inputPaneListener.removeEventListener(this._dom.root, "showing", this._handleShowingKeyboardBound);
-        _ElementUtilities._inputPaneListener.removeEventListener(this._dom.root, "hiding", this._handleHidingKeyboardBound);
 
         _Dispose.disposeSubTree(this.element);
     }
@@ -342,33 +341,12 @@ export class ToolBar {
     }
 
     private _handleShowingKeyboard(event: { detail: { originalEvent: _WinRT.Windows.UI.ViewManagement.InputPaneVisibilityEventArgs } }) {
+        // Because the ToolBar takes up layout space and is not an overlay, it doesn't have the same expectation to move itself to get out of the way 
+        // of a showing IHM. Instesad we just close the ToolBar to avoid scenarios where the ToolBar is occluded, but the click-eating-div is still present
+        // since it is may seem strange to end users that an occluded ToolBar is eating their first click.
         this.close();
-
-        //var duration = keyboardInfo._animationShowLength + keyboardInfo._scrollTimeout;
-        //// Returns a promise for unit tests to verify the correct behavior after the timeout.
-        //return Promise.timeout(duration).then(
-        //    () => {
-        //        if (this._shouldAdjustForShowingKeyboard() && !this._disposed) {
-        //            this._adjustedOffsets = this._computeAdjustedOffsets();
-        //            this._commandingSurface.deferredDomUpate();
-        //        }
-        //    });
     }
 
-    //private _shouldAdjustForShowingKeyboard(): boolean {
-    //    // Overwriteable for unit tests
-
-    //    // Determines if an AppBar needs to adjust its position to move in response to a shown IHM, or if it can
-    //    // just ride the bottom of the visual viewport to remain visible. The latter requires that the IHM has
-    //    // caused the viewport to resize.
-    //    return keyboardInfo._visible && !keyboardInfo._isResized;
-    //}
-
-    private _handleHidingKeyboard() {
-        //// Make sure AppBar has the correct offsets since it could have been displaced by the IHM.
-        //this._adjustedOffsets = this._computeAdjustedOffsets();
-        //this._commandingSurface.deferredDomUpate();
-    }
 
     private _synchronousOpen(): void {
         this._isOpenedMode = true;
