@@ -340,16 +340,18 @@ export class ToolBar {
     }
 
     private _handleShowingKeyboard(event: { detail: { originalEvent: _WinRT.Windows.UI.ViewManagement.InputPaneVisibilityEventArgs } }) {
-         // Because the ToolBar takes up layout space and is not an overlay, it doesn't have the same expectation 
-         // to move itself to get out of the way of a showing IHM. Instsead we just close the ToolBar to avoid 
-         // scenarios where the ToolBar is occluded, but the click-eating-div is still presentsince it is may seem 
-         // strange to end users that an occluded ToolBar is eating their first click.
-        
-         // Because (1) custom content in a ToolBar can only be included as a 'content' type command, because (2)
-         // the ToolBar only supports closedDisplayModes 'compact' and 'full', and because (3) 'content' type
-         // commands in the overflowarea use a separate contentflyout to display their contents:
-         // Interactable custom content contained within the ToolBar actionarea or overflowarea, will remain
-         // visible and interactable even when showing the IHM closes the ToolBar.
+        // Because the ToolBar takes up layout space and is not an overlay, it doesn't have the same expectation 
+        // to move itself to get out of the way of a showing IHM. Instsead we just close the ToolBar to avoid 
+        // scenarios where the ToolBar is occluded, but the click-eating-div is still present since it may seem 
+        // strange to end users that an occluded ToolBar (out of sight, out of mind) is still eating their first 
+        // click.
+
+        // Mitigation:
+        // Because (1) custom content in a ToolBar can only be included as a 'content' type command, because (2)
+        // the ToolBar only supports closedDisplayModes 'compact' and 'full', and because (3) 'content' type
+        // commands in the overflowarea use a separate contentflyout to display their contents:
+        // Interactable custom content contained within the ToolBar actionarea or overflowarea, will remain
+        // visible and interactable even when showing the IHM closes the ToolBar.
         this.close();
     }
 
