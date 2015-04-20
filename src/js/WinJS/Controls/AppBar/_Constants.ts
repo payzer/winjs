@@ -27,10 +27,14 @@ export var ClassNames = {
 };
 
 export var EventNames = {
+    // AppBar
     beforeOpen: "beforeopen",
     afterOpen: "afteropen",
     beforeClose: "beforeclose",
-    afterClose: "afterclose"
+    afterClose: "afterclose",
+
+    // AppBarCommand
+    propertyMutated: "propertymutated",
 };
 
 export var controlMinWidth: number = _CommandingSurfaceConstants.controlMinWidth;

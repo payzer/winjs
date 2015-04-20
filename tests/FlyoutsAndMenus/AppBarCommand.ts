@@ -345,6 +345,148 @@ module CorsicaTests {
             LiveUnit.Assert.isFalse(button.querySelector("#testAppBarCommandButtonsRemoveOldInnerHTML"), "AppBarCommand buttons should lose previous innerHTML on control Instantiation");
         }
     }
+
+    // Generate Tests for Observable Properties
+    interface IObservablePropertyTestCase {
+        id: number;
+        oldValue: any;
+        newValue: any;
+    }
+    interface IObservablePropertyTestSuite {
+        propertyName: string;
+        testCases: Array<IObservablePropertyTestCase>;
+        setup?: Function;
+        teatDown?: Function;
+    }
+
+    function generateTests_ObservablePropertyTests() {
+
+        function runTestCases(testSuite: IObservablePropertyTestSuite) {
+            var _Constants = { EventNames: { propertyMutated: "propertymutated" } };
+            var mutatedEvent = _Constants.EventNames.propertyMutated;
+
+            var button = document.createElement("button");
+            var abc = new AppBarCommand(button);
+            document.body.appendChild(abc.element);
+
+            var propertyName = testSuite.propertyName;
+            var testCases = testSuite.testCases;
+
+            var idPrefix = "";
+            var currentTestCase: IObservablePropertyTestCase;
+
+            function verifyMutatedEvent(e: { detail: { propertyName: string; oldValue: any; newValue: any } }) {
+                LiveUnit.Assert.areEqual(propertyName, e.detail.propertyName, idPrefix + "mutation event details contain incorrect property name");
+                LiveUnit.Assert.areNotEqual(e.detail.oldValue, e.detail.newValue, idPrefix + "mutation event indicate should not fire if oldValue and newValue are identical"); // JESSESH do I need to test this more explicitly? Flyout getter/setter is weird.
+                LiveUnit.Assert.areEqual(currentTestCase.oldValue, e.detail.oldValue, idPrefix + "mutation event contains");
+                LiveUnit.Assert.areNotEqual(currentTestCase.newValue, e.detail.newValue, idPrefix + "mutation event should not fire if oldValue and newValue are identical");
+            }
+            abc.addEventListener(_Constants.EventNames.propertyMutated, verifyMutatedEvent, false);
+
+            // Run setup if provided
+            testSuite.setup && testSuite.setup();
+
+            // Run test cases
+            testCases.forEach(function (testCase, index) {
+                currentTestCase = testCase;
+                idPrefix = "CaseID " + currentTestCase.id + ", ";
+
+                // PRECONDITION: currentTest.oldValue !== currentTestCast.newValue
+                LiveUnit.Assert.areNotEqual(currentTestCase.oldValue, currentTestCase.newValue,
+                    idPrefix + "TEST ERROR: test parameters currentTestCase.oldValue and currentTestCase.newValue must be different");
+
+                // PRECONDITION: abc[propertyName] === currentTestCast.oldValue
+                LiveUnit.Assert.areEqual(currentTestCase.oldValue, abc[propertyName],
+                    idPrefix + "TEST ERROR: actual starting value of AppBarCommand." + propertyName + " does not match precondition value.");
+
+                abc[propertyName] = currentTestCase.newValue;
+            });
+
+            // Run teardown if provided
+            testSuite.teatDown && testSuite.teatDown();
+        }
+
+        var testData = {
+            flyout1: <WinJS.UI.Flyout> undefined,
+            flyout2: <WinJS.UI.Flyout> undefined,
+            fn1: () => { },
+            fn2: () => { },
+        };
+
+        var ObservablePropertyTestSuites: Array<IObservablePropertyTestSuite> = [
+            {
+                propertyName: "label",
+                testCases: [
+                    { id: 1, oldValue: <string>undefined, newValue: "add" },
+                    { id: 2, oldValue: "add", newValue: "delete" },
+                    { id: 3, oldValue: "delete", newValue: null },
+                ],
+                setUp: function () {
+                    testData.flyout1 = new WinJS.UI.Flyout();
+                    testData.flyout1.element.id = "flyout1";
+                    document.body.appendChild(testData.flyout1.element);
+                    testData.flyout2 = new WinJS.UI.Flyout();
+                    testData.flyout2.element.id = "flyout2";
+                    document.body.appendChild(testData.flyout2.element);
+                },
+                tearDown: function () {
+                    testData.flyout1.dispose();
+                    testData.flyout2.dispose();
+                }
+            },
+            {
+                propertyName: "disabled",
+                testCases: [
+                    { id: 1, oldValue: false, newValue: true },
+                    { id: 2, oldValue: true, newValue: false },
+                ],
+            },
+            {
+                propertyName: "flyout",
+                testCases: [
+                    { id: 1, oldValue: <WinJS.UI.Flyout>undefined, newValue: testData.flyout1 },
+                    { id: 2, oldValue: testData.flyout1, newValue: testData.flyout2},
+                    { id: 3, oldValue: testData.flyout2, newValue: testData.flyout1},
+                ],
+            },
+            {
+                propertyName: "extraClass",
+                testCases: [
+                    { id: 1, oldValue: <string>undefined, newValue: "class1" },
+                    { id: 2, oldValue: "class1", newValue: "class2" },
+                    { id: 3, oldValue: "class2", newValue: "class1" },
+                ],
+            },
+            {
+                propertyName: "selected", testCases: [
+                    { id: 1, oldValue: false, newValue: true },
+                    { id: 2, oldValue: true, newValue: false },
+                ],
+            },
+            {
+                propertyName: "onclick", testCases: [
+                    { id: 1, oldValue: <Function>undefined, newValue: testData.fn1 },
+                    { id: 2, oldValue: testData.fn1, newValue: testData.fn2 },
+                    { id: 3, oldValue: testData.fn2, newValue: <Function>null },
+                ],
+            },
+            {
+                propertyName: "hidden", testCases: [
+                    { id: 1, oldValue: false, newValue: true },
+                    { id: 2, oldValue: true, newValue: false },
+                ],
+            },
+        ];
+
+        ObservablePropertyTestSuites.forEach(function (testSuite: IObservablePropertyTestSuite) {
+            AppBarCommandTests.prototype["testObservableProperty_" + testSuite.propertyName] = function (complete) {
+                runTestCases(testSuite);
+                complete();
+            };
+
+        })
+    };
+    generateTests_ObservablePropertyTests();
 }
 // register the object as a test class by passing in the name
 LiveUnit.registerTestClass("CorsicaTests.AppBarCommandTests");

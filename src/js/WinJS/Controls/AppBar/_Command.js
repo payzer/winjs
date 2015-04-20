@@ -15,7 +15,7 @@ define([
     '../Tooltip',
     '../_LegacyAppBar/_Constants',
     './_Icon'
-    ], function appBarCommandInit(exports, _Global, _WinRT, _Base, _ErrorFromName, _Resources, _Control, _Dispose, _ElementUtilities, _Overlay, Tooltip, _Constants, _Icon) {
+], function appBarCommandInit(exports, _Global, _WinRT, _Base, _ErrorFromName, _Resources, _Control, _Dispose, _ElementUtilities, _Overlay, Tooltip, _Constants, _Icon) {
     "use strict";
 
     _Base.Namespace._moduleDefine(exports, "WinJS.UI", {
@@ -36,6 +36,104 @@ define([
         /// <resource type="css" src="//$(TARGET_DESTINATION)/css/ui-dark.css" shared="true" />
         AppBarCommand: _Base.Namespace._lazy(function () {
 
+            function getPropertyDescriptor(obj, propertyName) {
+                // Returns a matching property descriptor or null, 
+                // if no matching descriptor is found.
+                var desc = null;
+                while (obj && !desc) {
+                    desc = Object.getOwnPropertyDescriptor(obj, propertyName);
+                    obj = Object.getPrototypeOf(obj);
+                    // Walk obj's prototype chain until we find a match.
+                }
+                return desc;
+            }
+
+            function makeObservable(obj, propertyName) {
+                // Make a pre-existing AppBarCommand property observable by firing the "propertymutated"
+                // event whenever its value changes.
+
+                // Preserve inital value in JS closure variable
+                var _value = obj[propertyName];
+
+                // Preserve original getter/setter if they exist, else use proxy functions.
+                var proto = obj.constructor.prototype;
+                var origDesc = getPropertyDescriptor(proto, propertyName) || {};
+                var getter = originalDesc.get || function getterProxy() {
+                    return _value
+                };
+                var setter = originalDesc.set || function setterProxy(newValue) {
+                    _value = newValue;
+                };
+
+                // Define new observable Get/Set for propertyName on obj
+                Object.defineProperty(obj, propertyName, {
+                    get: function observable_get() {
+                        return getter();
+                    },
+                    set: function observable_set(value) {
+                        var oldValue = getter();
+                        setter(value);
+                        var newValue = getter();
+                        // Flyout property 
+                        if (oldValue !== value && oldValue !== newValue) {
+                            this.dispatchEvent(_Constants.propertyMutated,
+                                {
+                                    property: propertyName,
+                                    oldValue: oldValue,
+                                    newValue: newValue,
+                                });
+                        }
+                    }
+                });
+            };
+
+            var ObservablePropertyWhiteList = [
+                "label",
+                "disabled",
+                "flyout",
+                "extraClass",
+                "selected",
+                "onclick",
+                "hidden",
+            ]
+
+            //function makeObservable(obj, propertyName) {
+            //    var proto = obj.constructor.prototype;
+            //    var value = obj[propertyName]; // Is this going to become stale if it was just an expando
+            //    var desc = getPropertyDescriptor(proto, propertyName) || {};
+            //    var getter = function () {
+            //        if (desc.get) {
+            //            return desc.get();
+            //        } else {
+            //            return value;
+            //        }
+            //    };
+            //    var setter = function (newValue) {
+            //        if (desc.set) {
+            //            desc.set(newValue);
+            //        } else {
+            //            value = newValue;
+            //        }
+            //    };
+
+            //    Object.defineProperty(obj, propertyName, {
+            //        get: function () {
+            //            return getter();
+            //        },
+            //        set: function (newValue) {
+            //            var oldValue = getter();
+            //            if (oldValue !== newValue) {
+            //                setter(newValue);
+            //                this.dispatchEvent(_Constants.propertyMutated,
+            //                    {
+            //                        property: propertyName,
+            //                        oldValue: oldValue,
+            //                        newValue: getter()
+            //                    });
+            //            }
+            //        }
+            //    });
+            //}
 
             function _handleClick(event) {
                 /*jshint validthis: true */
@@ -99,6 +197,8 @@ define([
                 if (!options) {
                     options = {};
                 }
+
+
 
                 // Need a type before we can create our element
                 if (!options.type) {
