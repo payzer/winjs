@@ -356,7 +356,7 @@ module CorsicaTests {
         propertyName: string;
         testCases: Array<IObservablePropertyTestCase>;
         setup?: Function;
-        teatDown?: Function;
+        tearDown?: Function;
     }
 
     function generateTests_ObservablePropertyTests() {
@@ -375,11 +375,14 @@ module CorsicaTests {
             var idPrefix = "";
             var currentTestCase: IObservablePropertyTestCase;
 
+            var mutatedEventFired: boolean;
             function verifyMutatedEvent(e: { detail: { propertyName: string; oldValue: any; newValue: any } }) {
                 LiveUnit.Assert.areEqual(propertyName, e.detail.propertyName, idPrefix + "mutation event details contain incorrect property name");
-                LiveUnit.Assert.areNotEqual(e.detail.oldValue, e.detail.newValue, idPrefix + "mutation event indicate should not fire if oldValue and newValue are identical"); // JESSESH do I need to test this more explicitly? Flyout getter/setter is weird.
-                LiveUnit.Assert.areEqual(currentTestCase.oldValue, e.detail.oldValue, idPrefix + "mutation event contains");
-                LiveUnit.Assert.areNotEqual(currentTestCase.newValue, e.detail.newValue, idPrefix + "mutation event should not fire if oldValue and newValue are identical");
+                LiveUnit.Assert.areNotEqual(e.detail.oldValue, e.detail.newValue, idPrefix + "mutation event should not fire if the value has not changed");
+                LiveUnit.Assert.areEqual(currentTestCase.oldValue, e.detail.oldValue, idPrefix + "mutation event details contain the wrong oldValue");
+                LiveUnit.Assert.areEqual(currentTestCase.newValue, e.detail.newValue, idPrefix + "mutation event details contain the wrong newValue");
+
+                mutatedEventFired = true;
             }
             abc.addEventListener(_Constants.EventNames.propertyMutated, verifyMutatedEvent, false);
 
@@ -387,8 +390,8 @@ module CorsicaTests {
             testSuite.setup && testSuite.setup();
 
             // Run test cases
-            testCases.forEach(function (testCase, index) {
-                currentTestCase = testCase;
+            for (var i = 0, len = testCases.length; i < len; i++) {
+                currentTestCase = testCases[i];
                 idPrefix = "CaseID " + currentTestCase.id + ", ";
 
                 // PRECONDITION: currentTest.oldValue !== currentTestCast.newValue
@@ -399,11 +402,13 @@ module CorsicaTests {
                 LiveUnit.Assert.areEqual(currentTestCase.oldValue, abc[propertyName],
                     idPrefix + "TEST ERROR: actual starting value of AppBarCommand." + propertyName + " does not match precondition value.");
 
+                mutatedEventFired = false;
                 abc[propertyName] = currentTestCase.newValue;
-            });
+                LiveUnit.Assert.isTrue(mutatedEventFired, idPrefix + "" + _Constants.EventNames.propertyMutated + "event failed to fire")
+            }
 
             // Run teardown if provided
-            testSuite.teatDown && testSuite.teatDown();
+            testSuite.tearDown && testSuite.tearDown();
         }
 
         var testData = {
@@ -421,18 +426,6 @@ module CorsicaTests {
                     { id: 2, oldValue: "add", newValue: "delete" },
                     { id: 3, oldValue: "delete", newValue: null },
                 ],
-                setUp: function () {
-                    testData.flyout1 = new WinJS.UI.Flyout();
-                    testData.flyout1.element.id = "flyout1";
-                    document.body.appendChild(testData.flyout1.element);
-                    testData.flyout2 = new WinJS.UI.Flyout();
-                    testData.flyout2.element.id = "flyout2";
-                    document.body.appendChild(testData.flyout2.element);
-                },
-                tearDown: function () {
-                    testData.flyout1.dispose();
-                    testData.flyout2.dispose();
-                }
             },
             {
                 propertyName: "disabled",
@@ -441,14 +434,26 @@ module CorsicaTests {
                     { id: 2, oldValue: true, newValue: false },
                 ],
             },
-            {
-                propertyName: "flyout",
-                testCases: [
-                    { id: 1, oldValue: <WinJS.UI.Flyout>undefined, newValue: testData.flyout1 },
-                    { id: 2, oldValue: testData.flyout1, newValue: testData.flyout2},
-                    { id: 3, oldValue: testData.flyout2, newValue: testData.flyout1},
-                ],
-            },
+            //{
+                //propertyName: "flyout",
+                //testCases: [
+                //    { id: 1, oldValue: <WinJS.UI.Flyout>undefined, newValue: testData.flyout1 },
+                //    { id: 2, oldValue: testData.flyout1, newValue: testData.flyout2},
+                //    { id: 3, oldValue: testData.flyout2, newValue: testData.flyout1},
+                //],
+                //setUp: function () {
+                //    testData.flyout1 = new WinJS.UI.Flyout();
+                //    testData.flyout1.element.id = "flyout1";
+                //    document.body.appendChild(testData.flyout1.element);
+                //    testData.flyout2 = new WinJS.UI.Flyout();
+                //    testData.flyout2.element.id = "flyout2";
+                //    document.body.appendChild(testData.flyout2.element);
+                //},
+                //tearDown: function () {
+                //    testData.flyout1.dispose();
+                //    testData.flyout2.dispose();
+                //}
+            //},
             {
                 propertyName: "extraClass",
                 testCases: [

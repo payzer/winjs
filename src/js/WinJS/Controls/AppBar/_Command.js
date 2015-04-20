@@ -48,25 +48,25 @@ define([
                 return desc;
             }
 
-            function makeObservable(obj, propertyName) {
+            function makeObservable(AppBarCommand, propertyName) {
                 // Make a pre-existing AppBarCommand property observable by firing the "propertymutated"
                 // event whenever its value changes.
 
                 // Preserve inital value in JS closure variable
-                var _value = obj[propertyName];
+                var _value = AppBarCommand[propertyName];
 
                 // Preserve original getter/setter if they exist, else use proxy functions.
-                var proto = obj.constructor.prototype;
-                var origDesc = getPropertyDescriptor(proto, propertyName) || {};
-                var getter = originalDesc.get || function getterProxy() {
+                var proto = AppBarCommand.constructor.prototype;
+                var originalDesc = getPropertyDescriptor(proto, propertyName) || {};
+                var getter = originalDesc.get.bind(AppBarCommand) || function getterProxy() {
                     return _value
                 };
-                var setter = originalDesc.set || function setterProxy(newValue) {
+                var setter = originalDesc.set.bind(AppBarCommand) || function setterProxy(newValue) {
                     _value = newValue;
                 };
 
-                // Define new observable Get/Set for propertyName on obj
-                Object.defineProperty(obj, propertyName, {
+                // Define new observable Get/Set for propertyName on AppBarCommand
+                Object.defineProperty(AppBarCommand, propertyName, {
                     get: function observable_get() {
                         return getter();
                     },
@@ -76,9 +76,9 @@ define([
                         var newValue = getter();
                         // Flyout property 
                         if (oldValue !== value && oldValue !== newValue) {
-                            this.dispatchEvent(_Constants.propertyMutated,
+                            this._sendEvent(_Constants.propertyMutated,
                                 {
-                                    property: propertyName,
+                                    propertyName: propertyName,
                                     oldValue: oldValue,
                                     newValue: newValue,
                                 });
@@ -96,44 +96,6 @@ define([
                 "onclick",
                 "hidden",
             ]
-
-            //function makeObservable(obj, propertyName) {
-            //    var proto = obj.constructor.prototype;
-            //    var value = obj[propertyName]; // Is this going to become stale if it was just an expando
-            //    var desc = getPropertyDescriptor(proto, propertyName) || {};
-            //    var getter = function () {
-            //        if (desc.get) {
-            //            return desc.get();
-            //        } else {
-            //            return value;
-            //        }
-            //    };
-            //    var setter = function (newValue) {
-            //        if (desc.set) {
-            //            desc.set(newValue);
-            //        } else {
-            //            value = newValue;
-            //        }
-            //    };
-
-            //    Object.defineProperty(obj, propertyName, {
-            //        get: function () {
-            //            return getter();
-            //        },
-            //        set: function (newValue) {
-            //            var oldValue = getter();
-            //            if (oldValue !== newValue) {
-            //                setter(newValue);
-            //                this.dispatchEvent(_Constants.propertyMutated,
-            //                    {
-            //                        property: propertyName,
-            //                        oldValue: oldValue,
-            //                        newValue: getter()
-            //                    });
-            //            }
-            //        }
-            //    });
-            //}
 
             function _handleClick(event) {
                 /*jshint validthis: true */
@@ -198,8 +160,6 @@ define([
                     options = {};
                 }
 
-
-
                 // Need a type before we can create our element
                 if (!options.type) {
                     this._type = _Constants.typeButton;
@@ -263,6 +223,11 @@ define([
                         this._element.setAttribute("aria-label", strings.ariaLabel);
                     }
                 }
+
+                var that = this;
+                ObservablePropertyWhiteList.forEach(function (propertyName) {
+                    makeObservable(that, propertyName);
+                });
             }, {
                 /// <field type="String" locid="WinJS.UI.AppBarCommand.id" helpKeyword="WinJS.UI.AppBarCommand.id" isAdvanced="true">
                 /// Gets or sets the ID of the AppBarCommand.
@@ -767,7 +732,7 @@ define([
                         return;
                     }
                     var event = _Global.document.createEvent("CustomEvent");
-                    event.initEvent(eventName, true, true, (detail || {}));
+                    event.initCustomEvent(eventName, true, true, (detail || {}));
                     return this._element.dispatchEvent(event);
                 },
             });

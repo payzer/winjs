@@ -85,7 +85,7 @@ define([
         _visualViewportClass: "win-visualviewport-space",
 
         // Event names
-        propertyChange: "propertychange",
+        propertyMutated: "propertymutated",
         commandVisibilityChanged: "commandvisibilitychanged",
     });
 });
