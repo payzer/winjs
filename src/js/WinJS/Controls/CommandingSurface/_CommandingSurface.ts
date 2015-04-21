@@ -1,3 +1,4 @@
+/// <reference path="../appbar/_command.d.ts" />
 // Copyright (c) Microsoft Corporation.  All Rights Reserved. Licensed under the MIT License. See License.txt in the project root for license information.
 /// <reference path="../../Core.d.ts" />
 import Animations = require("../../Animations");
@@ -293,6 +294,7 @@ export class _CommandingSurface {
         // Event handlers
         _ElementUtilities._resizeNotifier.subscribe(this._dom.root, this._resizeHandlerBound);
         this._dom.root.addEventListener('keydown', this._keyDownHandler.bind(this));
+        _Command._MutatedEvents.addE
 
         // Exit the Init state.
         _ElementUtilities._inDom(this._dom.root).then(() => {
