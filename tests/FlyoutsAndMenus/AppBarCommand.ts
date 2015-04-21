@@ -355,10 +355,9 @@ module CorsicaTests {
     interface IObservablePropertyTestSuite {
         propertyName: string;
         testCases: Array<IObservablePropertyTestCase>;
-        setup?: Function;
+        setUp?: Function;
         tearDown?: Function;
     }
-
     function generateTests_ObservablePropertyTests() {
 
         var _MutatedEvents = AppBarCommand._MutatedEvents;
@@ -387,10 +386,10 @@ module CorsicaTests {
                 mutatedEventFired = true;
             }
 
-            _MutatedEvents.addEventListener(_Constants.EventNames.propertyMutated, verifyMutatedEvent, false);
+            abc.addEventListener(_Constants.EventNames.propertyMutated, verifyMutatedEvent, false);
 
             // Run setup if provided
-            testSuite.setup && testSuite.setup();
+            testSuite.setUp && testSuite.setUp();
 
             // Run test cases
             for (var i = 0, len = testCases.length; i < len; i++) {
@@ -413,16 +412,16 @@ module CorsicaTests {
             // Run teardown if provided
             testSuite.tearDown && testSuite.tearDown();
 
-            _MutatedEvents.removeEventListener(_Constants.EventNames.propertyMutated, verifyMutatedEvent, false);
+            abc.removeEventListener(_Constants.EventNames.propertyMutated, verifyMutatedEvent, false);
         }
 
         var testData = {
-            flyout1: <WinJS.UI.Flyout>undefined,
-            flyout1ID: "flyout1",
-            flyout2: <WinJS.UI.Flyout>undefined,
-            flyout2ID: "flyout2",
             onclick1: () => { },
             onclick2: () => { },
+            flyout1: <WinJS.UI.Flyout>undefined,
+            //flyout1ID: "flyout1",
+            flyout2: <WinJS.UI.Flyout>undefined,
+            //flyout2ID: "flyout2",
         };
 
         var ObservablePropertyTestSuites: Array<IObservablePropertyTestSuite> = [
@@ -443,25 +442,29 @@ module CorsicaTests {
             },
             {
                 propertyName: "flyout",
-                testCases: [
-                    { id: 1, oldValue: <WinJS.UI.Flyout>undefined, newValue: testData.flyout1ID },
-                    { id: 2, oldValue: testData.flyout1ID, newValue: testData.flyout2ID },
-                    { id: 3, oldValue: testData.flyout2ID, newValue: testData.flyout1ID },
-                ],
+                // Can't instantiate Flyouts until the DOM is ready, so we create them in the provided setUp 
+                // function instead.
                 setUp: function () {
                     testData.flyout1 = new WinJS.UI.Flyout();
-                    testData.flyout1.element.id = testData.flyout1ID;
+                    //testData.flyout1.element.id = testData.flyout1ID;
                     document.body.appendChild(testData.flyout1.element);
                     testData.flyout2 = new WinJS.UI.Flyout();
-                    testData.flyout2.element.id = testData.flyout2ID;
+                    //testData.flyout2.element.id = testData.flyout2ID;
                     document.body.appendChild(testData.flyout2.element);
                 },
+                // Pass getters to where the old and new values for each Flyout test case will be stored after
+                // they are created in setUp
+                testCases: [
+                    { id: 1, oldValue: <WinJS.UI.Flyout>undefined, get newValue() { return testData.flyout1; } },
+                    { id: 2, get oldValue() { return testData.flyout1; }, get newValue() { return testData.flyout2; } },
+                    { id: 3, get oldValue() { return testData.flyout2; }, newValue: null },
+                ],
                 tearDown: function () {
                     testData.flyout1.element.parentElement.removeChild(testData.flyout1.element);
                     testData.flyout2.element.parentElement.removeChild(testData.flyout2.element);
                     testData.flyout1.dispose();
                     testData.flyout2.dispose();
-                }
+                },
             },
             {
                 propertyName: "extraClass",
@@ -478,7 +481,8 @@ module CorsicaTests {
                 ],
             },
             {
-                propertyName: "onclick", testCases: [
+                propertyName: "onclick",
+                testCases: [
                     { id: 1, oldValue: <Function>undefined, newValue: testData.onclick1 },
                     { id: 2, oldValue: testData.onclick1, newValue: testData.onclick2 },
                     { id: 3, oldValue: testData.onclick2, newValue: <Function>null },

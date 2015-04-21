@@ -698,10 +698,47 @@ define([
                     event.initCustomEvent(eventName, true, true, (detail || {}));
                     return this._element.dispatchEvent(event);
                 },
-            }, {
-                _MutatedEvents: (function(){
-                    return _BaseUtils._merge({}, _Events.eventMixin)}())
             });
+
+            //function makeObservable(command, propertyName) {
+            //    // Make a pre-existing AppBarCommand property observable by firing the "propertymutated"
+            //    // event whenever its value changes.
+
+            //    // Preserve inital value in JS closure variable
+            //    var _value = command[propertyName];
+
+            //    // Preserve original getter/setter if they exist, else use proxy functions.
+            //    var proto = command.constructor.prototype;
+            //    var originalDesc = getPropertyDescriptor(proto, propertyName) || {};
+            //    var getter = originalDesc.get.bind(command) || function getterProxy() {
+            //        return _value
+            //    };
+            //    var setter = originalDesc.set.bind(command) || function setterProxy(newValue) {
+            //        _value = newValue;
+            //    };
+
+            //    // Define new observable Get/Set for propertyName on command
+            //    Object.defineProperty(command, propertyName, {
+            //        get: function observable_get() {
+            //            return getter();
+            //        },
+            //        set: function observable_set(value) {
+            //            var oldValue = getter();
+            //            setter(value);
+            //            var newValue = getter();
+            //            // Flyout property 
+            //            if (oldValue !== value && oldValue !== newValue) {
+            //                AppBarCommand._MutatedEvents.dispatchEvent(_Constants.propertyMutated,
+            //                    {
+            //                        command: command,
+            //                        propertyName: propertyName,
+            //                        oldValue: oldValue,
+            //                        newValue: newValue,
+            //                    });
+            //            }
+            //        }
+            //    });
+            //};
 
             function makeObservable(command, propertyName) {
                 // Make a pre-existing AppBarCommand property observable by firing the "propertymutated"
@@ -710,34 +747,56 @@ define([
                 // Preserve inital value in JS closure variable
                 var _value = command[propertyName];
 
-                // Preserve original getter/setter if they exist, else use proxy functions.
+                // Preserve original getter/setter if they exist, else use inline proxy functions.
                 var proto = command.constructor.prototype;
                 var originalDesc = getPropertyDescriptor(proto, propertyName) || {};
                 var getter = originalDesc.get.bind(command) || function getterProxy() {
                     return _value
                 };
-                var setter = originalDesc.set.bind(command) || function setterProxy(newValue) {
-                    _value = newValue;
+                var setter = originalDesc.set.bind(command) || function setterProxy(value) {
+                    _value = value;
                 };
 
-                // Define new observable Get/Set for propertyName on command
+                var reEntrancyLock = false;
+                var cachedNewValue;
+
+                // Define new observable Get/Set for propertyName on the command instance
                 Object.defineProperty(command, propertyName, {
                     get: function observable_get() {
                         return getter();
                     },
                     set: function observable_set(value) {
-                        var oldValue = getter();
-                        setter(value);
-                        var newValue = getter();
-                        // Flyout property 
-                        if (oldValue !== value && oldValue !== newValue) {
-                            AppBarCommand._MutatedEvents.dispatchEvent(_Constants.propertyMutated,
-                                {
-                                    command: command,
-                                    propertyName: propertyName,
-                                    oldValue: oldValue,
-                                    newValue: newValue,
-                                });
+                        if (!reEntrancyLock) {
+                            reEntrancyLock = true;
+
+                            var affectedProperty = propertyName;
+                            var oldValue = getter();
+
+                            // Process value through the original setter & getter before deciding to send an event.
+                            setter(value);
+                            var newValue = getter();
+                            if (oldValue !== value && oldValue !== newValue) {
+
+                                var disabling = (affectedProperty === 'disabled' && newValue === true);
+                                if (disabling) {
+                                    command.element.disabled = false;
+                                }
+
+                                command._sendEvent(_Constants.propertyMutated,
+                                    {
+                                        command: command,
+                                        propertyName: propertyName,
+                                        oldValue: oldValue,
+                                        newValue: newValue,
+                                    });
+
+                                if (disabling) {
+                                    command.element.disabled = true;
+                                }
+
+                            }
+
+                            reEntrancyLock = false;
                         }
                     }
                 });
