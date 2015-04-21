@@ -378,12 +378,12 @@ module CorsicaTests {
             var currentTestCase: IObservablePropertyTestCase;
 
             var mutatedEventFired: boolean;
-            function verifyMutatedEvent(e: { detail: { propertyName: string; oldValue: any; newValue: any } }) {
+            function verifyMutatedEvent(e: { detail: { propertyName: string; oldValue: any; newValue: any; command: WinJS.UI.PrivateCommand } }) {
                 LiveUnit.Assert.areEqual(propertyName, e.detail.propertyName, idPrefix + "mutation event details contain incorrect property name");
                 LiveUnit.Assert.areNotEqual(e.detail.oldValue, e.detail.newValue, idPrefix + "mutation event should not fire if the value has not changed");
                 LiveUnit.Assert.areEqual(currentTestCase.oldValue, e.detail.oldValue, idPrefix + "mutation event details contain the wrong oldValue");
                 LiveUnit.Assert.areEqual(currentTestCase.newValue, e.detail.newValue, idPrefix + "mutation event details contain the wrong newValue");
-
+                LiveUnit.Assert.isTrue(abc === e.detail.command,  idPrefix + "mutation event details contain the wrong AppBarCommand")
                 mutatedEventFired = true;
             }
 
@@ -440,24 +440,24 @@ module CorsicaTests {
                 ],
             },
             //{
-                //propertyName: "flyout",
-                //testCases: [
-                //    { id: 1, oldValue: <WinJS.UI.Flyout>undefined, newValue: testData.flyout1 },
-                //    { id: 2, oldValue: testData.flyout1, newValue: testData.flyout2},
-                //    { id: 3, oldValue: testData.flyout2, newValue: testData.flyout1},
-                //],
-                //setUp: function () {
-                //    testData.flyout1 = new WinJS.UI.Flyout();
-                //    testData.flyout1.element.id = "flyout1";
-                //    document.body.appendChild(testData.flyout1.element);
-                //    testData.flyout2 = new WinJS.UI.Flyout();
-                //    testData.flyout2.element.id = "flyout2";
-                //    document.body.appendChild(testData.flyout2.element);
-                //},
-                //tearDown: function () {
-                //    testData.flyout1.dispose();
-                //    testData.flyout2.dispose();
-                //}
+            //propertyName: "flyout",
+            //testCases: [
+            //    { id: 1, oldValue: <WinJS.UI.Flyout>undefined, newValue: testData.flyout1 },
+            //    { id: 2, oldValue: testData.flyout1, newValue: testData.flyout2},
+            //    { id: 3, oldValue: testData.flyout2, newValue: testData.flyout1},
+            //],
+            //setUp: function () {
+            //    testData.flyout1 = new WinJS.UI.Flyout();
+            //    testData.flyout1.element.id = "flyout1";
+            //    document.body.appendChild(testData.flyout1.element);
+            //    testData.flyout2 = new WinJS.UI.Flyout();
+            //    testData.flyout2.element.id = "flyout2";
+            //    document.body.appendChild(testData.flyout2.element);
+            //},
+            //tearDown: function () {
+            //    testData.flyout1.dispose();
+            //    testData.flyout2.dispose();
+            //}
             //},
             {
                 propertyName: "extraClass",
