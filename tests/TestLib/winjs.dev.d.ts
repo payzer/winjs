@@ -135,7 +135,7 @@ declare module WinJS {
         var _CallExpression;
         var _IdentifierExpression;
         var _GroupFocusCache;
-        
+
         module _LightDismissService {
             interface ILightDismissInfo {
                 reason: string;
@@ -143,7 +143,7 @@ declare module WinJS {
                 stopPropagation(): void;
                 preventDefault(): void;
             }
-            
+
             interface ILightDismissable {
                 setZIndex(zIndex: string): void;
                 containsElement(element: HTMLElement): boolean;
@@ -154,7 +154,7 @@ declare module WinJS {
                 onShouldLightDismiss(info: ILightDismissInfo): boolean;
                 onLightDismiss(info: ILightDismissInfo): void;
             }
-            
+
             function shown(client: ILightDismissable): void;
             function hidden(client: ILightDismissable): void;
             function isShown(client: ILightDismissable): boolean;
@@ -453,7 +453,7 @@ declare module WinJS {
             _handleShowingKeyboard: () => Promise<any>;
             _handleHidingKeyboard: () => void;
             _updateDomImpl_renderedState: {
-                adjustedOffsets: { top: string; bottom: string; }; 
+                adjustedOffsets: { top: string; bottom: string; };
             }
             _dismissable: _LightDismissService.ILightDismissable;
         }
@@ -476,6 +476,11 @@ declare module WinJS {
             _disposed;
             _tooltipControl;
             _lastElementFocus;
+            static _MutatedEvents: {
+                addEventListener(type: string, listener: Function, useCapture?: boolean): void;
+                removeEventListener(type: string, listener: Function, useCapture?: boolean): void;
+                dispatchEvent(type: string, eventProperties: any): boolean;
+            };
         }
 
         /**

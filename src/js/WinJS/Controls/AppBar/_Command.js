@@ -6,7 +6,9 @@ define([
     '../../Core/_Global',
     '../../Core/_WinRT',
     '../../Core/_Base',
+    "../../Core/_BaseUtils",
     '../../Core/_ErrorFromName',
+    "../../Core/_Events",
     '../../Core/_Resources',
     '../../Utilities/_Control',
     '../../Utilities/_Dispose',
@@ -15,7 +17,7 @@ define([
     '../Tooltip',
     '../_LegacyAppBar/_Constants',
     './_Icon'
-], function appBarCommandInit(exports, _Global, _WinRT, _Base, _ErrorFromName, _Resources, _Control, _Dispose, _ElementUtilities, _Overlay, Tooltip, _Constants, _Icon) {
+], function appBarCommandInit(exports, _Global, _WinRT, _Base, _BaseUtils, _ErrorFromName, _Events, _Resources, _Control, _Dispose, _ElementUtilities, _Overlay, Tooltip, _Constants, _Icon) {
     "use strict";
 
     _Base.Namespace._moduleDefine(exports, "WinJS.UI", {
@@ -47,45 +49,6 @@ define([
                 }
                 return desc;
             }
-
-            function makeObservable(AppBarCommand, propertyName) {
-                // Make a pre-existing AppBarCommand property observable by firing the "propertymutated"
-                // event whenever its value changes.
-
-                // Preserve inital value in JS closure variable
-                var _value = AppBarCommand[propertyName];
-
-                // Preserve original getter/setter if they exist, else use proxy functions.
-                var proto = AppBarCommand.constructor.prototype;
-                var originalDesc = getPropertyDescriptor(proto, propertyName) || {};
-                var getter = originalDesc.get.bind(AppBarCommand) || function getterProxy() {
-                    return _value
-                };
-                var setter = originalDesc.set.bind(AppBarCommand) || function setterProxy(newValue) {
-                    _value = newValue;
-                };
-
-                // Define new observable Get/Set for propertyName on AppBarCommand
-                Object.defineProperty(AppBarCommand, propertyName, {
-                    get: function observable_get() {
-                        return getter();
-                    },
-                    set: function observable_set(value) {
-                        var oldValue = getter();
-                        setter(value);
-                        var newValue = getter();
-                        // Flyout property 
-                        if (oldValue !== value && oldValue !== newValue) {
-                            this._sendEvent(_Constants.propertyMutated,
-                                {
-                                    propertyName: propertyName,
-                                    oldValue: oldValue,
-                                    newValue: newValue,
-                                });
-                        }
-                    }
-                });
-            };
 
             var ObservablePropertyWhiteList = [
                 "label",
@@ -132,7 +95,7 @@ define([
                 get badPriority() { return "Invalid argument: the priority of an {0} must be a non-negative integer"; }
             };
 
-            return _Base.Class.define(function AppBarCommand_ctor(element, options) {
+            var AppBarCommand = _Base.Class.define(function AppBarCommand_ctor(element, options) {
                 /// <signature helpKeyword="WinJS.UI.AppBarCommand.AppBarCommand">
                 /// <summary locid="WinJS.UI.AppBarCommand.constructor">
                 /// Creates a new AppBarCommand control.
@@ -735,7 +698,52 @@ define([
                     event.initCustomEvent(eventName, true, true, (detail || {}));
                     return this._element.dispatchEvent(event);
                 },
+            }, {
+                _MutatedEvents: (function(){
+                    return _BaseUtils._merge({}, _Events.eventMixin)}())
             });
+
+            function makeObservable(command, propertyName) {
+                // Make a pre-existing AppBarCommand property observable by firing the "propertymutated"
+                // event whenever its value changes.
+
+                // Preserve inital value in JS closure variable
+                var _value = command[propertyName];
+
+                // Preserve original getter/setter if they exist, else use proxy functions.
+                var proto = command.constructor.prototype;
+                var originalDesc = getPropertyDescriptor(proto, propertyName) || {};
+                var getter = originalDesc.get.bind(command) || function getterProxy() {
+                    return _value
+                };
+                var setter = originalDesc.set.bind(command) || function setterProxy(newValue) {
+                    _value = newValue;
+                };
+
+                // Define new observable Get/Set for propertyName on command
+                Object.defineProperty(command, propertyName, {
+                    get: function observable_get() {
+                        return getter();
+                    },
+                    set: function observable_set(value) {
+                        var oldValue = getter();
+                        setter(value);
+                        var newValue = getter();
+                        // Flyout property 
+                        if (oldValue !== value && oldValue !== newValue) {
+                            AppBarCommand._MutatedEvents.dispatchEvent(_Constants.propertyMutated,
+                                {
+                                    command: command,
+                                    propertyName: propertyName,
+                                    oldValue: oldValue,
+                                    newValue: newValue,
+                                });
+                        }
+                    }
+                });
+            };
+
+            return AppBarCommand;
         })
     });
 
