@@ -58,7 +58,7 @@ define([
                 "selected",
                 "onclick",
                 "hidden",
-            ]
+            ];
 
             function _handleClick(event) {
                 /*jshint validthis: true */

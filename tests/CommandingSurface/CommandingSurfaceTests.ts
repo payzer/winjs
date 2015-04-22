@@ -1289,7 +1289,30 @@ module CorsicaTests {
             }, WinJS.Utilities.Scheduler.Priority.high);
         }
 
+        testDataMutationsAreProjectedToOverflowCommands() {
+            //var ObservablePropertyWhiteList = [
+            //    "label",
+            //    "disabled",
+            //    "flyout",
+            //    "extraClass",
+            //    "selected",
+            //    "onclick",
+            //    "hidden",
+            //];
+
+            var data = new WinJS.Binding.List([
+                new Command(null, { type: _Constants.typeButton, label: "button", extraClass: "myClass" }),
+                new Command(null, { type: _Constants.typeToggle, label: 'toggle' }),
+                new Command(null, { type: _Constants.typeFlyout, label: "flyout" }),
+            ]);
+            this._element.style.width = "10px";
+            var commandingSurface = new _CommandingSurface(this._element, { data: data, opened: true });
+            Helper._CommandingSurface.useSynchronousAnimations(commandingSurface);
+        }
+
         testSelectionAndGlobalSection() {
+            // Values of "global" and "selection" are deprecated starting in WinJS 4.0. 
+            // Makes sure they are both just parsed as "primary" commands.
             this._element.style.width = "1000px";
             var data = new WinJS.Binding.List([
                 new Command(null, { type: _Constants.typeButton, label: "opt 1", section: 'selection' }),
