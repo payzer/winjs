@@ -115,6 +115,13 @@ export interface ICommand {
     //#endregion Properties
 }
 
+export interface AppBarCommandPropertyMutatedEventObj {
+    command: ICommand;
+    oldValue: any;
+    newValue: any;
+    propertyName: string;
+}
+
 /**
  * Represents a command to be displayed in an app bar.
 **/

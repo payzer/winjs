@@ -134,6 +134,7 @@ export class _CommandingSurface {
     private _initializedSignal: _Signal<any>;
     private _isOpenedMode: boolean;
     private _overflowAlignmentOffset: number;
+    _layoutCompleteCallback: () => any;
 
     // Measurements
     private _cachedMeasurements: {
@@ -294,6 +295,8 @@ export class _CommandingSurface {
         // Event handlers
         _ElementUtilities._resizeNotifier.subscribe(this._dom.root, this._resizeHandlerBound);
         this._dom.root.addEventListener('keydown', this._keyDownHandler.bind(this));
+        this._dom.root.addEventListener(_Constants.EventNames.commandPropertyMutated,
+            this._propertyMutatedHandler.bind(this));
 
         // Exit the Init state.
         _ElementUtilities._inDom(this._dom.root).then(() => {
@@ -346,7 +349,8 @@ export class _CommandingSurface {
     }
 
     forceLayout(): void {
-        /// Forces the CommandingSurface to update its layout. Use this function when the window did not change size, but the container of the CommandingSurface changed size.
+        /// Forces the CommandingSurface to update its layout. Use this function when the window did not change 
+        /// size, but the container of the CommandingSurface changed size.
         this._meaurementsDirty();
         this._machine.updateDom();
     }
@@ -613,6 +617,10 @@ export class _CommandingSurface {
         }
     }
 
+    private _propertyMutatedHandler(ev: _Command.AppBarCommandPropertyMutatedEventObj) {
+        this._refresh();
+    }
+
     // Should be called while _CommandingSurface is rendered in its opened mode
     // Overridden by tests.
     private _playShowAnimation(): Promise<any> {
@@ -764,6 +772,10 @@ export class _CommandingSurface {
             }
         }
         this._nextLayoutStage = nextStage;
+        if (nextStage === CommandLayoutPipeline.idle) {
+            // Callback for unit tests.
+            this._layoutCompleteCallback && this._layoutCompleteCallback();
+        }
     }
 
     private _getDataChangeInfo(): IDataChangeInfo {

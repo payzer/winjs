@@ -360,8 +360,6 @@ module CorsicaTests {
     }
     function generateTests_ObservablePropertyTests() {
 
-        var _MutatedEvents = AppBarCommand._MutatedEvents;
-
         function runTestCases(testSuite: IObservablePropertyTestSuite) {
             var _Constants = { EventNames: { propertyMutated: "propertymutated" } };
             var mutatedEvent = _Constants.EventNames.propertyMutated;
@@ -419,9 +417,7 @@ module CorsicaTests {
             onclick1: () => { },
             onclick2: () => { },
             flyout1: <WinJS.UI.Flyout>undefined,
-            //flyout1ID: "flyout1",
             flyout2: <WinJS.UI.Flyout>undefined,
-            //flyout2ID: "flyout2",
         };
 
         var ObservablePropertyTestSuites: Array<IObservablePropertyTestSuite> = [

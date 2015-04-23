@@ -700,46 +700,6 @@ define([
                 },
             });
 
-            //function makeObservable(command, propertyName) {
-            //    // Make a pre-existing AppBarCommand property observable by firing the "propertymutated"
-            //    // event whenever its value changes.
-
-            //    // Preserve inital value in JS closure variable
-            //    var _value = command[propertyName];
-
-            //    // Preserve original getter/setter if they exist, else use proxy functions.
-            //    var proto = command.constructor.prototype;
-            //    var originalDesc = getPropertyDescriptor(proto, propertyName) || {};
-            //    var getter = originalDesc.get.bind(command) || function getterProxy() {
-            //        return _value
-            //    };
-            //    var setter = originalDesc.set.bind(command) || function setterProxy(newValue) {
-            //        _value = newValue;
-            //    };
-
-            //    // Define new observable Get/Set for propertyName on command
-            //    Object.defineProperty(command, propertyName, {
-            //        get: function observable_get() {
-            //            return getter();
-            //        },
-            //        set: function observable_set(value) {
-            //            var oldValue = getter();
-            //            setter(value);
-            //            var newValue = getter();
-            //            // Flyout property 
-            //            if (oldValue !== value && oldValue !== newValue) {
-            //                AppBarCommand._MutatedEvents.dispatchEvent(_Constants.propertyMutated,
-            //                    {
-            //                        command: command,
-            //                        propertyName: propertyName,
-            //                        oldValue: oldValue,
-            //                        newValue: newValue,
-            //                    });
-            //            }
-            //        }
-            //    });
-            //};
-
             function makeObservable(command, propertyName) {
                 // Make a pre-existing AppBarCommand property observable by firing the "propertymutated"
                 // event whenever its value changes.
@@ -775,10 +735,12 @@ define([
                             // Process value through the original setter & getter before deciding to send an event.
                             setter(value);
                             var newValue = getter();
-                            if (oldValue !== value && oldValue !== newValue) {
+                            if (oldValue !== value && oldValue !== newValue && !command._disposed) {
 
                                 var disabling = (affectedProperty === 'disabled' && newValue === true);
                                 if (disabling) {
+                                    // If we are being disabled, temporarily re-enable the element to allow our 
+                                    // custon event to fire.
                                     command.element.disabled = false;
                                 }
 
@@ -795,7 +757,6 @@ define([
                                 }
 
                             }
-
                             reEntrancyLock = false;
                         }
                     }

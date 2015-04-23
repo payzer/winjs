@@ -29,7 +29,9 @@ export var EventNames = {
     beforeOpen: "beforeopen",
     afterOpen: "afteropen",
     beforeClose: "beforeclose",
-    afterClose: "afterclose"
+    afterClose: "afterclose",
+
+    commandPropertyMutated: "propertymutated",
 };
 
 export var actionAreaCommandWidth = 68;

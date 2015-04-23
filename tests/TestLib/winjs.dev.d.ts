@@ -440,6 +440,7 @@ declare module WinJS {
                 overflowArea: HTMLElement;
             };
             _machine: IOpenCloseMachine;
+            _layoutCompleteCallback(): any;
         }
 
         class PrivateAppBar extends WinJS.UI.AppBar {
@@ -476,11 +477,6 @@ declare module WinJS {
             _disposed;
             _tooltipControl;
             _lastElementFocus;
-            static _MutatedEvents: {
-                addEventListener(type: string, listener: Function, useCapture?: boolean): void;
-                removeEventListener(type: string, listener: Function, useCapture?: boolean): void;
-                dispatchEvent(type: string, eventProperties: any): boolean;
-            };
         }
 
         /**
