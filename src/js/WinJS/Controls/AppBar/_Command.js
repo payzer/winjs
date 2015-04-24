@@ -678,6 +678,9 @@ define([
                 },
             });
 
+
+            // The list of AppBarCommand properties that we care about bubbling an event 
+            // for whenever they are changed after initiali construction.
             var ObservablePropertyWhiteList = [
                 "label",
                 "disabled",
@@ -752,7 +755,7 @@ define([
             };
 
             function getPropertyDescriptor(obj, propertyName) {
-                // Returns a matching property descriptor or null, 
+                // Returns a matching property descriptor, or null, 
                 // if no matching descriptor is found.
                 var desc = null;
                 while (obj && !desc) {

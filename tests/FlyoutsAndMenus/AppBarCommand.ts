@@ -8,6 +8,7 @@ module CorsicaTests {
 
     var PrivateLegacyAppBar = <typeof WinJS.UI.PrivateLegacyAppBar>WinJS.UI._LegacyAppBar;
     var AppBarCommand = <typeof WinJS.UI.PrivateCommand>WinJS.UI.AppBarCommand;
+    var _Constants = Helper.require("WinJS/Controls/_LegacyAppBar/_Constants");
 
     export class AppBarCommandTests {
         // Test AppBarCommand Instantiation
@@ -361,8 +362,7 @@ module CorsicaTests {
     function generateTests_ObservablePropertyTests() {
 
         function runTestCases(testSuite: IObservablePropertyTestSuite) {
-            var _Constants = { EventNames: { commandPropertyMutated: "_commandpropertymutated" } };
-            var mutatedEvent = _Constants.EventNames.commandPropertyMutated;
+            var mutatedEvent = _Constants.commandPropertyMutated;
 
             var button = document.createElement("button");
             var abc = new AppBarCommand(button);
@@ -384,7 +384,7 @@ module CorsicaTests {
                 mutatedEventFired = true;
             }
 
-            abc.addEventListener(_Constants.EventNames.commandPropertyMutated, verifyMutatedEvent, false);
+            abc.addEventListener(mutatedEvent, verifyMutatedEvent, false);
 
             // Run setup if provided
             testSuite.setUp && testSuite.setUp();
@@ -404,13 +404,13 @@ module CorsicaTests {
 
                 mutatedEventFired = false;
                 abc[propertyName] = currentTestCase.newValue;
-                LiveUnit.Assert.isTrue(mutatedEventFired, idPrefix + "" + _Constants.EventNames.commandPropertyMutated + "event failed to fire")
+                LiveUnit.Assert.isTrue(mutatedEventFired, idPrefix + "" + mutatedEvent + "event failed to fire")
             }
 
             // Run teardown if provided
             testSuite.tearDown && testSuite.tearDown();
 
-            abc.removeEventListener(_Constants.EventNames.commandPropertyMutated, verifyMutatedEvent, false);
+            abc.removeEventListener(mutatedEvent, verifyMutatedEvent, false);
         }
 
         var testData = {

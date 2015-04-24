@@ -119,7 +119,7 @@ export class _CommandingSurface {
     private _contentFlyoutInterior: HTMLElement; /* The reparented content node inside of _contentFlyout.element */
     private _hoverable = _Hoverable.isHoverable; /* force dependency on hoverable module */
     private _winKeyboard: _KeyboardBehavior._WinKeyboard;
-    private _refreshBound: Function;
+    private _refreshBound: () => void;
     private _resizeHandlerBound: (ev: any) => any;
     private _dataChangedEvents = ["itemchanged", "iteminserted", "itemmoved", "itemremoved", "reload"];
     private _machine: _OpenCloseMachine.OpenCloseMachine;
@@ -295,8 +295,7 @@ export class _CommandingSurface {
         // Event handlers
         _ElementUtilities._resizeNotifier.subscribe(this._dom.root, this._resizeHandlerBound);
         this._dom.root.addEventListener('keydown', this._keyDownHandler.bind(this));
-        this._dom.root.addEventListener(_Constants.EventNames.commandPropertyMutated,
-            this._commandPropertyMutatedHandler.bind(this));
+        this._dom.root.addEventListener(_Constants.EventNames.commandPropertyMutated, this._refreshBound);
 
         // Exit the Init state.
         _ElementUtilities._inDom(this._dom.root).then(() => {
@@ -615,10 +614,6 @@ export class _CommandingSurface {
                 this._machine.updateDom();
             }
         }
-    }
-
-    private _commandPropertyMutatedHandler(ev: _Command.AppBarCommandPropertyMutatedEventObj) {
-        this._refresh();
     }
 
     // Should be called while _CommandingSurface is rendered in its opened mode
