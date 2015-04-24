@@ -34,7 +34,7 @@ export var EventNames = {
     afterClose: "afterclose",
 
     // AppBarCommand
-    propertyMutated: "propertymutated",
+    commandPropertyMutated: "_commandpropertymutated",
 };
 
 export var controlMinWidth: number = _CommandingSurfaceConstants.controlMinWidth;

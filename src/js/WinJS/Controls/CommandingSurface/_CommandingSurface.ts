@@ -296,7 +296,7 @@ export class _CommandingSurface {
         _ElementUtilities._resizeNotifier.subscribe(this._dom.root, this._resizeHandlerBound);
         this._dom.root.addEventListener('keydown', this._keyDownHandler.bind(this));
         this._dom.root.addEventListener(_Constants.EventNames.commandPropertyMutated,
-            this._propertyMutatedHandler.bind(this));
+            this._commandPropertyMutatedHandler.bind(this));
 
         // Exit the Init state.
         _ElementUtilities._inDom(this._dom.root).then(() => {
@@ -617,7 +617,7 @@ export class _CommandingSurface {
         }
     }
 
-    private _propertyMutatedHandler(ev: _Command.AppBarCommandPropertyMutatedEventObj) {
+    private _commandPropertyMutatedHandler(ev: _Command.AppBarCommandPropertyMutatedEventObj) {
         this._refresh();
     }
 

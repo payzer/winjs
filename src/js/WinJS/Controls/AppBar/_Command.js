@@ -38,28 +38,6 @@ define([
         /// <resource type="css" src="//$(TARGET_DESTINATION)/css/ui-dark.css" shared="true" />
         AppBarCommand: _Base.Namespace._lazy(function () {
 
-            function getPropertyDescriptor(obj, propertyName) {
-                // Returns a matching property descriptor or null, 
-                // if no matching descriptor is found.
-                var desc = null;
-                while (obj && !desc) {
-                    desc = Object.getOwnPropertyDescriptor(obj, propertyName);
-                    obj = Object.getPrototypeOf(obj);
-                    // Walk obj's prototype chain until we find a match.
-                }
-                return desc;
-            }
-
-            var ObservablePropertyWhiteList = [
-                "label",
-                "disabled",
-                "flyout",
-                "extraClass",
-                "selected",
-                "onclick",
-                "hidden",
-            ];
-
             function _handleClick(event) {
                 /*jshint validthis: true */
                 var command = this.winControl;
@@ -700,8 +678,18 @@ define([
                 },
             });
 
+            var ObservablePropertyWhiteList = [
+                "label",
+                "disabled",
+                "flyout",
+                "extraClass",
+                "selected",
+                "onclick",
+                "hidden",
+            ];
+
             function makeObservable(command, propertyName) {
-                // Make a pre-existing AppBarCommand property observable by firing the "propertymutated"
+                // Make a pre-existing AppBarCommand property observable by firing the "_commandpropertymutated"
                 // event whenever its value changes.
 
                 // Preserve inital value in JS closure variable
@@ -744,7 +732,7 @@ define([
                                     command.element.disabled = false;
                                 }
 
-                                command._sendEvent(_Constants.propertyMutated,
+                                command._sendEvent(_Constants.commandPropertyMutated,
                                     {
                                         command: command,
                                         propertyName: propertyName,
@@ -762,6 +750,18 @@ define([
                     }
                 });
             };
+
+            function getPropertyDescriptor(obj, propertyName) {
+                // Returns a matching property descriptor or null, 
+                // if no matching descriptor is found.
+                var desc = null;
+                while (obj && !desc) {
+                    desc = Object.getOwnPropertyDescriptor(obj, propertyName);
+                    obj = Object.getPrototypeOf(obj);
+                    // Walk obj's prototype chain until we find a match.
+                }
+                return desc;
+            }
 
             return AppBarCommand;
         })
