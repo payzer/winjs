@@ -1,4 +1,3 @@
-/// <reference path="../appbar/_command.d.ts" />
 // Copyright (c) Microsoft Corporation.  All Rights Reserved. Licensed under the MIT License. See License.txt in the project root for license information.
 /// <reference path="../../Core.d.ts" />
 import Animations = require("../../Animations");
